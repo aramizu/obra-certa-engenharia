@@ -18,7 +18,7 @@ const oswald = Oswald({
 
 export const metadata: Metadata = {
   title: "Obra Certa Engenharia",
-  description: "Plataforma de gestão de obras e engenharia",
+  description: "Gestão completa de obras e orçamentos",
 };
 
 export default function RootLayout({
