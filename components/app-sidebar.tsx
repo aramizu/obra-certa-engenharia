@@ -71,7 +71,9 @@ function SidebarPanel({
 
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto" aria-label="Principal">
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === "/"
+            ? pathname === "/"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 
           return (

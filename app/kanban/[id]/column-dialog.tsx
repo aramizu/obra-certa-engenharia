@@ -45,7 +45,7 @@ export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: 
           <div className="space-y-4 px-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome *</Label>
-              <Input id="name" name="name" defaultValue={column?.name} required />
+              <Input id="name" name="name" defaultValue={column?.name} required className="bg-white" />
             </div>
           </div>
           <DialogFooter>

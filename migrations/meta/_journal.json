@@ -15,6 +15,13 @@
       "when": 1792270547118,
       "tag": "0001_wealthy_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792273780283,
+      "tag": "0002_acoustic_storm",
+      "breakpoints": true
     }
   ]
 }

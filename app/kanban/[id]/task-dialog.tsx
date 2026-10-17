@@ -28,18 +28,21 @@ export function TaskDialog({ open, onOpenChange, projectId, columnId, task }: Ta
     const data = {
       title: formData.get("title") as string,
       description: formData.get("description") as string || null,
+      assignee: formData.get("assignee") as string || null,
       taskType: formData.get("taskType") as string || "task",
+      startDate: formData.get("startDate") as string || null,
       dueDate: formData.get("dueDate") as string || null,
       columnId: columnId || task?.statusColumnId || null,
     };
 
     try {
       const url = task ? `/api/kanban/${projectId}/tasks/${task.id}` : `/api/kanban/${projectId}/tasks`;
-      await fetch(url, {
+      const response = await fetch(url, {
         method: task ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error();
       onOpenChange(false);
       router.refresh();
     } catch {
@@ -61,28 +64,47 @@ export function TaskDialog({ open, onOpenChange, projectId, columnId, task }: Ta
           <div className="space-y-4 px-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="title">Título *</Label>
-              <Input id="title" name="title" defaultValue={task?.title} required />
+              <Input id="title" name="title" defaultValue={task?.title} required className="bg-white" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
-              <textarea id="description" name="description" defaultValue={task?.description || ""} className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-background" />
+              <textarea
+                id="description"
+                name="description"
+                defaultValue={task?.description || ""}
+                className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="assignee">Responsável</Label>
+              <Input id="assignee" name="assignee" defaultValue={task?.assignee || ""} placeholder="Opcional" className="bg-white" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="taskType">Prioridade</Label>
+              <select
+                id="taskType"
+                name="taskType"
+                defaultValue={task?.taskType || "task"}
+                className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white"
+              >
+                <option value="task">Normal</option>
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="taskType">Prioridade</Label>
-                <select id="taskType" name="taskType" defaultValue={task?.taskType || "task"} className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background">
-                  <option value="task">Normal</option>
-                  <option value="low">Baixa</option>
-                  <option value="medium">Média</option>
-                  <option value="high">Alta</option>
-                </select>
+                <Label htmlFor="startDate">Início</Label>
+                <Input id="startDate" name="startDate" type="date" defaultValue={task?.startDate || ""} className="bg-white" />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="dueDate">Prazo</Label>
-                <Input id="dueDate" name="dueDate" type="date" defaultValue={task?.dueDate || ""} />
+                <Input id="dueDate" name="dueDate" type="date" defaultValue={task?.dueDate || ""} className="bg-white" />
               </div>
             </div>
           </div>

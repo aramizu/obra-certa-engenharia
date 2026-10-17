@@ -1,7 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
+import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { projects, tasks } from "@/lib/db/schema";
 import { eq, sql, desc } from "drizzle-orm";
@@ -30,16 +29,12 @@ export default async function KanbanPage() {
     .orderBy(desc(projects.createdAt));
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      <AppSidebar userName={user.name} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader 
-          title="Kanban"
-          description="Gerencie tarefas por obra estilo Trello"
-        />
-
-        <main className="flex-1 overflow-y-auto p-8">
+    <AppLayout
+      userName={user.name}
+      title="Kanban"
+      description="Gerencie tarefas por obra estilo Trello"
+    >
+      <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div>
               <h2 className="text-2xl font-semibold mb-2">
@@ -65,7 +60,7 @@ export default async function KanbanPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {userProjects.map((project) => (
                   <Link key={project.id} href={`/kanban/${project.id}`}>
-                    <Card className="h-full hover:border-accent transition-colors cursor-pointer">
+                    <Card className="h-full bg-white hover:border-accent transition-colors cursor-pointer">
                       <CardHeader className="flex flex-row items-start justify-between space-y-0">
                         <div className="flex-1">
                           <CardTitle className="text-base mb-1">{project.name}</CardTitle>
@@ -89,7 +84,6 @@ export default async function KanbanPage() {
             )}
           </div>
         </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,7 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
+import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -60,20 +59,18 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
     .orderBy(tasks.orderInColumn);
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      <AppSidebar userName={user.name} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader title={`Kanban - ${project.name}`} description="Gerencie suas tarefas" />
-
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-          <KanbanBoard 
-            projectId={project.id}
-            initialColumns={columns}
-            initialTasks={projectTasks}
-          />
-        </main>
-      </div>
-    </div>
+    <AppLayout
+      userName={user.name}
+      title={`Kanban - ${project.name}`}
+      description="Gerencie suas tarefas"
+    >
+      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6">
+        <KanbanBoard
+          projectId={project.id}
+          initialColumns={columns}
+          initialTasks={projectTasks}
+        />
+      </main>
+    </AppLayout>
   );
 }
