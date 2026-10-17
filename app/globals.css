@@ -8,8 +8,8 @@
   --card: 0 0% 100%; /* Clean white for cards */
   --card-foreground: 20 14% 12%;
 
-  --primary: 20 14% 12%; /* Charcoal for primary actions */
-  --primary-foreground: 28 15% 96%;
+  --primary: 37 90% 51%; /* Construction orange for primary actions */
+  --primary-foreground: 0 0% 100%;
 
   --secondary: 28 12% 90%; /* Light concrete */
   --secondary-foreground: 20 14% 12%;
@@ -17,7 +17,7 @@
   --muted: 25 10% 88%; /* Muted concrete */
   --muted-foreground: 25 8% 45%; /* Mid-tone gray */
 
-  --accent: 37 90% 51%; /* Construction orange - used sparingly */
+  --accent: 37 90% 51%; /* Construction orange */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;

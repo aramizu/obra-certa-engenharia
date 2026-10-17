@@ -55,8 +55,8 @@ export default function LoginPage() {
 
       {/* Form Panel */}
       <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-12 bg-background relative">
-        {/* Mobile: Top accent bar */}
-        <div className="lg:hidden absolute top-0 left-0 right-0 h-1 bg-accent" />
+        {/* Mobile: Top accent bar - made more prominent */}
+        <div className="lg:hidden absolute top-0 left-0 right-0 h-2 bg-accent" />
         
         <div className="w-full max-w-md">
           {/* Mobile: Compact header */}
@@ -71,7 +71,7 @@ export default function LoginPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-display text-2xl">Entrar</CardTitle>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Entrar</CardTitle>
               <CardDescription>
                 Acesse sua conta para gerenciar suas obras
               </CardDescription>

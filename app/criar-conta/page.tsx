@@ -52,8 +52,8 @@ export default function SignupPage() {
 
       {/* Form Panel */}
       <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-12 bg-background relative">
-        {/* Mobile: Top accent bar */}
-        <div className="lg:hidden absolute top-0 left-0 right-0 h-1 bg-accent" />
+        {/* Mobile: Top accent bar - made more prominent */}
+        <div className="lg:hidden absolute top-0 left-0 right-0 h-2 bg-accent" />
         
         <div className="w-full max-w-md">
           {/* Mobile: Compact header */}
@@ -68,7 +68,7 @@ export default function SignupPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-display text-2xl">Criar Conta</CardTitle>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Criar Conta</CardTitle>
               <CardDescription>
                 Comece a gerenciar suas obras de forma profissional
               </CardDescription>
