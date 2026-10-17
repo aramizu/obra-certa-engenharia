@@ -31,18 +31,19 @@ describe("Gantt calendar helpers", () => {
     expect(formatGanttDateRange(start, end, true)).toBe(start.toLocaleDateString("pt-BR"));
   });
 
-  it("usa as mesmas cores de badge do calendário com tokens Tailwind opacos", () => {
+  it("usa as mesmas cores de badge do calendário (identidade Obra Certa)", () => {
     for (const tone of Object.keys(GANTT_BAR_CLASS) as Array<keyof typeof GANTT_BAR_CLASS>) {
-      expect(GANTT_BAR_CLASS[tone]).not.toMatch(/bg-accent|bg-destructive/);
-      expect(GANTT_MILESTONE_CLASS[tone]).not.toMatch(/bg-accent|bg-destructive/);
+      expect(GANTT_BAR_CLASS[tone]).toBeTruthy();
+      expect(GANTT_MILESTONE_CLASS[tone]).toBeTruthy();
     }
-    expect(GANTT_BAR_CLASS.high).toContain("bg-red-100");
-    expect(GANTT_BAR_CLASS.medium).toContain("bg-amber-100");
-    expect(GANTT_BAR_CLASS.low).toContain("bg-sky-100");
-    expect(GANTT_BAR_CLASS.milestone).toContain("bg-orange-100");
-    expect(GANTT_BAR_CLASS.overdue).toContain("bg-red-600");
-    expect(GANTT_BAR_CLASS.overdue).toContain("text-white");
-    expect(GANTT_BAR_CLASS.done).toContain("bg-emerald-50");
+    expect(GANTT_BAR_CLASS.high).toContain("bg-delay-wash");
+    expect(GANTT_BAR_CLASS.medium).toContain("bg-signal-wash");
+    expect(GANTT_BAR_CLASS.low).toContain("bg-blueprint-wash");
+    expect(GANTT_BAR_CLASS.milestone).toContain("bg-primary");
+    expect(GANTT_BAR_CLASS.overdue).toContain("bg-delay");
+    expect(GANTT_BAR_CLASS.overdue).toContain("text-delay-ink");
+    expect(GANTT_BAR_CLASS.done).toContain("bg-done-wash");
+    expect(GANTT_BAR_CLASS.high).toEqual(expect.stringContaining("border-delay"));
   });
 
   it("deriva tom de atraso e concluída a partir da coluna", () => {

@@ -55,7 +55,7 @@ export function ProjectActions({ project }: ProjectActionsProps) {
               className="fixed inset-0 z-10 lg:left-64"
               onClick={() => setShowMenu(false)}
             />
-            <div className="absolute right-0 mt-2 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20">
+            <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-graphite ds-shadow z-20">
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted transition-colors"
                 onClick={() => {
@@ -93,7 +93,7 @@ export function ProjectActions({ project }: ProjectActionsProps) {
             className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setShowDeleteConfirm(false)}
           />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir a obra <strong>{project.name}</strong>?

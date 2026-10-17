@@ -228,7 +228,7 @@ export function GanttChart({
   return (
     <div className="flex h-full flex-col gap-3 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 bg-white border rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white border-2 border-graphite p-0">
           {(["day", "week", "month"] as Zoom[]).map((option) => (
             <Button
               key={option}
@@ -245,7 +245,7 @@ export function GanttChart({
             {canDrag ? "Arraste a barra para mover; nas bordas, redimensione." : "No celular, edite as datas pelo formulário."}
           </p>
           <Button size="sm" variant="outline" className="bg-white" onClick={() => openCreate(true)}>
-            <Diamond className="h-4 w-4 mr-1 text-orange-500" />Marco
+            <Diamond className="h-4 w-4 mr-1 text-primary" />Marco
           </Button>
           <Button size="sm" onClick={() => openCreate(false)}>
             <Plus className="h-4 w-4 mr-1" />Tarefa
@@ -253,17 +253,17 @@ export function GanttChart({
         </div>
       </div>
 
-      <div ref={scrollerRef} className="flex-1 min-h-0 overflow-auto border rounded-lg bg-white">
+      <div ref={scrollerRef} className="flex-1 min-h-0 overflow-auto border-2 border-graphite bg-white">
         <div className="relative" style={{ minWidth: LABEL_W + timelineW }}>
           <div
-            className="absolute top-0 bottom-0 z-20 w-0.5 bg-orange-500 pointer-events-none"
+            className="absolute top-0 bottom-0 z-20 w-0.5 bg-primary pointer-events-none"
             style={{ left: LABEL_W + todayOffset }}
             title="Hoje"
           />
 
           <div className="sticky top-0 z-30 flex border-b bg-white" style={{ height: HEADER_H }}>
             <div
-              className="sticky left-0 z-40 shrink-0 border-r bg-white px-3 flex items-end pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+              className="sticky left-0 z-40 shrink-0 border-r bg-white px-3 flex items-end pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
               style={{ width: LABEL_W }}
             >
               Tarefa
@@ -280,7 +280,7 @@ export function GanttChart({
                   </div>
                 ))}
               </div>
-              <div className="flex flex-1 text-[10px] text-neutral-500">
+              <div className="flex flex-1 text-[10px] text-muted-foreground">
                 {days.map((day) => {
                   const weekend = isWeekend(day);
                   const isToday = sameDay(day, todayDate);
@@ -293,7 +293,7 @@ export function GanttChart({
                     <div
                       key={formatISODate(day)}
                       className={`shrink-0 border-r h-full flex flex-col items-center justify-center leading-tight ${
-                        isToday ? "bg-orange-100 text-orange-900 font-semibold" : weekend ? "bg-stone-100" : ""
+                        isToday ? "bg-primary text-primary-foreground font-semibold" : weekend ? "bg-concrete" : ""
                       }`}
                       style={{ width: pxPerDay }}
                     >
@@ -332,7 +332,7 @@ export function GanttChart({
                     const y2 = succIndex * ROW_H + ROW_H / 2;
                     const elbow = x2 > x1 ? x1 + Math.max(16, (x2 - x1) / 3) : x1 + 20;
                     const conflict = dependencyConflict(succ, pred);
-                    const color = conflict ? "#dc2626" : "#3f3f46";
+                    const color = conflict ? "#ba241c" : "#282320";
                     return (
                       <g key={dep.id}>
                         <path
@@ -367,16 +367,16 @@ export function GanttChart({
                     <div key={task.id} className="relative flex border-b" style={{ height: ROW_H }}>
                       <button
                         type="button"
-                        className="sticky left-0 z-20 shrink-0 border-r bg-white px-3 flex items-center gap-2 text-left hover:bg-stone-50"
+                        className="sticky left-0 z-20 shrink-0 border-r bg-white px-3 flex items-center gap-2 text-left hover:bg-concrete"
                         style={{ width: LABEL_W }}
                         onClick={() => {
                           setEditingTask(task);
                           setDialogOpen(true);
                         }}
                       >
-                        {conflict && <AlertTriangle className="h-3.5 w-3.5 text-red-600 shrink-0" />}
-                        {isMilestoneTask(task) && <Diamond className="h-3.5 w-3.5 text-orange-500 shrink-0" />}
-                        <span className="truncate text-sm text-neutral-900">{task.title}</span>
+                        {conflict && <AlertTriangle className="h-3.5 w-3.5 text-delay shrink-0" />}
+                        {isMilestoneTask(task) && <Diamond className="h-3.5 w-3.5 text-primary shrink-0" />}
+                        <span className="truncate text-sm text-foreground">{task.title}</span>
                       </button>
                       <div
                         className="relative"
@@ -392,7 +392,7 @@ export function GanttChart({
                           <div
                             key={formatISODate(day)}
                             className={`absolute top-0 bottom-0 border-r pointer-events-none ${
-                              sameDay(day, todayDate) ? "bg-orange-50" : isWeekend(day) ? "bg-stone-100" : ""
+                              sameDay(day, todayDate) ? "bg-signal-wash" : isWeekend(day) ? "bg-concrete" : ""
                             }`}
                             style={{ left: diffDays(day, range.start) * pxPerDay, width: pxPerDay }}
                           />
@@ -403,7 +403,7 @@ export function GanttChart({
                               type="button"
                               className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-[3] h-4 w-4 rotate-45 border shadow-sm ${
                                 GANTT_MILESTONE_CLASS[tone]
-                              } ${conflict ? "ring-2 ring-red-600" : ""} ${canDrag ? "cursor-grab" : "cursor-pointer"}`}
+                              } ${conflict ? "ring-2 ring-delay" : ""} ${canDrag ? "cursor-grab" : "cursor-pointer"}`}
                               style={{ left: left + pxPerDay / 2 }}
                               title={tooltip}
                               onPointerDown={(event) => startDrag(event, task, "move")}
@@ -414,7 +414,7 @@ export function GanttChart({
                               }}
                             />
                             <span
-                              className="absolute top-1/2 -translate-y-1/2 z-[3] text-xs font-medium text-neutral-800 pointer-events-none truncate max-w-[10rem]"
+                              className="absolute top-1/2 -translate-y-1/2 z-[3] text-xs font-medium text-foreground pointer-events-none truncate max-w-[10rem]"
                               style={{ left: left + pxPerDay / 2 + 14 }}
                             >
                               {task.title}
@@ -423,9 +423,9 @@ export function GanttChart({
                         ) : schedule ? (
                           <>
                             <div
-                              className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 rounded-md border text-xs flex items-center overflow-visible shadow-sm ${
+                              className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 rounded-none border text-xs flex items-center overflow-visible font-display uppercase tracking-wide ${
                                 GANTT_BAR_CLASS[tone]
-                              } ${conflict ? "ring-2 ring-red-600" : ""} ${canDrag ? "cursor-grab" : "cursor-pointer"}`}
+                              } ${conflict ? "ring-2 ring-delay" : ""} ${canDrag ? "cursor-grab" : "cursor-pointer"}`}
                               style={{ left, width }}
                               title={tooltip}
                               onPointerDown={(event) => startDrag(event, task, "move")}
@@ -453,7 +453,7 @@ export function GanttChart({
                             </div>
                             {!labelInside && (
                               <span
-                                className="absolute top-1/2 -translate-y-1/2 z-[3] ml-1.5 text-xs font-medium text-neutral-800 pointer-events-none truncate max-w-[10rem]"
+                                className="absolute top-1/2 -translate-y-1/2 z-[3] ml-1.5 text-xs font-medium text-foreground pointer-events-none truncate max-w-[10rem]"
                                 style={{ left: left + width + 6 }}
                               >
                                 {task.title}
@@ -461,7 +461,7 @@ export function GanttChart({
                             )}
                           </>
                         ) : (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                             Sem datas — toque para definir
                           </span>
                         )}

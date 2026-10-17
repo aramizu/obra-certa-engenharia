@@ -6,6 +6,7 @@ import { projects, tasks } from "@/lib/db/schema";
 import { eq, sql, desc } from "drizzle-orm";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ds";
 import { GanttChart } from "lucide-react";
 
 export default async function GanttIndexPage() {
@@ -38,13 +39,12 @@ export default async function GanttIndexPage() {
           </div>
 
           {userProjects.length === 0 ? (
-            <Card className="bg-white">
-              <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-                <p className="text-lg text-muted-foreground mb-4">Nenhuma obra cadastrada ainda</p>
-                <p className="text-sm text-muted-foreground">
-                  Crie uma obra na seção <strong>Obras</strong> para usar o Gantt
-                </p>
-              </CardContent>
+            <Card>
+              <EmptyState
+                illustration="plan"
+                title="Nenhuma obra no Gantt"
+                description="Crie uma obra na seção Obras para ver o cronograma."
+              />
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

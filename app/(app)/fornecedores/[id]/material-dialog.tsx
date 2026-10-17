@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { Alert, Select, Textarea } from "@/components/ds";
 import { MATERIAL_UNITS, shouldShowQuantityPerUnit, getDefaultQuantity } from "@/lib/material-units";
 
 interface Project {
@@ -139,20 +140,18 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
           <div className="space-y-4 px-6 py-4">
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                {error}
-              </div>
+              <Alert tone="danger">{error}</Alert>
             )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="projectId">Obra *</Label>
-                <select
+                <Select
                   id="projectId"
                   name="projectId"
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
+                  className="h-10"
                   required
                 >
                   <option value="">Selecione uma obra</option>
@@ -161,16 +160,16 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                       {project.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="budgetCategoryId">Categoria do Orçamento</Label>
-                <select
+                <Select
                   id="budgetCategoryId"
                   name="budgetCategoryId"
                   defaultValue={material?.budgetCategoryId || ""}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
+                  className="h-10"
                   disabled={!selectedProject || categories.length === 0}
                 >
                   <option value="">Sem categoria</option>
@@ -179,7 +178,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                       {category.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 
@@ -207,7 +206,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="unit">Unidade *</Label>
-                <select
+                <Select
                   id="unit"
                   name="unit"
                   value={selectedUnit}
@@ -219,7 +218,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                       setQuantityPerUnit("");
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
+                  className="h-10"
                   required
                 >
                   {MATERIAL_UNITS.map((unit) => (
@@ -227,7 +226,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                       {unit.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {shouldShowQuantityPerUnit(selectedUnit) && (
@@ -274,7 +273,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
               <div className="space-y-2">
                 <Label>Total (R$)</Label>
-                <div className="px-3 py-2 text-sm rounded-md border border-input bg-muted font-data tabular-nums">
+                <div className="px-3 py-2 text-sm border-2 border-graphite bg-concrete font-mono tabular-nums">
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -286,17 +285,17 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
-                <select
+                <Select
                   id="status"
                   name="status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
+                  className="h-10"
                   required
                 >
                   <option value="quoted">Cotado</option>
                   <option value="purchased">Comprado</option>
-                </select>
+                </Select>
               </div>
 
               {status === "purchased" && (
@@ -314,12 +313,11 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observações</Label>
-              <textarea
+              <Textarea
                 id="notes"
                 name="notes"
                 defaultValue={material?.notes || ""}
                 placeholder="Informações adicionais sobre o material"
-                className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
               />
             </div>
           </div>

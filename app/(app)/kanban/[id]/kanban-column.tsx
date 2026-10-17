@@ -28,7 +28,7 @@ function DropPlaceholder({ height }: { height: number }) {
   return (
     <div
       data-drop-placeholder
-      className="rounded-lg border-2 border-dashed border-orange-400 bg-orange-50"
+      className="rounded-none border-2 border-dashed border-primary bg-signal-wash"
       style={{ height: Math.max(height, 48) }}
     />
   );
@@ -110,14 +110,14 @@ export function KanbanColumn({
     <>
       <div
         data-column-id={column.id}
-        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-lg bg-white border p-3 ${
-          isOver ? "ring-2 ring-orange-400 bg-orange-50/40" : ""
+        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-none bg-white border-2 border-graphite p-3 ${
+          isOver ? "ring-2 ring-primary bg-signal-wash" : ""
         }`}
       >
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="font-semibold text-sm uppercase tracking-wide truncate">{column.name}</h3>
-            <span className="text-xs text-muted-foreground bg-stone-100 px-2 py-0.5 rounded-full shrink-0">
+            <span className="text-[10px] font-mono text-foreground bg-concrete border-2 border-graphite px-2 py-0.5 shrink-0">
               {tasks.length}
             </span>
           </div>
@@ -128,23 +128,23 @@ export function KanbanColumn({
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10 lg:left-64" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 mt-1 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20 py-1">
+                <div className="absolute right-0 mt-1 w-48 bg-white border-2 border-graphite ds-shadow z-20 py-1">
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-stone-100 disabled:opacity-40"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
                     disabled={!canMoveLeft}
                     onClick={() => moveColumn("left")}
                   >
                     <ChevronLeft className="h-3 w-3" />Mover para esquerda
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-stone-100 disabled:opacity-40"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
                     disabled={!canMoveRight}
                     onClick={() => moveColumn("right")}
                   >
                     <ChevronRight className="h-3 w-3" />Mover para direita
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-stone-100"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete"
                     onClick={() => {
                       setShowMenu(false);
                       setShowEditDialog(true);
@@ -153,7 +153,7 @@ export function KanbanColumn({
                     <Pencil className="h-3 w-3" />Renomear
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-delay hover:bg-delay-wash disabled:opacity-40"
                     disabled={!canDelete}
                     onClick={() => {
                       setShowMenu(false);
@@ -183,7 +183,7 @@ export function KanbanColumn({
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setShowDeleteConfirm(false)} />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Excluir Coluna</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza? As tarefas desta raia ficam sem coluna até você movê-las de novo.

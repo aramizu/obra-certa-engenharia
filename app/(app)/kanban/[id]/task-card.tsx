@@ -15,16 +15,16 @@ interface TaskCardProps {
 }
 
 const priorityColors: Record<string, string> = {
-  high: "text-red-500",
-  medium: "text-yellow-500",
-  low: "text-blue-500",
+  high: "text-delay",
+  medium: "text-signal-ink",
+  low: "text-blueprint",
 };
 
 export function TaskCardBody({ task }: { task: Task }) {
   return (
     <CardContent className="p-3 space-y-2">
       <h4 className="font-medium text-sm flex items-center gap-1.5">
-        {task.isMilestone && <Diamond className="h-3 w-3 text-orange-500 shrink-0" />}
+        {task.isMilestone && <Diamond className="h-3 w-3 text-primary shrink-0" />}
         {task.title}
       </h4>
       {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
@@ -64,7 +64,7 @@ export function TaskCard({ task, projectId, isDragging, onPointerDown, shouldIgn
           if (shouldIgnoreClick(task.id)) return;
           setShowDialog(true);
         }}
-        className={`bg-white cursor-grab hover:border-orange-400 transition-colors select-none ${
+        className={`cursor-grab hover:border-primary select-none ${
           isDragging ? "opacity-40 cursor-grabbing" : ""
         }`}
         style={{ touchAction: "none" }}

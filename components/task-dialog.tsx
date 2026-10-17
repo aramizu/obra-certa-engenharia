@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, Textarea } from "@/components/ds";
 import type { Task } from "@/lib/db/schema";
 
 interface TaskDialogProps {
@@ -96,7 +97,7 @@ export function TaskDialog({
                   id="projectId"
                   name="projectId"
                   required
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white"
+                  className="w-full px-3 py-2 text-sm border-2 border-graphite bg-white"
                   defaultValue={projects?.length === 1 ? projects[0].id : ""}
                 >
                   <option value="" disabled>Selecione</option>
@@ -114,11 +115,10 @@ export function TaskDialog({
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
-              <textarea
+              <Textarea
                 id="description"
                 name="description"
                 defaultValue={task?.description || ""}
-                className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-white"
               />
             </div>
 
@@ -129,17 +129,16 @@ export function TaskDialog({
 
             <div className="space-y-2">
               <Label htmlFor="taskType">Prioridade</Label>
-              <select
+              <Select
                 id="taskType"
                 name="taskType"
                 defaultValue={task?.taskType || "task"}
-                className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white"
               >
                 <option value="task">Normal</option>
                 <option value="low">Baixa</option>
                 <option value="medium">Média</option>
                 <option value="high">Alta</option>
-              </select>
+              </Select>
             </div>
 
             <label className="flex items-center gap-2 text-sm">

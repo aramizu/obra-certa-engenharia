@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ds";
 import { Pencil, Trash2 } from "lucide-react";
 import { MaterialDialog } from "./material-dialog";
 import { getUnitLabel } from "@/lib/material-units";
@@ -113,22 +114,14 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
                         </span>
                       )}
                     </CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                      <span className="px-2 py-1 rounded-full bg-muted">
-                        {material.projectName}
-                      </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge>{material.projectName}</Badge>
                       {material.categoryName && (
-                        <span className="px-2 py-1 rounded-full bg-accent/10 text-accent-foreground">
-                          {material.categoryName}
-                        </span>
+                        <Badge tone="blueprint">{material.categoryName}</Badge>
                       )}
-                      <span className={`px-2 py-1 rounded-full ${
-                        material.status === "purchased" 
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-100"
-                      }`}>
+                      <Badge tone={material.status === "purchased" ? "purchased" : "quoted"}>
                         {material.status === "purchased" ? "Comprado" : "Cotado"}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -221,7 +214,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
             className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.

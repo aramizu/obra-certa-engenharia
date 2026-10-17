@@ -15,8 +15,39 @@ export default {
         ring: "var(--ring)",
         background: "var(--background)",
         foreground: "var(--foreground)",
+        graphite: {
+          DEFAULT: "var(--graphite)",
+          2: "var(--graphite-2)",
+        },
+        concrete: "var(--concrete)",
+        paper: "var(--paper)",
+        safety: {
+          DEFAULT: "var(--safety)",
+          ink: "var(--safety-ink)",
+        },
+        signal: {
+          DEFAULT: "var(--signal)",
+          ink: "var(--signal-ink)",
+          wash: "var(--signal-wash)",
+        },
+        blueprint: {
+          DEFAULT: "var(--blueprint)",
+          ink: "var(--blueprint-ink)",
+          wash: "var(--blueprint-wash)",
+        },
+        done: {
+          DEFAULT: "var(--done)",
+          ink: "var(--done-ink)",
+          wash: "var(--done-wash)",
+        },
+        delay: {
+          DEFAULT: "var(--delay)",
+          ink: "var(--delay-ink)",
+          wash: "var(--delay-wash)",
+        },
         primary: {
           DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
           foreground: "var(--primary-foreground)",
         },
         secondary: {
@@ -45,13 +76,18 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0px",
+        md: "0px",
+        sm: "0px",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         display: ["var(--font-oswald)", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        data: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      boxShadow: {
+        stamp: "4px 4px 0 0 var(--graphite)",
       },
     },
   },

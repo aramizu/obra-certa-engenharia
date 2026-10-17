@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Diamond } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, Tabs } from "@/components/ds";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { formatISODate, today } from "@/lib/date";
@@ -117,7 +118,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-4">
-      <div className="bg-white border rounded-lg p-3 lg:p-4 space-y-3">
+      <div className="bg-white border-2 border-graphite ds-shadow p-3 lg:p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2 justify-between">
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" onClick={() => go(-1)} aria-label="Anterior" className="bg-white">
@@ -128,28 +129,32 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <h2 className="text-lg lg:text-xl font-semibold capitalize text-center flex-1 min-w-[12rem]">
+          <h2 className="text-title capitalize text-center flex-1 min-w-[12rem]">
             {title}
           </h2>
-          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-            <Button size="sm" variant={view === "month" ? "default" : "ghost"} onClick={() => setView("month")}>Mês</Button>
-            <Button size="sm" variant={view === "week" ? "default" : "ghost"} onClick={() => setView("week")}>Semana</Button>
-          </div>
+          <Tabs
+            value={view}
+            onChange={(value) => setView(value as ViewMode)}
+            items={[
+              { value: "month", label: "Mês" },
+              { value: "week", label: "Semana" },
+            ]}
+          />
         </div>
 
         <div className="flex flex-wrap gap-3">
           <label className="text-sm flex items-center gap-2">
             <span className="text-muted-foreground">Obra</span>
-            <select
+            <Select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+              className="h-9 w-auto min-w-40"
             >
               <option value="all">Todas as obras</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>{project.name}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="text-sm flex items-center gap-2">
             <input
@@ -162,8 +167,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
         </div>
       </div>
 
-      <div className="hidden md:block bg-white border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-7 border-b bg-muted/40">
+      <div className="hidden md:block bg-white border-2 border-graphite overflow-hidden">
+        <div className="grid grid-cols-7 border-b bg-blueprint-wash">
           {WEEKDAY_LABELS.map((label) => (
             <div key={label} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">
               {label}
@@ -196,14 +201,14 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                     if (dayTasks.length === 0) openNew(day);
                   }
                 }}
-                className={`min-h-[7.5rem] border-r border-b p-1.5 text-left align-top hover:bg-muted/30 cursor-pointer ${
+                className={`min-h-[7.5rem] border-r border-b p-1.5 text-left align-top hover:bg-concrete cursor-pointer ${
                   view === "week" ? "min-h-0" : ""
-                } ${muted ? "bg-muted/20 text-muted-foreground" : "bg-white"}`}
+                } ${muted ? "bg-concrete text-muted-foreground" : "bg-white"}`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span
-                    className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${
-                      isToday ? "bg-accent text-accent-foreground font-semibold" : ""
+                    className={`text-sm w-7 h-7 flex items-center justify-center font-mono ${
+                      isToday ? "bg-primary text-primary-foreground font-semibold" : ""
                     }`}
                   >
                     {day.getDate()}
@@ -220,7 +225,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                         key={task.id}
                         type="button"
                         onClick={(event) => openTask(task, event)}
-                        className={`block w-full truncate rounded border px-1.5 py-0.5 text-[11px] leading-tight text-left ${BADGE_CLASS[tone]}`}
+                        className={`block w-full truncate border px-1.5 py-0.5 text-[11px] leading-tight text-left font-display uppercase tracking-wide ${BADGE_CLASS[tone]}`}
                         title={`${task.title}${task.isMilestone ? " · Marco" : ""}${task.projectName ? ` · ${task.projectName}` : ""}`}
                       >
                         {task.isMilestone && <Diamond className="inline h-3 w-3 mr-1 -mt-0.5" />}
@@ -240,8 +245,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
       <div className="md:hidden space-y-4">
         {view === "month" ? (
-          <div className="bg-white border rounded-lg overflow-hidden">
-            <div className="grid grid-cols-7 border-b bg-muted/40">
+          <div className="bg-white border-2 border-graphite overflow-hidden">
+            <div className="grid grid-cols-7 border-b bg-blueprint-wash">
               {WEEKDAY_LABELS.map((label) => (
                 <div key={label} className="py-2 text-[11px] font-semibold text-center text-muted-foreground">
                   {label}
@@ -269,9 +274,9 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                     }}
                     className={`h-14 border-r border-b flex flex-col items-center justify-center gap-1 ${
                       muted ? "text-muted-foreground" : ""
-                    } ${isSelected ? "bg-accent/10" : "bg-white"}`}
+                    } ${isSelected ? "bg-blueprint-wash" : "bg-white"}`}
                   >
-                    <span className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${isToday ? "bg-accent text-accent-foreground font-semibold" : ""}`}>
+                    <span className={`text-sm w-7 h-7 flex items-center justify-center font-mono ${isToday ? "bg-primary text-primary-foreground font-semibold" : ""}`}>
                       {day.getDate()}
                     </span>
                     <span className="flex gap-0.5 h-1.5">
@@ -295,7 +300,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                   key={iso}
                   type="button"
                   onClick={() => setSelected(day)}
-                  className={`w-full text-left bg-white border rounded-lg p-3 ${sameDay(day, selected) ? "ring-2 ring-accent" : ""}`}
+                  className={`w-full text-left bg-white border-2 border-graphite p-3 ${sameDay(day, selected) ? "ring-2 ring-primary" : ""}`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className={`text-sm font-medium capitalize ${isToday ? "text-accent" : ""}`}>
@@ -308,7 +313,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {dayTasks.slice(0, 4).map((task) => (
-                        <span key={task.id} className={`text-[11px] rounded border px-1.5 py-0.5 ${BADGE_CLASS[taskBadgeTone(task, task.columnName, todayIso)]}`}>
+                        <span key={task.id} className={`text-[11px] border px-1.5 py-0.5 font-display uppercase tracking-wide ${BADGE_CLASS[taskBadgeTone(task, task.columnName, todayIso)]}`}>
                           {task.title}
                         </span>
                       ))}
@@ -320,7 +325,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
           </div>
         )}
 
-        <div className="bg-white border rounded-lg p-4 space-y-3">
+        <div className="bg-white border-2 border-graphite ds-shadow p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold capitalize">
               {selected.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
@@ -340,7 +345,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                     <button
                       type="button"
                       onClick={() => openTask(task)}
-                      className={`w-full text-left rounded-md border px-3 py-2 ${BADGE_CLASS[tone]}`}
+                      className={`w-full text-left border px-3 py-2 ${BADGE_CLASS[tone]}`}
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}
@@ -357,12 +362,12 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
       </div>
 
       <div className="hidden md:flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.high}`}>Alta</span>
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.medium}`}>Média</span>
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.low}`}>Baixa</span>
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.milestone}`}>Marco</span>
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.overdue}`}>Atrasada</span>
-        <span className={`rounded border px-2 py-0.5 ${BADGE_CLASS.done}`}>Concluída</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.high}`}>Alta</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.medium}`}>Média</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.low}`}>Baixa</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.milestone}`}>Marco</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.overdue}`}>Atrasada</span>
+        <span className={`border px-2 py-0.5 ${BADGE_CLASS.done}`}>Concluída</span>
       </div>
 
       <TaskDialog

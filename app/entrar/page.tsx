@@ -48,7 +48,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <Card className="shadow-2xl bg-white">
+        <Card className="ds-plain shadow-2xl bg-white">
           <CardHeader>
             <CardTitle className="font-display text-2xl uppercase tracking-wide">Entrar</CardTitle>
             <CardDescription>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ds";
 import type { Project } from "@/lib/db/schema";
 import { Calendar, MapPin } from "lucide-react";
 
@@ -13,14 +14,11 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   if (projects.length === 0) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-          <p className="text-lg text-muted-foreground mb-4">
-            Nenhuma obra cadastrada ainda
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Clique em <strong>Nova Obra</strong> para começar
-          </p>
-        </CardContent>
+        <EmptyState
+          illustration="plan"
+          title="Nenhuma obra cadastrada"
+          description="Clique em Nova Obra para abrir a primeira prancha do canteiro."
+        />
       </Card>
     );
   }
