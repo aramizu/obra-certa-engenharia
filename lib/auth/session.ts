@@ -110,8 +110,14 @@ export async function validateSession(): Promise<SessionUser | null> {
       .set({ expiresAt: newExpiresAt, updatedAt: new Date() })
       .where(eq(sessions.id, session.id));
 
-    // Atualizar cookie com nova expiração
-    await setSessionCookie(token);
+    // Atualizar cookie com nova expiração. Em Server Components o Next.js
+    // não permite alterar cookies; nesse caso a renovação do cookie ocorre
+    // no próximo Route Handler / Server Action.
+    try {
+      await setSessionCookie(token);
+    } catch {
+      // ignorado: contexto somente leitura (Server Component)
+    }
   }
 
   return {

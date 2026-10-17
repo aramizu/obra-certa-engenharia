@@ -38,7 +38,14 @@ export function LoginForm() {
         return;
       }
 
-      const redirect = searchParams.get("redirect") || "/";
+      // Aceitar apenas caminhos internos (evita open redirect)
+      const requested = searchParams.get("redirect") || "/";
+      const redirect =
+        requested.startsWith("/") &&
+        !requested.startsWith("//") &&
+        !requested.startsWith("/\\")
+          ? requested
+          : "/";
       router.push(redirect);
       router.refresh();
     } catch (err) {

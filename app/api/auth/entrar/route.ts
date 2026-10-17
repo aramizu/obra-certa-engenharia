@@ -7,6 +7,10 @@ import { createSession, setSessionCookie } from "@/lib/auth/session";
 import { checkRateLimit, recordAttempt, resetRateLimit } from "@/lib/auth/rate-limit";
 import { z } from "zod";
 
+// Hash bcrypt (custo 12) de um valor aleatório descartável, usado só para timing
+const DUMMY_PASSWORD_HASH =
+  "$2a$12$ch91XLcYXe5r07cEzL04BuiYePg7DDTuMI085nELoKDb.Q/NIus5e";
+
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "Senha é obrigatória"),
@@ -56,7 +60,13 @@ export async function POST(request: NextRequest) {
 
     // Verificar se usuário existe e senha está correta
     // Usar mesma mensagem genérica para ambos os casos (evitar enumeração)
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    // Sempre executar bcrypt (hash fictício se usuário não existe) para
+    // manter tempo de resposta constante e evitar enumeração por timing
+    const passwordOk = await verifyPassword(
+      password,
+      user?.passwordHash ?? DUMMY_PASSWORD_HASH
+    );
+    if (!user || !passwordOk) {
       // Registrar tentativa falhada
       await recordAttempt(ip, "login");
 
