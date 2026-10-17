@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  /* Professional neutral palette for financial dashboards */
-  --background: 0 0% 100%;
-  --foreground: 220 13% 13%;
+  /* Construction-inspired concrete and steel palette */
+  --background: 28 15% 96%; /* Warm concrete */
+  --foreground: 20 14% 12%; /* Deep charcoal */
 
-  --card: 0 0% 100%;
-  --card-foreground: 220 13% 13%;
+  --card: 0 0% 100%; /* Clean white for cards */
+  --card-foreground: 20 14% 12%;
 
-  --primary: 220 13% 13%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 20 14% 12%; /* Charcoal for primary actions */
+  --primary-foreground: 28 15% 96%;
 
-  --secondary: 220 9% 96%;
-  --secondary-foreground: 220 13% 13%;
+  --secondary: 28 12% 90%; /* Light concrete */
+  --secondary-foreground: 20 14% 12%;
 
-  --muted: 220 9% 96%;
-  --muted-foreground: 220 9% 46%;
+  --muted: 25 10% 88%; /* Muted concrete */
+  --muted-foreground: 25 8% 45%; /* Mid-tone gray */
 
-  --accent: 220 9% 96%;
-  --accent-foreground: 220 13% 13%;
+  --accent: 37 90% 51%; /* Construction orange - used sparingly */
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 220 13% 13%;
+  --border: 28 12% 85%; /* Concrete border */
+  --input: 28 12% 90%;
+  --ring: 37 90% 51%; /* Orange focus ring */
 
   --radius: 0.375rem;
 }
@@ -37,26 +37,40 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
-/* Typography scale for data-heavy interfaces */
+/* Typography scale with technical display font */
 .text-display {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 2.25rem;
+  line-height: 2.5rem;
   font-weight: 600;
-  letter-spacing: -0.025em;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
 }
 
 .text-heading {
-  font-size: 1.5rem;
-  line-height: 2rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
   font-weight: 600;
-  letter-spacing: -0.025em;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
 }
 
 .text-title {
-  font-size: 1.125rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 1.25rem;
   line-height: 1.75rem;
   font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+/* Tabular numbers for financial data */
+.tabular-nums {
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
 }

@@ -13,14 +13,14 @@ export default async function HomePage() {
   const firstName = user.name.split(" ")[0];
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
+    <div className="min-h-screen flex flex-col">
       <AppHeader userName={user.name} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Welcome Section */}
           <div>
-            <h2 className="text-heading mb-2">
+            <h2 className="text-heading text-2xl mb-2">
               Olá, {firstName}
             </h2>
             <p className="text-muted-foreground">
@@ -32,8 +32,8 @@ export default async function HomePage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="pb-3">
-                <CardDescription>Obras Ativas</CardDescription>
-                <CardTitle className="text-3xl font-semibold tabular-nums">
+                <CardDescription className="text-xs uppercase tracking-wider">Obras Ativas</CardDescription>
+                <CardTitle className="text-4xl font-semibold tabular-nums">
                   —
                 </CardTitle>
               </CardHeader>
@@ -46,8 +46,8 @@ export default async function HomePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardDescription>Orçamento Total</CardDescription>
-                <CardTitle className="text-3xl font-semibold tabular-nums">
+                <CardDescription className="text-xs uppercase tracking-wider">Orçamento Total</CardDescription>
+                <CardTitle className="text-4xl font-semibold tabular-nums">
                   —
                 </CardTitle>
               </CardHeader>
@@ -60,8 +60,8 @@ export default async function HomePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardDescription>Custos Executados</CardDescription>
-                <CardTitle className="text-3xl font-semibold tabular-nums">
+                <CardDescription className="text-xs uppercase tracking-wider">Custos Executados</CardDescription>
+                <CardTitle className="text-4xl font-semibold tabular-nums">
                   —
                 </CardTitle>
               </CardHeader>
@@ -76,7 +76,7 @@ export default async function HomePage() {
           {/* Main Content Area - Ready for Charts and Tables */}
           <Card>
             <CardHeader>
-              <CardTitle>Visão Geral Financeira</CardTitle>
+              <CardTitle className="font-display text-xl">Visão Geral Financeira</CardTitle>
               <CardDescription>
                 Acompanhamento de custos e orçamento das obras
               </CardDescription>
