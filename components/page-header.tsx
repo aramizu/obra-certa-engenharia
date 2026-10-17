@@ -32,6 +32,9 @@ export function titleFromPath(pathname: string): PageHeaderState {
   if (pathname.startsWith("/calendario")) {
     return { title: "Calendário", description: "Agenda mensal e semanal das tarefas com data" };
   }
+  if (pathname.startsWith("/design-system")) {
+    return { title: "Sistema gráfico", description: "Identidade Obra Certa — prancha de componentes" };
+  }
   return { title: "Obra Certa" };
 }
 

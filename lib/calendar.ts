@@ -73,44 +73,44 @@ export function taskBadgeTone(
 }
 
 export const BADGE_CLASS: Record<BadgeTone, string> = {
-  high: "bg-red-100 text-red-800 border-red-200",
-  medium: "bg-amber-100 text-amber-900 border-amber-200",
-  low: "bg-sky-100 text-sky-800 border-sky-200",
-  normal: "bg-neutral-100 text-neutral-800 border-neutral-200",
-  milestone: "bg-orange-100 text-orange-900 border-orange-300 font-semibold",
-  overdue: "bg-destructive text-destructive-foreground border-destructive",
-  done: "bg-emerald-50 text-emerald-800 border-emerald-200 line-through opacity-80",
+  high: "bg-delay-wash text-delay border-2 border-delay",
+  medium: "bg-signal-wash text-signal-ink border-2 border-graphite",
+  low: "bg-blueprint-wash text-blueprint border-2 border-blueprint",
+  normal: "bg-white text-foreground border-2 border-graphite",
+  milestone: "bg-primary text-primary-foreground border-2 border-graphite font-semibold",
+  overdue: "bg-delay text-delay-ink border-2 border-graphite",
+  done: "bg-done-wash text-done border-2 border-done line-through",
 };
 
 export const DOT_CLASS: Record<BadgeTone, string> = {
-  high: "bg-red-500",
-  medium: "bg-amber-500",
-  low: "bg-sky-500",
-  normal: "bg-neutral-400",
-  milestone: "bg-accent",
-  overdue: "bg-destructive",
-  done: "bg-emerald-500",
+  high: "bg-delay",
+  medium: "bg-signal",
+  low: "bg-blueprint",
+  normal: "bg-graphite-2",
+  milestone: "bg-primary",
+  overdue: "bg-delay",
+  done: "bg-done",
 };
 
-/** Opaque Tailwind colors matching calendar badges. Avoids theme tokens (bg-accent / bg-destructive) that render transparent in this Tailwind v4 setup. */
+/** Same palette as calendar badges, as opaque Gantt bars. */
 export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
-  high: "bg-red-100 text-red-800 border-red-200",
-  medium: "bg-amber-100 text-amber-900 border-amber-200",
-  low: "bg-sky-100 text-sky-800 border-sky-200",
-  normal: "bg-neutral-100 text-neutral-800 border-neutral-200",
-  milestone: "bg-orange-100 text-orange-900 border-orange-300 font-semibold",
-  overdue: "bg-red-600 text-white border-red-700",
-  done: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  high: "bg-delay-wash text-delay border-2 border-delay",
+  medium: "bg-signal-wash text-signal-ink border-2 border-graphite",
+  low: "bg-blueprint-wash text-blueprint border-2 border-blueprint",
+  normal: "bg-white text-foreground border-2 border-graphite",
+  milestone: "bg-primary text-primary-foreground border-2 border-graphite font-semibold",
+  overdue: "bg-delay text-delay-ink border-2 border-graphite",
+  done: "bg-done-wash text-done border-2 border-done",
 };
 
 export const GANTT_MILESTONE_CLASS: Record<BadgeTone, string> = {
-  high: "bg-red-500 border-red-600",
-  medium: "bg-amber-500 border-amber-600",
-  low: "bg-sky-500 border-sky-600",
-  normal: "bg-neutral-400 border-neutral-500",
-  milestone: "bg-orange-500 border-orange-600",
-  overdue: "bg-red-600 border-red-700",
-  done: "bg-emerald-500 border-emerald-600",
+  high: "bg-delay border-graphite",
+  medium: "bg-signal border-graphite",
+  low: "bg-blueprint border-graphite",
+  normal: "bg-graphite-2 border-graphite",
+  milestone: "bg-primary border-graphite",
+  overdue: "bg-delay border-graphite",
+  done: "bg-done border-graphite",
 };
 
 export const GANTT_MIN_INNER_LABEL_PX = 80;

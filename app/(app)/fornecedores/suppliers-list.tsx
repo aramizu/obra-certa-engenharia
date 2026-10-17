@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ds";
 import { Pencil, Trash2, Phone, Mail, User } from "lucide-react";
 import { SupplierDialog } from "./supplier-dialog";
 import type { Supplier } from "@/lib/db/schema";
@@ -43,14 +44,11 @@ export function SuppliersList({ suppliers }: SuppliersListProps) {
   if (suppliers.length === 0) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center h-64 text-center">
-          <p className="text-lg text-muted-foreground mb-4">
-            Nenhum fornecedor cadastrado ainda
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Clique em <strong>Novo Fornecedor</strong> para começar
-          </p>
-        </CardContent>
+        <EmptyState
+          illustration="tape"
+          title="Nenhum fornecedor cadastrado"
+          description="Clique em Novo Fornecedor para começar o cadastro de materiais."
+        />
       </Card>
     );
   }
@@ -127,7 +125,7 @@ export function SuppliersList({ suppliers }: SuppliersListProps) {
             className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir este fornecedor? Esta ação não pode ser desfeita.

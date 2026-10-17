@@ -138,7 +138,7 @@ export function GanttTaskDialog({
                 id="gantt-description"
                 name="description"
                 defaultValue={task?.description || ""}
-                className="w-full min-h-[72px] px-3 py-2 text-sm rounded-md border border-input bg-white"
+                className="w-full min-h-[72px] px-3 py-2 text-sm border-2 border-graphite bg-white"
               />
             </div>
 
@@ -174,7 +174,7 @@ export function GanttTaskDialog({
               {otherTasks.length === 0 ? (
                 <p className="text-xs text-muted-foreground">Cadastre outras tarefas para ligar dependências.</p>
               ) : (
-                <div className="max-h-40 overflow-y-auto border rounded-md bg-white p-2 space-y-1">
+                <div className="max-h-40 overflow-y-auto border-2 border-graphite bg-white p-2 space-y-1">
                   {otherTasks.map((item) => (
                     <label key={item.id} className="flex items-center gap-2 text-sm">
                       <input

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState, ProgressBar } from "@/components/ds";
 import { Pencil, Trash2, GripVertical } from "lucide-react";
 import { CategoryDialog } from "./category-dialog";
 
@@ -50,11 +51,11 @@ export function BudgetCategoriesList({ projectId, categories }: BudgetCategories
   if (categories.length === 0) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center h-32 text-center">
-          <p className="text-sm text-muted-foreground">
-            Nenhuma categoria cadastrada. Clique em <strong>Nova Categoria</strong> para começar.
-          </p>
-        </CardContent>
+        <EmptyState
+          illustration="plan"
+          title="Nenhuma categoria"
+          description="Clique em Nova Categoria para organizar o orçamento da obra."
+        />
       </Card>
     );
   }
@@ -124,15 +125,8 @@ export function BudgetCategoriesList({ projectId, categories }: BudgetCategories
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                        <div 
-                          className={`h-full transition-all ${
-                            percentage > 100 ? "bg-destructive" : "bg-accent"
-                          }`}
-                          style={{ width: `${Math.min(percentage, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-data tabular-nums text-muted-foreground min-w-[3ch]">
+                      <ProgressBar value={percentage} className="flex-1" />
+                      <span className="text-xs font-mono tabular-nums text-muted-foreground min-w-[3ch]">
                         {percentage.toFixed(0)}%
                       </span>
                     </div>
@@ -159,7 +153,7 @@ export function BudgetCategoriesList({ projectId, categories }: BudgetCategories
             className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.

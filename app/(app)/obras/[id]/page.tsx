@@ -7,6 +7,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { ProjectActions } from "./project-actions";
 import { BudgetCategoriesList } from "./budget-categories-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressBar } from "@/components/ds";
 import { CreateCategoryButton } from "./create-category-button";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -108,15 +109,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                      <div 
-                        className={`h-full transition-all ${
-                          spentPercentage > 100 ? "bg-destructive" : "bg-accent"
-                        }`}
-                        style={{ width: `${Math.min(spentPercentage, 100)}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-data tabular-nums text-muted-foreground">
+                    <ProgressBar value={spentPercentage} className="flex-1" />
+                    <span className="text-xs font-mono tabular-nums text-muted-foreground">
                       {spentPercentage.toFixed(0)}%
                     </span>
                   </div>

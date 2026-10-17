@@ -72,7 +72,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
 
           <div className="space-y-4 px-6 py-4">
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-sm text-delay border-2 border-delay bg-delay-wash p-3">
                 {error}
               </div>
             )}

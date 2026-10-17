@@ -16,10 +16,10 @@ function AppShell({ userName, children }: AppLayoutProps) {
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
   return (
-    <div className="flex h-screen bg-muted/30">
+    <div className="flex h-screen bg-graphite">
       <AppSidebar userName={userName} variant="desktop" />
 
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-background">
         <AppHeader
           title={header.title}
           description={header.description}
@@ -27,7 +27,7 @@ function AppShell({ userName, children }: AppLayoutProps) {
           isMenuOpen={isSidebarOpen}
         />
 
-        <div className="relative flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="relative flex-1 flex flex-col overflow-hidden min-h-0 ds-blueprint-grid">
           <AppSidebar
             userName={userName}
             variant="mobile"

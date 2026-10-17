@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Diamond, Package, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { EmptyState, Select, StatCard } from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
@@ -136,17 +137,17 @@ export function DashboardView({ userName, projects, tasks, materials, categories
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label className="text-sm flex items-center gap-2">
-          <span className="text-muted-foreground">Obra</span>
-          <select
+          <span className="text-label">Obra</span>
+          <Select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+            className="h-9 w-auto min-w-40"
           >
             <option value="all">Todas as obras</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>{project.name}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <div className="flex flex-wrap gap-2">
           <Link href="/obras" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
@@ -162,86 +163,43 @@ export function DashboardView({ userName, projects, tasks, materials, categories
       </div>
 
       {!hasProjects && (
-        <Card className="bg-white">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <p className="text-lg text-muted-foreground">Nenhuma obra cadastrada ainda</p>
-            <p className="text-sm text-muted-foreground">Comece pelo cadastro da obra para acompanhar orçamento, tarefas e compras.</p>
-            <Link href="/obras" className={buttonVariants()}>Criar obra</Link>
-          </CardContent>
+        <Card>
+          <EmptyState
+            illustration="helmet"
+            title="Nenhuma obra no canteiro"
+            description="Comece pelo cadastro da obra para acompanhar orçamento, tarefas e compras."
+            action={<Link href="/obras" className={buttonVariants()}>Criar obra</Link>}
+          />
         </Card>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Orçamento total</CardDescription>
-            <CardTitle className="text-2xl font-data tabular-nums">{formatBRL(budgetBase, true)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Previsto {formatBRL(planned || budgetBase, true)}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Gasto em materiais</CardDescription>
-            <CardTitle className="text-2xl font-data tabular-nums">{formatBRL(spent, true)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Compras marcadas como compradas</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Saldo</CardDescription>
-            <CardTitle className={`text-2xl font-data tabular-nums ${remaining < 0 ? "text-destructive" : ""}`}>
-              {formatBRL(remaining, true)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                <div className={`h-full ${usedPct > 100 ? "bg-destructive" : "bg-accent"}`} style={{ width: `${Math.min(usedPct, 100)}%` }} />
-              </div>
-              <span className="text-xs font-data tabular-nums text-muted-foreground">{usedPct.toFixed(0)}%</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Próximo marco</CardDescription>
-            <CardTitle className="text-lg leading-snug">
-              {nextMilestone ? nextMilestone.title : "Nenhum marco à frente"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              {nextMilestone
-                ? `${dueIso(nextMilestone) && new Date(dueIso(nextMilestone)! + "T00:00:00").toLocaleDateString("pt-BR")} · ${nextMilestone.projectName}`
-                : "Cadastre um marco no Gantt ou no Kanban"}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard label="Orçamento total" value={formatBRL(budgetBase, true)} stamp="FIN" hint={`Previsto ${formatBRL(planned || budgetBase, true)}`} />
+        <StatCard label="Gasto em materiais" value={formatBRL(spent, true)} stamp="MAT" hint="Compras marcadas como compradas" />
+        <StatCard
+          label="Saldo"
+          value={formatBRL(remaining, true)}
+          stamp="SALDO"
+          progress={usedPct}
+          valueClassName={remaining < 0 ? "text-delay" : ""}
+          hint={`${usedPct.toFixed(0)}% do orçamento`}
+        />
+        <StatCard
+          label="Próximo marco"
+          value={nextMilestone ? nextMilestone.title : "—"}
+          stamp="MARCO"
+          hint={
+            nextMilestone
+              ? `${dueIso(nextMilestone) && new Date(dueIso(nextMilestone)! + "T00:00:00").toLocaleDateString("pt-BR")} · ${nextMilestone.projectName}`
+              : "Cadastre um marco no Gantt ou no Kanban"
+          }
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Tarefas abertas</CardDescription>
-            <CardTitle className="text-3xl font-data tabular-nums">{openTasks.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Atrasadas</CardDescription>
-            <CardTitle className="text-3xl font-data tabular-nums text-destructive">{overdue.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="bg-white">
-          <CardHeader className="pb-2">
-            <CardDescription>Vencem em 7 dias</CardDescription>
-            <CardTitle className="text-3xl font-data tabular-nums">{dueSoon.length}</CardTitle>
-          </CardHeader>
-        </Card>
+        <StatCard label="Tarefas abertas" value={openTasks.length} stamp="ABR" />
+        <StatCard label="Atrasadas" value={overdue.length} stamp="ATR" valueClassName="text-delay" />
+        <StatCard label="Vencem em 7 dias" value={dueSoon.length} stamp="7D" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -268,7 +226,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                       <button
                         type="button"
                         onClick={() => openTask(task)}
-                        className={`w-full text-left rounded-md border px-3 py-2 ${BADGE_CLASS[tone]}`}
+                        className={`w-full text-left border px-3 py-2 ${BADGE_CLASS[tone]}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-sm truncate">{task.title}</span>
@@ -308,7 +266,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                     <button
                       type="button"
                       onClick={() => openTask(task)}
-                      className="w-full text-left rounded-md border bg-white px-3 py-2 hover:border-accent"
+                      className="w-full text-left border-2 border-graphite bg-white px-3 py-2 hover:border-primary"
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5 text-accent" />}
@@ -348,7 +306,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           ) : (
             <ul className="space-y-2">
               {toBuy.slice(0, 10).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-3 rounded-md border bg-white px-3 py-2">
+                <li key={item.id} className="flex items-center justify-between gap-3 border-2 border-graphite bg-white px-3 py-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}{item.brand ? ` · ${item.brand}` : ""}</p>
                     <p className="text-xs text-muted-foreground truncate">{item.projectName}</p>

@@ -6,16 +6,18 @@ import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import {
   Home,
   Building2,
-  DollarSign,
+  HardHat,
   Package,
   KanbanSquare,
   GanttChart,
   Calendar,
   LogOut,
   X,
+  Ruler,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Stamp } from "@/components/ds";
+import { cn, iconStroke } from "@/components/ds/cn";
 
 interface AppSidebarProps {
   userName: string;
@@ -31,6 +33,7 @@ const navigation = [
   { name: "Kanban", href: "/kanban", icon: KanbanSquare },
   { name: "Gantt", href: "/gantt", icon: GanttChart },
   { name: "Calendário", href: "/calendario", icon: Calendar },
+  { name: "Sistema", href: "/design-system", icon: Ruler },
 ];
 
 const FOCUSABLE_SELECTOR =
@@ -49,10 +52,10 @@ function NavItemStatus({
   return (
     <span
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        "flex items-center gap-3 border-l-4 px-3 py-2 text-sm font-medium transition-colors",
         highlight
-          ? "bg-accent text-accent-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "border-primary bg-concrete text-foreground"
+          : "border-transparent text-muted-foreground hover:bg-concrete hover:text-foreground"
       )}
       aria-current={isActive ? "page" : undefined}
       data-pending={pending ? "true" : undefined}
@@ -76,16 +79,22 @@ function SidebarPanel({
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white text-foreground pointer-events-auto">
-      <div className="border-b p-6 flex items-center justify-between">
-        <h1 className="text-title text-primary flex items-center gap-2">
-          <DollarSign className="h-6 w-6 text-accent" />
-          Obra Certa
-        </h1>
+    <div className="flex h-full w-64 flex-col border-r-2 border-graphite bg-white text-foreground pointer-events-auto">
+      <div className="ds-hazard-orange h-1.5 w-full" />
+      <div className="border-b-2 border-graphite p-5 flex items-center justify-between bg-blueprint-wash">
+        <div className="min-w-0">
+          <p className="text-title text-foreground flex items-center gap-2">
+            <HardHat className="h-5 w-5 text-primary" strokeWidth={2.25} />
+            Obra Certa
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+            Engenharia
+          </p>
+        </div>
         {showCloseButton && (
           <Button
             ref={closeButtonRef}
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={onNavigate}
             aria-label="Fechar menu"
@@ -95,7 +104,7 @@ function SidebarPanel({
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 p-4 overflow-y-auto" aria-label="Principal">
+      <nav className={cn("flex-1 space-y-0.5 p-3 overflow-y-auto", iconStroke)} aria-label="Principal">
         {navigation.map((item) => {
           const isActive = item.href === "/"
             ? pathname === "/"
@@ -112,20 +121,21 @@ function SidebarPanel({
             >
               <NavItemStatus isActive={isActive}>
                 <Icon className="h-5 w-5" />
-                <span>{item.name}</span>
+                <span className="font-display uppercase tracking-wider text-xs">{item.name}</span>
               </NavItemStatus>
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t p-4">
-        <div className="mb-3 flex items-center gap-3 px-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
+      <div className="border-t-2 border-graphite p-4 bg-white">
+        <div className="mb-3 flex items-center gap-3 px-1">
+          <div className="flex h-8 w-8 items-center justify-center border-2 border-graphite bg-primary text-primary-foreground font-display text-sm">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium">{userName}</p>
+            <Stamp>CREA</Stamp>
           </div>
         </div>
         <form action="/api/auth/sair" method="POST">
@@ -234,7 +244,7 @@ export function AppSidebar({
         role="dialog"
         aria-modal="true"
         aria-label="Menu de navegação"
-        className="relative z-10 h-full shadow-lg animate-in slide-in-from-left duration-200"
+        className="relative z-10 h-full ds-shadow"
       >
         <SidebarPanel
           userName={userName}

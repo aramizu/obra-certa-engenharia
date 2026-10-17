@@ -46,7 +46,7 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
         <div className="flex-shrink-0 w-80">
           <Button
             variant="outline"
-            className="w-full h-12 border-dashed bg-white"
+            className="w-full h-12 border-dashed"
             onClick={() => setShowColumnDialog(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -66,7 +66,7 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
             transform: "rotate(2deg)",
           }}
         >
-          <Card className="bg-white shadow-xl border-orange-300 opacity-95">
+          <Card className="bg-white ds-shadow border-primary opacity-95">
             <TaskCardBody task={draggedTask} />
           </Card>
         </div>
