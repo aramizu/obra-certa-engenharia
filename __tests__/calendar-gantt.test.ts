@@ -45,7 +45,7 @@ describe("Gantt calendar helpers", () => {
     expect(GANTT_BAR_CLASS.overdue).toContain("text-delay-ink");
     expect(GANTT_BAR_CLASS.done).toContain("bg-done-wash");
     expect(GANTT_BAR_CLASS.high).toEqual(expect.stringContaining("border-delay"));
-    expect(GANTT_BAR_CLASS.high).toContain("rounded-full");
+    expect(GANTT_BAR_CLASS.high).toContain("rounded-md");
     expect(BADGE_CLASS.high).toContain("rounded-full");
   });
 
