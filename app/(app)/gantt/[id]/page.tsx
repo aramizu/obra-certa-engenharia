@@ -2,9 +2,9 @@ import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
-import { projects, taskDependencies, tasks } from "@/lib/db/schema";
+import { projects, taskColumns, taskDependencies, tasks } from "@/lib/db/schema";
 import { eq, and, inArray, asc } from "drizzle-orm";
-import { GanttChart } from "./gantt-chart";
+import { GanttChart, type GanttTask } from "./gantt-chart";
 
 export default async function GanttProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -20,11 +20,20 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
 
   if (!project) notFound();
 
-  const projectTasks = await db
-    .select()
+  const rows = await db
+    .select({
+      task: tasks,
+      columnName: taskColumns.name,
+    })
     .from(tasks)
+    .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
     .where(eq(tasks.projectId, project.id))
     .orderBy(asc(tasks.startDate), asc(tasks.dueDate), tasks.title);
+
+  const projectTasks: GanttTask[] = rows.map((row) => ({
+    ...row.task,
+    columnName: row.columnName,
+  }));
 
   const taskIds = projectTasks.map((task) => task.id);
   const dependencies = taskIds.length
