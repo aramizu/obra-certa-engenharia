@@ -8,10 +8,18 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ds";
 import { GanttChart } from "lucide-react";
+import { MissingEntityBanner } from "@/components/missing-entity-banner";
+import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 
-export default async function GanttIndexPage() {
+export default async function GanttIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ aviso?: string }>;
+}) {
   const user = await validateSession();
   if (!user) redirect("/entrar");
+
+  const { aviso } = await searchParams;
 
   const userProjects = await db
     .select({
@@ -31,7 +39,9 @@ export default async function GanttIndexPage() {
       <PageTitle title="Gantt" description="Planeje o tempo das tarefas por obra" />
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div>
+            <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+            <MissingEntityBanner aviso={aviso} />
+            <div>
             <h2 className="text-2xl font-semibold mb-2">Selecione uma obra</h2>
             <p className="text-sm text-muted-foreground">
               Escolha a obra para ver o cronograma das mesmas tarefas do Kanban

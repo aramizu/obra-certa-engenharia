@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { CalendarView, type CalendarTask } from "./calendar-view";
+import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 
 export default async function CalendarioPage() {
   const user = await validateSession();
@@ -37,6 +38,7 @@ export default async function CalendarioPage() {
     <>
       <PageTitle title="Calendário" description="Agenda mensal e semanal das tarefas com data" />
       <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
         <CalendarView
           tasks={calendarTasks}
           projects={userProjects}

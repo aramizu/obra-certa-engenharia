@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { projects, tasks } from "@/lib/db/schema";
+import { taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { getOwnedProject } from "@/lib/owned-project";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 function emptyToNull(value: unknown) {
   if (typeof value !== "string") return null;
@@ -16,18 +19,32 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
-    const [project] = await db.select().from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
-    if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const project = await getOwnedProject(projectId, user.id);
+    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
     const { title, description, taskType, dueDate, startDate, assignee, columnId, isMilestone } = await request.json();
     if (!title || typeof title !== "string") {
       return NextResponse.json({ error: "Título obrigatório" }, { status: 400 });
     }
 
+    let statusColumnId: string | null = emptyToNull(columnId);
+    if (statusColumnId) {
+      const [column] = await db
+        .select()
+        .from(taskColumns)
+        .where(and(eq(taskColumns.id, statusColumnId), eq(taskColumns.projectId, projectId)))
+        .limit(1);
+      if (!column) return NextResponse.json({ error: MISSING_COLUMN_ERROR }, { status: 400 });
+    }
+
     const maxOrder = await db
       .select({ max: sql<number>`COALESCE(MAX(${tasks.orderInColumn}), -1)` })
       .from(tasks)
-      .where(and(eq(tasks.projectId, projectId), eq(tasks.statusColumnId, columnId)));
+      .where(
+        statusColumnId
+          ? and(eq(tasks.projectId, projectId), eq(tasks.statusColumnId, statusColumnId))
+          : eq(tasks.projectId, projectId)
+      );
 
     const [task] = await db.insert(tasks).values({
       projectId,
@@ -38,12 +55,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       startDate: emptyToNull(startDate),
       assignee: emptyToNull(assignee),
       isMilestone: Boolean(isMilestone),
-      statusColumnId: columnId || null,
+      statusColumnId,
       orderInColumn: (maxOrder[0]?.max ?? -1) + 1,
     }).returning();
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true, task });
   } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao criar tarefa" }, { status: 500 });
   }
 }

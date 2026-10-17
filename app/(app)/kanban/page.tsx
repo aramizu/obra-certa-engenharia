@@ -8,13 +8,21 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ds";
 import { KanbanSquare } from "lucide-react";
+import { MissingEntityBanner } from "@/components/missing-entity-banner";
+import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 
-export default async function KanbanPage() {
+export default async function KanbanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ aviso?: string }>;
+}) {
   const user = await validateSession();
 
   if (!user) {
     redirect("/entrar");
   }
+
+  const { aviso } = await searchParams;
 
   const userProjects = await db
     .select({
@@ -34,6 +42,8 @@ export default async function KanbanPage() {
       <PageTitle title="Kanban" description="Gerencie tarefas por obra estilo Trello" />
       <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
+            <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+            <MissingEntityBanner aviso={aviso} />
             <div>
               <h2 className="text-2xl font-semibold mb-2">
                 Selecione uma obra

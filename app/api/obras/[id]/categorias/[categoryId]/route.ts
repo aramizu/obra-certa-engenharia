@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const categorySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -34,7 +36,7 @@ export async function PATCH(
 
     const isOwner = await verifyProjectOwnership(projectId, user.id);
     if (!isOwner) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
     const body = await request.json();
@@ -59,6 +61,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Categoria não encontrada" }, { status: 404 });
     }
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true, category });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -89,7 +92,7 @@ export async function DELETE(
 
     const isOwner = await verifyProjectOwnership(projectId, user.id);
     if (!isOwner) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
     const [category] = await db
@@ -106,6 +109,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Categoria não encontrada" }, { status: 404 });
     }
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting category:", error);

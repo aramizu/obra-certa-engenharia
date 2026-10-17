@@ -3,6 +3,7 @@ import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { z } from "zod";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    revalidateDomainPages(project.id);
     return NextResponse.json({ success: true, project });
   } catch (error) {
     if (error instanceof z.ZodError) {

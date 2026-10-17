@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -41,9 +43,10 @@ export async function PATCH(
       .returning();
 
     if (!project) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(id);
     return NextResponse.json({ success: true, project });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -78,9 +81,10 @@ export async function DELETE(
       .returning();
 
     if (!project) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting project:", error);

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { projects, taskColumns, tasks } from "@/lib/db/schema";
+import { taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { getOwnedProject } from "@/lib/owned-project";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 function emptyToNull(value: unknown) {
   if (typeof value !== "string") return null;
@@ -16,8 +19,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
-    const [project] = await db.select().from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
-    if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const project = await getOwnedProject(projectId, user.id);
+    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
     const { title, description, assignee, startDate, dueDate, isMilestone } = await request.json();
     if (!title || typeof title !== "string") {
@@ -52,8 +55,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       orderInColumn: (maxOrder[0]?.max ?? -1) + 1,
     }).returning();
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true, task });
   } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao criar tarefa" }, { status: 500 });
   }
 }

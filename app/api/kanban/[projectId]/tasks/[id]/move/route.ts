@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { projects, taskColumns, tasks } from "@/lib/db/schema";
+import { taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
+import { getOwnedProject } from "@/lib/owned-project";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ projectId: string; id: string }> }) {
   try {
@@ -10,11 +13,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId, id } = await params;
-    const [project] = await db.select().from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
-    if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const project = await getOwnedProject(projectId, user.id);
+    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
     const [task] = await db.select().from(tasks).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId))).limit(1);
-    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!task) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
     const { columnId, orderInColumn } = await request.json();
     if (!columnId || typeof columnId !== "string") {
@@ -22,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const [column] = await db.select().from(taskColumns).where(and(eq(taskColumns.id, columnId), eq(taskColumns.projectId, projectId))).limit(1);
-    if (!column) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!column) return NextResponse.json({ error: MISSING_COLUMN_ERROR }, { status: 404 });
 
     const destTasks = await db
       .select()
@@ -42,8 +45,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }).where(and(eq(tasks.id, ordered[i].id), eq(tasks.projectId, projectId)));
     }
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao mover tarefa" }, { status: 500 });
   }
 }

@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { materials, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { formatISODate, today } from "@/lib/date";
+import { MISSING_MATERIAL_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .where(and(eq(materials.id, id), eq(projects.userId, user.id)))
       .limit(1);
 
-    if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!owned) return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
 
     const [material] = await db
       .update(materials)
@@ -35,8 +37,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .where(eq(materials.id, id))
       .returning();
 
+    revalidateDomainPages(material?.projectId);
     return NextResponse.json({ success: true, material });
   } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao atualizar material" }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +24,7 @@ export async function GET(
       .limit(1);
 
     if (!project) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
     const categories = await db

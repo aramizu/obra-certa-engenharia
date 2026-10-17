@@ -1,5 +1,5 @@
 import { validateSession } from "@/lib/auth/session";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, taskDependencies, tasks } from "@/lib/db/schema";
@@ -18,7 +18,7 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
     .where(and(eq(projects.id, id), eq(projects.userId, user.id)))
     .limit(1);
 
-  if (!project) notFound();
+  if (!project) redirect("/gantt?aviso=obra-inexistente");
 
   const rows = await db
     .select({

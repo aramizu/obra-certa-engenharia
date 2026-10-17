@@ -6,12 +6,15 @@ import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectDialog } from "../project-dialog";
 import type { Project } from "@/lib/db/schema";
+import { formatProjectDeleteWarning } from "@/lib/domain-data";
 
 interface ProjectActionsProps {
   project: Project;
+  taskCount: number;
+  materialCount: number;
 }
 
-export function ProjectActions({ project }: ProjectActionsProps) {
+export function ProjectActions({ project, taskCount, materialCount }: ProjectActionsProps) {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -96,8 +99,9 @@ export function ProjectActions({ project }: ProjectActionsProps) {
           <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Tem certeza que deseja excluir a obra <strong>{project.name}</strong>?
-              Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+              Tem certeza que deseja excluir a obra <strong>{project.name}</strong>?{" "}
+              {formatProjectDeleteWarning({ tasks: taskCount, materials: materialCount })}{" "}
+              Categorias de orçamento, colunas do Kanban e marcos também saem. Fornecedores do cadastro geral não são excluídos. Esta ação não pode ser desfeita.
             </p>
             <div className="flex justify-end gap-3">
               <Button
