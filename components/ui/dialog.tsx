@@ -70,7 +70,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
         onClick={() => onOpenChange(false)}
       />
       <div className={cn(
-        "relative z-50 w-full max-w-lg bg-card border rounded-lg shadow-lg",
+        "relative z-50 w-full max-w-lg bg-white border rounded-lg shadow-lg",
         "animate-in fade-in-0 zoom-in-95",
         className
       )}>
