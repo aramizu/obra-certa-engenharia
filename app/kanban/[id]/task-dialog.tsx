@@ -32,6 +32,7 @@ export function TaskDialog({ open, onOpenChange, projectId, columnId, task }: Ta
       taskType: formData.get("taskType") as string || "task",
       startDate: formData.get("startDate") as string || null,
       dueDate: formData.get("dueDate") as string || null,
+      isMilestone: formData.get("isMilestone") === "on",
       columnId: columnId || task?.statusColumnId || null,
     };
 
@@ -96,6 +97,11 @@ export function TaskDialog({ open, onOpenChange, projectId, columnId, task }: Ta
                 <option value="high">Alta</option>
               </select>
             </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="isMilestone" defaultChecked={task?.isMilestone} />
+              Marco de entrega (sem duração no Gantt)
+            </label>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

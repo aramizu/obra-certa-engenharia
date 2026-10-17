@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const [project] = await db.select().from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
     if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const { title, description, taskType, dueDate, startDate, assignee } = await request.json();
+    const { title, description, taskType, dueDate, startDate, assignee, isMilestone } = await request.json();
     if (!title || typeof title !== "string") {
       return NextResponse.json({ error: "Título obrigatório" }, { status: 400 });
     }
@@ -31,6 +31,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       dueDate: emptyToNull(dueDate),
       startDate: emptyToNull(startDate),
       assignee: emptyToNull(assignee),
+      isMilestone: Boolean(isMilestone),
       updatedAt: new Date(),
     }).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId))).returning();
 

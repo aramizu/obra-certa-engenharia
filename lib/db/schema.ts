@@ -135,6 +135,7 @@ export const tasks = pgTable("tasks", {
   startDate: date("start_date"),
   endDate: date("end_date"),
   assignee: text("assignee"),
+  isMilestone: boolean("is_milestone").notNull().default(false),
   materialId: uuid("material_id").references(() => materials.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
