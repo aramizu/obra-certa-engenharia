@@ -30,7 +30,7 @@ const navigation = [
   { name: "Fornecedores", href: "/fornecedores", icon: Package, available: true },
   { name: "Kanban", href: "/kanban", icon: KanbanSquare, available: true },
   { name: "Gantt", href: "/gantt", icon: GanttChart, available: true },
-  { name: "Calendário", href: "/calendario", icon: Calendar, available: false },
+  { name: "Calendário", href: "/calendario", icon: Calendar, available: true },
 ];
 
 const FOCUSABLE_SELECTOR =
