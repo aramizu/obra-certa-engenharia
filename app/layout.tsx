@@ -3,8 +3,8 @@ import "./globals.css";
 import "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "Minha Engenharia",
-  description: "Plataforma de gestão de obras e engenharia",
+  title: "Obra Certa Engenharia",
+  description: "Gestão completa de obras e orçamentos",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased min-h-screen bg-stone-50">
+      <body className="antialiased min-h-screen">
         {children}
       </body>
     </html>
