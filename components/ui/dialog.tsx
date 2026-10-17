@@ -65,12 +65,12 @@ export function DialogContent({ children, className }: DialogContentProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+      <div
+        className="fixed inset-0 bg-black/50"
         onClick={() => onOpenChange(false)}
       />
       <div className={cn(
-        "relative z-50 w-full max-w-lg bg-white border rounded-lg shadow-lg",
+        "relative z-50 w-full max-w-lg isolate bg-white text-foreground border rounded-lg shadow-lg",
         "animate-in fade-in-0 zoom-in-95",
         className
       )}>
@@ -97,7 +97,7 @@ export function DialogHeader({ children, className }: { children: React.ReactNod
 
 export function DialogTitle({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>
+    <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-foreground", className)}>
       {children}
     </h2>
   );

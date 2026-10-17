@@ -152,7 +152,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                   name="projectId"
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
                   required
                 >
                   <option value="">Selecione uma obra</option>
@@ -170,7 +170,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                   id="budgetCategoryId"
                   name="budgetCategoryId"
                   defaultValue={material?.budgetCategoryId || ""}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
                   disabled={!selectedProject || categories.length === 0}
                 >
                   <option value="">Sem categoria</option>
@@ -219,7 +219,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                       setQuantityPerUnit("");
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
                   required
                 >
                   {MATERIAL_UNITS.map((unit) => (
@@ -291,7 +291,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                   name="status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
                   required
                 >
                   <option value="quoted">Cotado</option>
@@ -319,7 +319,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                 name="notes"
                 defaultValue={material?.notes || ""}
                 placeholder="Informações adicionais sobre o material"
-                className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-background"
+                className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
               />
             </div>
           </div>

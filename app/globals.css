@@ -1,42 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  /* Construction-inspired concrete and steel palette */
-  --background: 28 15% 96%; /* Warm concrete */
-  --foreground: 20 14% 12%; /* Deep charcoal */
+  /* Cores opacas (hsl completo). Nunca usar só "H S% L%" — o Tailwind v4
+     interpreta isso como valor inválido e as superfícies ficam transparentes. */
+  --background: hsl(28 15% 96%);
+  --foreground: hsl(20 14% 12%);
 
-  --card: 0 0% 100%; /* Clean white for cards */
-  --card-foreground: 20 14% 12%;
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(20 14% 12%);
 
-  --primary: 37 90% 51%; /* Construction orange for primary actions */
-  --primary-foreground: 0 0% 100%;
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(20 14% 12%);
 
-  --secondary: 28 12% 90%; /* Light concrete */
-  --secondary-foreground: 20 14% 12%;
+  --primary: hsl(37 90% 51%);
+  --primary-foreground: hsl(0 0% 100%);
 
-  --muted: 25 10% 88%; /* Muted concrete */
-  --muted-foreground: 25 8% 45%; /* Mid-tone gray */
+  --secondary: hsl(28 12% 90%);
+  --secondary-foreground: hsl(20 14% 12%);
 
-  --accent: 37 90% 51%; /* Construction orange */
-  --accent-foreground: 0 0% 100%;
+  --muted: hsl(25 10% 88%);
+  --muted-foreground: hsl(25 8% 45%);
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --accent: hsl(37 90% 51%);
+  --accent-foreground: hsl(0 0% 100%);
 
-  --border: 28 12% 85%; /* Concrete border */
-  --input: 28 12% 90%;
-  --ring: 37 90% 51%; /* Orange focus ring */
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --border: hsl(28 12% 85%);
+  --input: hsl(28 12% 90%);
+  --ring: hsl(37 90% 51%);
 
   --radius: 0.5rem;
 }
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
   font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
