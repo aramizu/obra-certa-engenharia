@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
@@ -84,11 +84,11 @@ export default async function HomePage() {
   }));
 
   return (
-    <AppLayout
-      userName={user.name}
-      title={`Olá, ${firstName}`}
-      description="Painel de orçamento, pendências e compras da obra"
-    >
+    <>
+      <PageTitle
+        title={`Olá, ${firstName}`}
+        description="Painel de orçamento, pendências e compras da obra"
+      />
       <main className="flex-1 overflow-y-auto p-4 lg:p-8">
         <DashboardView
           userName={user.name}
@@ -98,6 +98,6 @@ export default async function HomePage() {
           categories={dashboardCategories}
         />
       </main>
-    </AppLayout>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -59,11 +59,8 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
     .orderBy(tasks.orderInColumn);
 
   return (
-    <AppLayout
-      userName={user.name}
-      title={`Kanban - ${project.name}`}
-      description="Gerencie suas tarefas"
-    >
+    <>
+      <PageTitle title={`Kanban - ${project.name}`} description="Gerencie suas tarefas" />
       <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6">
         <KanbanBoard
           projectId={project.id}
@@ -71,6 +68,6 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
           initialTasks={projectTasks}
         />
       </main>
-    </AppLayout>
+    </>
   );
 }

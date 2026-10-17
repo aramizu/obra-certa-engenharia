@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, tasks } from "@/lib/db/schema";
 import { eq, sql, desc } from "drizzle-orm";
@@ -29,11 +29,8 @@ export default async function KanbanPage() {
     .orderBy(desc(projects.createdAt));
 
   return (
-    <AppLayout
-      userName={user.name}
-      title="Kanban"
-      description="Gerencie tarefas por obra estilo Trello"
-    >
+    <>
+      <PageTitle title="Kanban" description="Gerencie tarefas por obra estilo Trello" />
       <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div>
@@ -59,7 +56,7 @@ export default async function KanbanPage() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {userProjects.map((project) => (
-                  <Link key={project.id} href={`/kanban/${project.id}`}>
+                  <Link key={project.id} href={`/kanban/${project.id}`} prefetch>
                     <Card className="h-full bg-white hover:border-accent transition-colors cursor-pointer">
                       <CardHeader className="flex flex-row items-start justify-between space-y-0">
                         <div className="flex-1">
@@ -84,6 +81,6 @@ export default async function KanbanPage() {
             )}
           </div>
         </main>
-    </AppLayout>
+    </>
   );
 }

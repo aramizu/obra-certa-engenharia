@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { sessions, users } from "@/lib/db/schema";
@@ -68,9 +69,10 @@ export async function deleteSessionCookie(): Promise<void> {
 }
 
 /**
- * Valida a sessão e retorna o usuário se válida
+ * Valida a sessão e retorna o usuário se válida.
+ * cache() deduplica layout + page no mesmo request.
  */
-export async function validateSession(): Promise<SessionUser | null> {
+export const validateSession = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
@@ -126,7 +128,7 @@ export async function validateSession(): Promise<SessionUser | null> {
     email: user.email,
     emailVerified: user.emailVerified,
   };
-}
+});
 
 /**
  * Invalida a sessão atual

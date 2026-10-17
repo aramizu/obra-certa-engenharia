@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { suppliers, materials, projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -70,11 +70,8 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
     .reduce((sum, m) => sum + parseFloat(m.totalPrice), 0);
 
   return (
-    <AppLayout
-      userName={user.name}
-      title={supplier.name}
-      description="Materiais e cotações"
-    >
+    <>
+      <PageTitle title={supplier.name} description="Materiais e cotações" />
       <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-start justify-between">
@@ -178,6 +175,6 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
             </div>
           </div>
         </main>
-    </AppLayout>
+    </>
   );
 }

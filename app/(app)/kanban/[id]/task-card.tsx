@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Diamond, Flag, User } from "lucide-react";
 import { TaskDialog } from "./task-dialog";
@@ -23,12 +23,11 @@ const priorityColors: Record<string, string> = {
 
 export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, onTouchDrop }: TaskCardProps) {
   const [showDialog, setShowDialog] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const draggingRef = useRef(false);
   const didDragRef = useRef(false);
 
-  useEffect(() => {
+  const attachWindowTouchListeners = () => {
     const handleTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch || !touchStartRef.current) return;
@@ -45,6 +44,10 @@ export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, 
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
+
       if (!touchStartRef.current && !draggingRef.current) return;
       const touch = e.changedTouches[0];
       if (draggingRef.current && touch) {
@@ -58,17 +61,11 @@ export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, 
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd);
     window.addEventListener("touchcancel", handleTouchEnd);
-    return () => {
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
-      window.removeEventListener("touchcancel", handleTouchEnd);
-    };
-  }, [onDragEnd, onDragStart, onTouchDrop, task.id]);
+  };
 
   return (
     <>
       <Card
-        ref={cardRef}
         draggable
         data-task-id={task.id}
         onDragStart={() => {
@@ -81,6 +78,7 @@ export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, 
           if (!touch) return;
           touchStartRef.current = { x: touch.clientX, y: touch.clientY };
           didDragRef.current = false;
+          attachWindowTouchListeners();
         }}
         onClick={() => {
           if (didDragRef.current) {

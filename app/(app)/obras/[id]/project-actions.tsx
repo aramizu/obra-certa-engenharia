@@ -52,7 +52,7 @@ export function ProjectActions({ project }: ProjectActionsProps) {
         {showMenu && (
           <>
             <div
-              className="fixed inset-0 z-10"
+              className="fixed inset-0 z-10 lg:left-64"
               onClick={() => setShowMenu(false)}
             />
             <div className="absolute right-0 mt-2 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20">
