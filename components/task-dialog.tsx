@@ -97,7 +97,7 @@ export function TaskDialog({
                   id="projectId"
                   name="projectId"
                   required
-                  className="w-full px-3 py-2 text-sm border-2 border-graphite bg-white"
+                  className="w-full rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
                   defaultValue={projects?.length === 1 ? projects[0].id : ""}
                 >
                   <option value="" disabled>Selecione</option>

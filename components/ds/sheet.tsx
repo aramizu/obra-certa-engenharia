@@ -21,7 +21,7 @@ export function Sheet({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div className="relative z-10 flex h-full w-80 max-w-[90vw] flex-col border-r-2 border-graphite bg-white ds-shadow">
+      <div className="relative z-10 flex h-full w-80 max-w-[90vw] flex-col rounded-r-2xl border-r-2 border-graphite bg-white ds-shadow overflow-hidden">
         <div className="ds-hazard h-2 w-full" />
         <div className="flex items-center justify-between border-b-2 border-graphite bg-blueprint-wash px-4 py-3">
           <div className="space-y-1">
@@ -31,7 +31,7 @@ export function Sheet({
           <button
             type="button"
             onClick={onClose}
-            className={cn("border-2 border-graphite bg-white p-1 hover:bg-concrete", iconStroke)}
+            className={cn("rounded-md border-2 border-graphite bg-white p-1 hover:bg-concrete", iconStroke)}
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />

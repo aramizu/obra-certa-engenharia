@@ -18,7 +18,7 @@ export function ProgressBar({ value, className, tone }: ProgressBarProps) {
         : "bg-primary";
 
   return (
-    <div className={cn("relative h-3 w-full border-2 border-graphite bg-white", className)} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={100}>
+    <div className={cn("relative h-3 w-full overflow-hidden rounded-full border-2 border-graphite bg-white", className)} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={100}>
       <div className={cn("h-full", fill)} style={{ width: `${pct}%` }} />
       <div
         aria-hidden

@@ -72,7 +72,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
       />
       <div
         className={cn(
-          "relative z-50 w-full max-w-lg isolate bg-white text-foreground border-2 border-graphite ds-shadow ds-chamfer",
+          "relative z-50 w-full max-w-lg isolate overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow",
           className
         )}
       >
@@ -80,7 +80,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
         <button
           onClick={() => onOpenChange(false)}
           className={cn(
-            "absolute right-3 top-5 border-2 border-graphite bg-white p-1 text-foreground hover:bg-concrete",
+            "absolute right-3 top-5 rounded-md border-2 border-graphite bg-white p-1 text-foreground hover:bg-concrete",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             iconStroke
           )}

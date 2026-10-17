@@ -118,7 +118,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-4">
-      <div className="bg-white border-2 border-graphite ds-shadow p-3 lg:p-4 space-y-3">
+      <div className="rounded-lg bg-white border-2 border-graphite ds-shadow p-3 lg:p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2 justify-between">
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" onClick={() => go(-1)} aria-label="Anterior" className="bg-white">
@@ -167,7 +167,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
         </div>
       </div>
 
-      <div className="hidden md:block bg-white border-2 border-graphite overflow-hidden">
+      <div className="hidden md:block overflow-hidden rounded-lg bg-white border-2 border-graphite">
         <div className="grid grid-cols-7 border-b bg-blueprint-wash">
           {WEEKDAY_LABELS.map((label) => (
             <div key={label} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">
@@ -207,7 +207,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
               >
                 <div className="flex items-center justify-between mb-1">
                   <span
-                    className={`text-sm w-7 h-7 flex items-center justify-center font-mono ${
+                    className={`text-sm w-7 h-7 flex items-center justify-center rounded-full font-mono ${
                       isToday ? "bg-primary text-primary-foreground font-semibold" : ""
                     }`}
                   >
@@ -245,7 +245,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
       <div className="md:hidden space-y-4">
         {view === "month" ? (
-          <div className="bg-white border-2 border-graphite overflow-hidden">
+          <div className="overflow-hidden rounded-lg bg-white border-2 border-graphite">
             <div className="grid grid-cols-7 border-b bg-blueprint-wash">
               {WEEKDAY_LABELS.map((label) => (
                 <div key={label} className="py-2 text-[11px] font-semibold text-center text-muted-foreground">
@@ -276,7 +276,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                       muted ? "text-muted-foreground" : ""
                     } ${isSelected ? "bg-blueprint-wash" : "bg-white"}`}
                   >
-                    <span className={`text-sm w-7 h-7 flex items-center justify-center font-mono ${isToday ? "bg-primary text-primary-foreground font-semibold" : ""}`}>
+                    <span className={`text-sm w-7 h-7 flex items-center justify-center rounded-full font-mono ${isToday ? "bg-primary text-primary-foreground font-semibold" : ""}`}>
                       {day.getDate()}
                     </span>
                     <span className="flex gap-0.5 h-1.5">
@@ -300,7 +300,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                   key={iso}
                   type="button"
                   onClick={() => setSelected(day)}
-                  className={`w-full text-left bg-white border-2 border-graphite p-3 ${sameDay(day, selected) ? "ring-2 ring-primary" : ""}`}
+                  className={`w-full text-left rounded-lg bg-white border-2 border-graphite p-3 ${sameDay(day, selected) ? "ring-2 ring-primary" : ""}`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className={`text-sm font-medium capitalize ${isToday ? "text-accent" : ""}`}>
@@ -325,7 +325,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
           </div>
         )}
 
-        <div className="bg-white border-2 border-graphite ds-shadow p-4 space-y-3">
+        <div className="rounded-lg bg-white border-2 border-graphite ds-shadow p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold capitalize">
               {selected.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}

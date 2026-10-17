@@ -6,7 +6,7 @@ export default function DesignSystemPage() {
     <>
       <PageTitle
         title="Sistema gráfico"
-        description="Identidade Obra Certa — prancha de componentes"
+        description="Identidade Obra Certa — componentes com cantos arredondados"
       />
       <main className="flex-1 overflow-y-auto p-4 lg:p-8">
         <DesignSystemCatalog />

@@ -52,10 +52,10 @@ function NavItemStatus({
   return (
     <span
       className={cn(
-        "flex items-center gap-3 border-l-4 px-3 py-2 text-sm font-medium transition-colors",
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
         highlight
-          ? "border-primary bg-concrete text-foreground"
-          : "border-transparent text-muted-foreground hover:bg-concrete hover:text-foreground"
+          ? "bg-concrete text-foreground"
+          : "text-muted-foreground hover:bg-concrete hover:text-foreground"
       )}
       aria-current={isActive ? "page" : undefined}
       data-pending={pending ? "true" : undefined}
@@ -130,7 +130,7 @@ function SidebarPanel({
 
       <div className="border-t-2 border-graphite p-4 bg-white">
         <div className="mb-3 flex items-center gap-3 px-1">
-          <div className="flex h-8 w-8 items-center justify-center border-2 border-graphite bg-primary text-primary-foreground font-display text-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-graphite bg-primary text-primary-foreground font-display text-sm">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">

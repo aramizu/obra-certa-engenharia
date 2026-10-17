@@ -266,7 +266,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                     <button
                       type="button"
                       onClick={() => openTask(task)}
-                      className="w-full text-left border-2 border-graphite bg-white px-3 py-2 hover:border-primary"
+                      className="w-full text-left rounded-lg border-2 border-graphite bg-white px-3 py-2 hover:border-primary"
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5 text-accent" />}
@@ -306,7 +306,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           ) : (
             <ul className="space-y-2">
               {toBuy.slice(0, 10).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-3 border-2 border-graphite bg-white px-3 py-2">
+                <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg border-2 border-graphite bg-white px-3 py-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}{item.brand ? ` · ${item.brand}` : ""}</p>
                     <p className="text-xs text-muted-foreground truncate">{item.projectName}</p>

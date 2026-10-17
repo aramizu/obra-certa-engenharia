@@ -28,7 +28,7 @@ function DropPlaceholder({ height }: { height: number }) {
   return (
     <div
       data-drop-placeholder
-      className="rounded-none border-2 border-dashed border-primary bg-signal-wash"
+      className="rounded-lg border-2 border-dashed border-primary bg-signal-wash"
       style={{ height: Math.max(height, 48) }}
     />
   );
@@ -110,14 +110,14 @@ export function KanbanColumn({
     <>
       <div
         data-column-id={column.id}
-        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-none bg-white border-2 border-graphite p-3 ${
+        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-lg bg-white border-2 border-graphite p-3 ${
           isOver ? "ring-2 ring-primary bg-signal-wash" : ""
         }`}
       >
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="font-semibold text-sm uppercase tracking-wide truncate">{column.name}</h3>
-            <span className="text-[10px] font-mono text-foreground bg-concrete border-2 border-graphite px-2 py-0.5 shrink-0">
+            <span className="text-[10px] font-mono text-foreground bg-concrete border-2 border-graphite rounded-full px-2 py-0.5 shrink-0">
               {tasks.length}
             </span>
           </div>
@@ -128,7 +128,7 @@ export function KanbanColumn({
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10 lg:left-64" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 mt-1 w-48 bg-white border-2 border-graphite ds-shadow z-20 py-1">
+                <div className="absolute right-0 mt-1 w-48 overflow-hidden rounded-lg bg-white border-2 border-graphite ds-shadow z-20 py-1">
                   <button
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
                     disabled={!canMoveLeft}
@@ -183,7 +183,7 @@ export function KanbanColumn({
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setShowDeleteConfirm(false)} />
-          <div className="relative z-50 w-full max-w-md bg-white text-foreground border-2 border-graphite ds-shadow p-6">
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Excluir Coluna</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza? As tarefas desta raia ficam sem coluna até você movê-las de novo.

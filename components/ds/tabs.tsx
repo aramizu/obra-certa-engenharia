@@ -14,7 +14,7 @@ export function Tabs({
   className?: string;
 }) {
   return (
-    <div className={cn("inline-flex border-2 border-graphite bg-white", className)} role="tablist">
+    <div className={cn("inline-flex overflow-hidden rounded-lg border-2 border-graphite bg-white", className)} role="tablist">
       {items.map((item) => {
         const selected = item.value === value;
         return (
