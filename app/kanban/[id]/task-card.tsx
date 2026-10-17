@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Flag, User } from "lucide-react";
+import { Calendar, Diamond, Flag, User } from "lucide-react";
 import { TaskDialog } from "./task-dialog";
 import type { Task } from "@/lib/db/schema";
 
@@ -93,7 +93,10 @@ export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, 
         style={{ touchAction: "none" }}
       >
         <CardContent className="p-3 space-y-2">
-          <h4 className="font-medium text-sm">{task.title}</h4>
+          <h4 className="font-medium text-sm flex items-center gap-1.5">
+            {task.isMilestone && <Diamond className="h-3 w-3 text-accent shrink-0" />}
+            {task.title}
+          </h4>
           {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             {task.assignee && (
@@ -110,7 +113,7 @@ export function TaskCard({ task, projectId, isDragging, onDragStart, onDragEnd, 
                 {task.dueDate && new Date(task.dueDate + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
               </div>
             )}
-            {task.taskType && task.taskType !== "task" && (
+            {!task.isMilestone && task.taskType && task.taskType !== "task" && (
               <Flag className={`h-3 w-3 ${priorityColors[task.taskType] || ""}`} />
             )}
           </div>
