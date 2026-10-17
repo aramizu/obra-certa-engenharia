@@ -79,8 +79,17 @@ export function KanbanColumn({ column, tasks, projectId, onDragStart, onDragEnd,
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-2 min-h-[100px]">
-          {tasks.map(task => (
-            <TaskCard key={task.id} task={task} projectId={projectId} onDragStart={onDragStart} onDragEnd={onDragEnd} />
+          {tasks.map((task, index) => (
+            <div
+              key={task.id}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.stopPropagation();
+                onDrop(column.id);
+              }}
+            >
+              <TaskCard task={task} projectId={projectId} onDragStart={onDragStart} onDragEnd={onDragEnd} />
+            </div>
           ))}
         </div>
 
