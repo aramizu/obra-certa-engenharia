@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "minha-engenharia.vercel.app" }],
+      "destination": "https://obra-certa-engenharia.vercel.app/:path*",
+      "permanent": true
+    }
+  ]
+}
