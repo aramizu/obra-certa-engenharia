@@ -1,7 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
+import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -22,30 +21,25 @@ export default async function ObrasPage() {
     .orderBy(desc(projects.createdAt));
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      <AppSidebar userName={user.name} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader 
-          title="Obras"
-          description="Gerencie seus projetos e orçamentos"
-        />
-
-        <main className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  {userProjects.length} {userProjects.length === 1 ? "obra" : "obras"}
-                </h2>
-              </div>
-              <CreateProjectButton />
+    <AppLayout
+      userName={user.name}
+      title="Obras"
+      description="Gerencie seus projetos e orçamentos"
+    >
+      <main className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">
+                {userProjects.length} {userProjects.length === 1 ? "obra" : "obras"}
+              </h2>
             </div>
-
-            <ProjectsList projects={userProjects} />
+            <CreateProjectButton />
           </div>
-        </main>
-      </div>
-    </div>
+
+          <ProjectsList projects={userProjects} />
+        </div>
+      </main>
+    </AppLayout>
   );
 }

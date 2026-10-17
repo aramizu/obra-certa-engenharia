@@ -1,7 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
+import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { suppliers } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -22,30 +21,25 @@ export default async function SuppliersPage() {
     .orderBy(desc(suppliers.createdAt));
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      <AppSidebar userName={user.name} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader 
-          title="Fornecedores"
-          description="Gerencie seus fornecedores e materiais"
-        />
-
-        <main className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  {userSuppliers.length} {userSuppliers.length === 1 ? "fornecedor" : "fornecedores"}
-                </h2>
-              </div>
-              <CreateSupplierButton />
+    <AppLayout
+      userName={user.name}
+      title="Fornecedores"
+      description="Gerencie seus fornecedores e materiais"
+    >
+      <main className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">
+                {userSuppliers.length} {userSuppliers.length === 1 ? "fornecedor" : "fornecedores"}
+              </h2>
             </div>
-
-            <SuppliersList suppliers={userSuppliers} />
+            <CreateSupplierButton />
           </div>
-        </main>
-      </div>
-    </div>
+
+          <SuppliersList suppliers={userSuppliers} />
+        </div>
+      </main>
+    </AppLayout>
   );
 }
