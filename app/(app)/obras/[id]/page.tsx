@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -46,11 +46,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const spentPercentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
 
   return (
-    <AppLayout
-      userName={user.name}
-      title={project.name}
-      description={project.address || undefined}
-    >
+    <>
+      <PageTitle title={project.name} description={project.address || undefined} />
       <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-start justify-between">
@@ -142,6 +139,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </main>
-    </AppLayout>
+    </>
   );
 }

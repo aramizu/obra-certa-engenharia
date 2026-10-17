@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskDependencies, tasks } from "@/lib/db/schema";
 import { eq, and, inArray, asc } from "drizzle-orm";
@@ -32,11 +32,11 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
     : [];
 
   return (
-    <AppLayout
-      userName={user.name}
-      title={`Gantt - ${project.name}`}
-      description="Linha do tempo, dependências e marcos da obra"
-    >
+    <>
+      <PageTitle
+        title={`Gantt - ${project.name}`}
+        description="Linha do tempo, dependências e marcos da obra"
+      />
       <main className="flex-1 overflow-hidden p-4 lg:p-6">
         <GanttChart
           projectId={project.id}
@@ -46,6 +46,6 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
           initialDependencies={dependencies}
         />
       </main>
-    </AppLayout>
+    </>
   );
 }

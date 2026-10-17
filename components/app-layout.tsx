@@ -3,15 +3,15 @@
 import { useCallback, useState } from "react";
 import { AppSidebar } from "./app-sidebar";
 import { AppHeader } from "./app-header";
+import { PageHeaderProvider, usePageHeader } from "./page-header";
 
 interface AppLayoutProps {
   userName: string;
-  title: string;
-  description?: string;
   children: React.ReactNode;
 }
 
-export function AppLayout({ userName, title, description, children }: AppLayoutProps) {
+function AppShell({ userName, children }: AppLayoutProps) {
+  const { header } = usePageHeader();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
@@ -21,13 +21,13 @@ export function AppLayout({ userName, title, description, children }: AppLayoutP
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <AppHeader
-          title={title}
-          description={description}
+          title={header.title}
+          description={header.description}
           onMenuToggle={() => setIsSidebarOpen((open) => !open)}
           isMenuOpen={isSidebarOpen}
         />
 
-        <div className="relative flex-1 flex flex-col overflow-hidden">
+        <div className="relative flex-1 flex flex-col overflow-hidden min-h-0">
           <AppSidebar
             userName={userName}
             variant="mobile"
@@ -38,5 +38,13 @@ export function AppLayout({ userName, title, description, children }: AppLayoutP
         </div>
       </div>
     </div>
+  );
+}
+
+export function AppLayout({ userName, children }: AppLayoutProps) {
+  return (
+    <PageHeaderProvider>
+      <AppShell userName={userName}>{children}</AppShell>
+    </PageHeaderProvider>
   );
 }

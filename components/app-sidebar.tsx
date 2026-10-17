@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import {
   Home,
   Building2,
@@ -25,16 +25,42 @@ interface AppSidebarProps {
 }
 
 const navigation = [
-  { name: "Painel", href: "/", icon: Home, available: true },
-  { name: "Obras", href: "/obras", icon: Building2, available: true },
-  { name: "Fornecedores", href: "/fornecedores", icon: Package, available: true },
-  { name: "Kanban", href: "/kanban", icon: KanbanSquare, available: true },
-  { name: "Gantt", href: "/gantt", icon: GanttChart, available: true },
-  { name: "Calendário", href: "/calendario", icon: Calendar, available: true },
+  { name: "Painel", href: "/", icon: Home },
+  { name: "Obras", href: "/obras", icon: Building2 },
+  { name: "Fornecedores", href: "/fornecedores", icon: Package },
+  { name: "Kanban", href: "/kanban", icon: KanbanSquare },
+  { name: "Gantt", href: "/gantt", icon: GanttChart },
+  { name: "Calendário", href: "/calendario", icon: Calendar },
 ];
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+function NavItemStatus({
+  isActive,
+  children,
+}: {
+  isActive: boolean;
+  children: ReactNode;
+}) {
+  const { pending } = useLinkStatus();
+  const highlight = isActive || pending;
+
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        highlight
+          ? "bg-accent text-accent-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+      aria-current={isActive ? "page" : undefined}
+      data-pending={pending ? "true" : undefined}
+    >
+      {children}
+    </span>
+  );
+}
 
 function SidebarPanel({
   userName,
@@ -50,7 +76,7 @@ function SidebarPanel({
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white text-foreground">
+    <div className="flex h-full w-64 flex-col border-r bg-white text-foreground pointer-events-auto">
       <div className="border-b p-6 flex items-center justify-between">
         <h1 className="text-title text-primary flex items-center gap-2">
           <DollarSign className="h-6 w-6 text-accent" />
@@ -79,28 +105,15 @@ function SidebarPanel({
           return (
             <Link
               key={item.name}
-              href={item.available ? item.href : "#"}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-accent text-accent-foreground"
-                  : item.available
-                    ? "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    : "text-muted-foreground/40 cursor-not-allowed"
-              )}
-              onClick={(e) => {
-                if (!item.available) {
-                  e.preventDefault();
-                  return;
-                }
-                onNavigate?.();
-              }}
+              href={item.href}
+              prefetch
+              className="block"
+              onClick={onNavigate}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.name}</span>
-              {!item.available && (
-                <span className="ml-auto text-xs">(em breve)</span>
-              )}
+              <NavItemStatus isActive={isActive}>
+                <Icon className="h-5 w-5" />
+                <span>{item.name}</span>
+              </NavItemStatus>
             </Link>
           );
         })}
@@ -200,7 +213,7 @@ export function AppSidebar({
 
   if (variant === "desktop") {
     return (
-      <aside className="hidden lg:flex h-screen shrink-0">
+      <aside className="hidden lg:flex h-screen shrink-0 z-30 relative pointer-events-auto">
         <SidebarPanel userName={userName} />
       </aside>
     );
@@ -209,7 +222,7 @@ export function AppSidebar({
   if (!isOpen) return null;
 
   return (
-    <div className="lg:hidden absolute inset-0 z-40 flex">
+    <div className="lg:hidden absolute inset-0 z-40 flex pointer-events-auto">
       <div
         className="absolute inset-0 bg-black/50"
         onClick={onClose}

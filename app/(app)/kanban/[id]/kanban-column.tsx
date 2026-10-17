@@ -102,7 +102,7 @@ export function KanbanColumn({
             </Button>
             {showMenu && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="fixed inset-0 z-10 lg:left-64" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 mt-1 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20 py-1">
                   <button
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted disabled:opacity-40"

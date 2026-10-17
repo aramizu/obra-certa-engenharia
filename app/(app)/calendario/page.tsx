@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -34,11 +34,8 @@ export default async function CalendarioPage() {
   }));
 
   return (
-    <AppLayout
-      userName={user.name}
-      title="Calendário"
-      description="Agenda mensal e semanal das tarefas com data"
-    >
+    <>
+      <PageTitle title="Calendário" description="Agenda mensal e semanal das tarefas com data" />
       <main className="flex-1 overflow-y-auto p-4 lg:p-6">
         <CalendarView
           tasks={calendarTasks}
@@ -46,6 +43,6 @@ export default async function CalendarioPage() {
           userName={user.name}
         />
       </main>
-    </AppLayout>
+    </>
   );
 }

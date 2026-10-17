@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { AppLayout } from "@/components/app-layout";
+import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -21,11 +21,8 @@ export default async function ObrasPage() {
     .orderBy(desc(projects.createdAt));
 
   return (
-    <AppLayout
-      userName={user.name}
-      title="Obras"
-      description="Gerencie seus projetos e orçamentos"
-    >
+    <>
+      <PageTitle title="Obras" description="Gerencie seus projetos e orçamentos" />
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
@@ -40,6 +37,6 @@ export default async function ObrasPage() {
           <ProjectsList projects={userProjects} />
         </div>
       </main>
-    </AppLayout>
+    </>
   );
 }
