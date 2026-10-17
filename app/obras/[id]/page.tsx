@@ -1,7 +1,6 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
+import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -47,13 +46,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const spentPercentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      <AppSidebar userName={user.name} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader title={project.name} description={project.address || undefined} />
-
-        <main className="flex-1 overflow-y-auto p-8">
+    <AppLayout
+      userName={user.name}
+      title={project.name}
+      description={project.address || undefined}
+    >
+      <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
@@ -144,7 +142,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 }
