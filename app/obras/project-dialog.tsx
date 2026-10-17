@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import type { Project } from "@/lib/db/schema";
 
 interface ProjectDialogProps {
@@ -18,6 +19,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalBudget, setTotalBudget] = useState(project?.totalBudget || "0");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       address: formData.get("address") as string || null,
       startDate: formData.get("startDate") as string || null,
       targetEndDate: formData.get("targetEndDate") as string || null,
-      totalBudget: formData.get("totalBudget") as string || "0",
+      totalBudget,
     };
 
     try {
@@ -119,15 +121,12 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="totalBudget">Orçamento Total (R$)</Label>
-              <Input
+              <Label htmlFor="totalBudget">Orçamento Total</Label>
+              <CurrencyInput
                 id="totalBudget"
-                name="totalBudget"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={project?.totalBudget || ""}
-                placeholder="0,00"
+                value={totalBudget}
+                onValueChange={setTotalBudget}
+                placeholder="R$ 0,00"
               />
             </div>
           </div>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function CategoryDialog({ open, onOpenChange, projectId, category }: Cate
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [budgetedAmount, setBudgetedAmount] = useState(category?.budgetedAmount || "0");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export function CategoryDialog({ open, onOpenChange, projectId, category }: Cate
     const formData = new FormData(e.currentTarget);
     const data = {
       name: formData.get("name") as string,
-      budgetedAmount: formData.get("budgetedAmount") as string || "0",
+      budgetedAmount,
     };
 
     try {
@@ -94,15 +96,12 @@ export function CategoryDialog({ open, onOpenChange, projectId, category }: Cate
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="budgetedAmount">Valor Orçado (R$)</Label>
-              <Input
+              <Label htmlFor="budgetedAmount">Valor Orçado</Label>
+              <CurrencyInput
                 id="budgetedAmount"
-                name="budgetedAmount"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={category?.budgetedAmount || ""}
-                placeholder="0,00"
+                value={budgetedAmount}
+                onValueChange={setBudgetedAmount}
+                placeholder="R$ 0,00"
               />
             </div>
           </div>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { MATERIAL_UNITS, shouldShowQuantityPerUnit, getDefaultQuantity } from "@/lib/material-units";
 
 interface Project {
@@ -261,14 +262,12 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="unitPrice">Preço Unitário (R$) *</Label>
-                <Input
+                <Label htmlFor="unitPrice">Preço Unitário *</Label>
+                <CurrencyInput
                   id="unitPrice"
-                  name="unitPrice"
-                  type="number"
-                  step="0.01"
                   value={unitPrice}
-                  onChange={(e) => setUnitPrice(e.target.value)}
+                  onValueChange={setUnitPrice}
+                  placeholder="R$ 0,00"
                   required
                 />
               </div>
