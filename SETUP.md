@@ -36,18 +36,14 @@ Estas variáveis já estão configuradas via Neon Marketplace integration:
 
 ## 🗄️ Setup do Banco de Dados
 
-### Executar Migrações (Primeira Vez)
+### Migrações Automáticas ✨
 
-```bash
-# 1. Instalar dependências
-pnpm install
+As migrações executam **automaticamente** em Production após cada deploy de `main`:
+- ✅ Zero configuração necessária
+- ✅ Idempotentes (safe para re-deploy)
+- ✅ Build falha se migration falhar (deploy é abortado)
 
-# 2. Baixar variáveis de ambiente de Production
-vercel env pull .env.local --environment production
-
-# 3. Executar migrações
-pnpm db:migrate
-```
+**Você não precisa fazer nada!** O primeiro deploy para `main` criará as tabelas automaticamente.
 
 Ver `MIGRATION.md` para estratégia completa de migrações.
 
@@ -272,14 +268,15 @@ git add .
 git commit -m "feat: implementa autenticação segura"
 git push origin main
 
-# 2. Vercel vai fazer deploy automático
+# 2. Vercel faz deploy automático
+#    - Build executa
+#    - Migrações executam automaticamente (VERCEL_ENV=production)
+#    - Tabelas são criadas no banco Neon
 
-# 3. Executar migrações em Production
-vercel env pull .env.local --environment production
-pnpm db:migrate
-
-# 4. Testar em https://obra-certa-engenharia.vercel.app
+# 3. Testar em https://obra-certa-engenharia.vercel.app
 ```
+
+**É só isso!** Migrations rodam automaticamente, não precisa de Vercel CLI.
 
 ### Verificar Redirect
 
@@ -318,11 +315,13 @@ Se algo falhar:
 ### "DATABASE_URL não está definida"
 → Configurar env vars no Vercel (já devem estar via Neon integration)
 
-### "AUTH_SECRET não está definida"
+### "AUTH_SECRET não está definida" (em runtime, ao tentar login)
 → Gerar e configurar no Vercel (ver seção acima)
 
-### Migrations falham
-→ Verificar `DATABASE_URL_UNPOOLED` (ver MIGRATION.md)
+### Build falha durante migrations
+→ Verificar `DATABASE_URL_UNPOOLED` está configurada (deve estar via Neon integration)
+→ Ver logs de build no Vercel para erro SQL específico
+→ Corrigir SQL da migration e fazer novo deploy
 
 ### Redirect não funciona
 → Verificar `vercel.json` está presente e correto
