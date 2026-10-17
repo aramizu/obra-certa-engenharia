@@ -17,7 +17,7 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "Minha Engenharia",
+  title: "Obra Certa Engenharia",
   description: "Plataforma de gestão de obras e engenharia",
 };
 

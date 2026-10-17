@@ -34,7 +34,7 @@ export default function SignupPage() {
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div>
             <h1 className="text-4xl font-display uppercase tracking-wider mb-4">
-              Minha Engenharia
+              Obra Certa Engenharia
             </h1>
             <div className="w-16 h-1 bg-accent" />
           </div>
@@ -59,7 +59,7 @@ export default function SignupPage() {
           {/* Mobile: Compact header */}
           <div className="text-center mb-8 lg:hidden">
             <h1 className="text-display text-2xl mb-2">
-              Minha Engenharia
+              Obra Certa Engenharia
             </h1>
             <p className="text-sm text-muted-foreground">
               Gestão profissional de obras
