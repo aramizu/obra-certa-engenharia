@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Package } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { MaterialDialog } from "./material-dialog";
 import { getUnitLabel } from "@/lib/material-units";
 
@@ -38,6 +38,26 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
   const [editingMaterial, setEditingMaterial] = useState<MaterialData | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const toggleStatus = async (material: MaterialData) => {
+    setTogglingId(material.id);
+    try {
+      const response = await fetch(`/api/materiais/${material.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: material.status === "purchased" ? "quoted" : "purchased",
+        }),
+      });
+      if (!response.ok) throw new Error();
+      router.refresh();
+    } catch {
+      alert("Erro ao atualizar status da compra");
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const handleDelete = async (materialId: string) => {
     setLoading(true);
@@ -62,7 +82,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
 
   if (materials.length === 0) {
     return (
-      <Card>
+      <Card className="bg-white">
         <CardContent className="flex flex-col items-center justify-center h-32 text-center">
           <p className="text-sm text-muted-foreground">
             Nenhum material cadastrado. Clique em <strong>Novo Material</strong> para começar.
@@ -81,7 +101,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
           const unitLabel = getUnitLabel(material.unit);
 
           return (
-            <Card key={material.id}>
+            <Card key={material.id} className="bg-white">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -112,6 +132,15 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
                     </div>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white"
+                      disabled={togglingId === material.id}
+                      onClick={() => toggleStatus(material)}
+                    >
+                      {material.status === "purchased" ? "Desfazer compra" : "Marcar comprado"}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -192,7 +221,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-card border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white border rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.

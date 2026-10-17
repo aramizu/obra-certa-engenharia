@@ -10,6 +10,7 @@ import {
   BADGE_CLASS,
   DOT_CLASS,
   WEEKDAY_LABELS,
+  isAssignedToUser,
   monthGrid,
   taskBadgeTone,
   taskOccursOn,
@@ -30,14 +31,6 @@ function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function isMine(task: CalendarTask, userName: string) {
-  const assignee = (task.assignee || "").trim().toLowerCase();
-  if (!assignee) return true;
-  const name = userName.trim().toLowerCase();
-  const first = name.split(" ")[0];
-  return assignee === name || assignee.includes(name) || (first.length > 1 && assignee.includes(first));
-}
-
 export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
   const [view, setView] = useState<ViewMode>("month");
   const [cursor, setCursor] = useState(() => today());
@@ -54,7 +47,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
   const filtered = useMemo(() => {
     return tasks.filter((task) => {
       if (projectId !== "all" && task.projectId !== projectId) return false;
-      if (mineOnly && !isMine(task, userName)) return false;
+      if (mineOnly && !isAssignedToUser(task, userName)) return false;
       return Boolean(task.startDate || task.dueDate || task.endDate);
     });
   }, [mineOnly, projectId, tasks, userName]);
