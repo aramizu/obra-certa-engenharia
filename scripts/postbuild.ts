@@ -31,6 +31,7 @@ async function runMigrations() {
     const db = drizzle(sql);
 
     await migrate(db, { migrationsFolder: "./migrations" });
+    // 0004_domain_cascade_reset (one-off) apaga dados de domínio e preserva users/sessions.
 
     console.log("✅ Migrações executadas com sucesso em Production!");
   } catch (error) {

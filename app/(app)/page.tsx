@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { DashboardView, type DashboardCategory, type DashboardMaterial, type DashboardTask } from "./dashboard-view";
+import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 
 export default async function HomePage() {
   const user = await validateSession();
@@ -90,6 +91,7 @@ export default async function HomePage() {
         description="Painel de orçamento, pendências e compras da obra"
       />
       <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
         <DashboardView
           userName={user.name}
           projects={userProjects}

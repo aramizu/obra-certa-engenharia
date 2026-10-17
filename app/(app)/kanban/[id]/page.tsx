@@ -1,5 +1,5 @@
 import { validateSession } from "@/lib/auth/session";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
@@ -21,7 +21,7 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
     .limit(1);
 
   if (!project) {
-    notFound();
+    redirect("/kanban?aviso=obra-inexistente");
   }
 
   let columns = await db

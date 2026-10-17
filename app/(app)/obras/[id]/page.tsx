@@ -1,8 +1,8 @@
 import { validateSession } from "@/lib/auth/session";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
-import { projects, budgetCategories, materials } from "@/lib/db/schema";
+import { projects, budgetCategories, materials, tasks } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { ProjectActions } from "./project-actions";
 import { BudgetCategoriesList } from "./budget-categories-list";
@@ -25,8 +25,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     .limit(1);
 
   if (!project) {
-    notFound();
+    redirect("/obras?aviso=obra-inexistente");
   }
+
+  const [taskCount] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(tasks)
+    .where(eq(tasks.projectId, project.id));
+  const [materialCount] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(materials)
+    .where(eq(materials.projectId, project.id));
 
   const categories = await db
     .select({
@@ -69,7 +78,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   </p>
                 )}
               </div>
-              <ProjectActions project={project} />
+              <ProjectActions
+                project={project}
+                taskCount={Number(taskCount?.n ?? 0)}
+                materialCount={Number(materialCount?.n ?? 0)}
+              />
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">

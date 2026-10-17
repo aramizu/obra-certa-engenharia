@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const categorySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -29,7 +31,7 @@ export async function POST(
       .limit(1);
 
     if (!project) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
     const body = await request.json();
@@ -50,6 +52,7 @@ export async function POST(
       })
       .returning();
 
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true, category });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { materials, suppliers, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -39,7 +41,7 @@ export async function POST(
       .limit(1);
 
     if (!supplier) {
-      return NextResponse.json({ error: "Fornecedor não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
     const body = await request.json();
@@ -52,7 +54,7 @@ export async function POST(
       .limit(1);
 
     if (!project) {
-      return NextResponse.json({ error: "Obra não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
     const [material] = await db
@@ -74,6 +76,7 @@ export async function POST(
       })
       .returning();
 
+    revalidateDomainPages(data.projectId, supplierId);
     return NextResponse.json({ success: true, material });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -65,11 +65,14 @@ export function TaskDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error();
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(typeof result.error === "string" ? result.error : "Erro ao salvar tarefa");
+      }
       onOpenChange(false);
       router.refresh();
-    } catch {
-      alert("Erro ao salvar tarefa");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao salvar tarefa");
     } finally {
       setLoading(false);
     }

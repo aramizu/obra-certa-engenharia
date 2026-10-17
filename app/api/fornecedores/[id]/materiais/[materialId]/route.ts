@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { materials, suppliers, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_MATERIAL_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -55,12 +57,12 @@ export async function PATCH(
 
     const isOwner = await verifySupplierOwnership(supplierId, user.id);
     if (!isOwner) {
-      return NextResponse.json({ error: "Fornecedor não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
     const hasAccess = await verifyMaterialAccess(materialId, supplierId, user.id);
     if (!hasAccess) {
-      return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
     const body = await request.json();
@@ -87,9 +89,10 @@ export async function PATCH(
       .returning();
 
     if (!material) {
-      return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(data.projectId, supplierId);
     return NextResponse.json({ success: true, material });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -120,12 +123,12 @@ export async function DELETE(
 
     const isOwner = await verifySupplierOwnership(supplierId, user.id);
     if (!isOwner) {
-      return NextResponse.json({ error: "Fornecedor não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
     const hasAccess = await verifyMaterialAccess(materialId, supplierId, user.id);
     if (!hasAccess) {
-      return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
     const [material] = await db
@@ -134,9 +137,10 @@ export async function DELETE(
       .returning();
 
     if (!material) {
-      return NextResponse.json({ error: "Material não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(material.projectId, supplierId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting material:", error);

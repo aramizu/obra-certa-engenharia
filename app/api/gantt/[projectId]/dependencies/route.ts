@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { projects, taskDependencies, tasks } from "@/lib/db/schema";
+import { taskDependencies, tasks } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { wouldCreateCycle } from "@/lib/gantt";
+import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
+import { getOwnedProject } from "@/lib/owned-project";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   try {
@@ -11,8 +14,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
-    const [project] = await db.select().from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
-    if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const project = await getOwnedProject(projectId, user.id);
+    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
     const { taskId, dependsOnTaskId } = await request.json();
     if (!taskId || !dependsOnTaskId) {
@@ -26,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       eq(tasks.projectId, projectId),
       inArray(tasks.id, [taskId, dependsOnTaskId])
     ));
-    if (related.length !== 2) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (related.length !== 2) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
     const existing = await db.select().from(taskDependencies).where(eq(taskDependencies.taskId, taskId));
     if (existing.some((dep) => dep.dependsOnTaskId === dependsOnTaskId)) {
@@ -43,8 +46,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const [dependency] = await db.insert(taskDependencies).values({ taskId, dependsOnTaskId }).returning();
+    revalidateDomainPages(projectId);
     return NextResponse.json({ success: true, dependency });
   } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao criar dependência" }, { status: 500 });
   }
 }

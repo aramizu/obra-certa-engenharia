@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { suppliers } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const supplierSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -41,9 +43,10 @@ export async function PATCH(
       .returning();
 
     if (!supplier) {
-      return NextResponse.json({ error: "Fornecedor não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(undefined, id);
     return NextResponse.json({ success: true, supplier });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -78,9 +81,10 @@ export async function DELETE(
       .returning();
 
     if (!supplier) {
-      return NextResponse.json({ error: "Fornecedor não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
+    revalidateDomainPages(undefined, id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting supplier:", error);

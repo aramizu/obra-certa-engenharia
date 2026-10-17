@@ -1,5 +1,5 @@
 import { validateSession } from "@/lib/auth/session";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { suppliers, materials, projects, budgetCategories } from "@/lib/db/schema";
@@ -25,7 +25,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
     .limit(1);
 
   if (!supplier) {
-    notFound();
+    redirect("/fornecedores?aviso=fornecedor-inexistente");
   }
 
   const supplierMaterials = await db

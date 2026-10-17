@@ -6,13 +6,21 @@ import { projects } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { ProjectsList } from "./projects-list";
 import { CreateProjectButton } from "./create-project-button";
+import { MissingEntityBanner } from "@/components/missing-entity-banner";
+import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 
-export default async function ObrasPage() {
+export default async function ObrasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ aviso?: string }>;
+}) {
   const user = await validateSession();
 
   if (!user) {
     redirect("/entrar");
   }
+
+  const { aviso } = await searchParams;
 
   const userProjects = await db
     .select()
@@ -25,6 +33,8 @@ export default async function ObrasPage() {
       <PageTitle title="Obras" description="Gerencie seus projetos e orçamentos" />
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto space-y-6">
+          <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+          <MissingEntityBanner aviso={aviso} />
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold">
