@@ -27,7 +27,7 @@ export function EmptyState({
   return (
     <div className={cn("flex flex-col items-center justify-center text-center px-6 py-12 gap-4", className)}>
       <div className="ds-hazard h-2 w-28" />
-      <div className="flex h-20 w-20 items-center justify-center border-2 border-graphite bg-white text-primary ds-shadow">
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-graphite bg-white text-primary ds-shadow">
         <Mark className="h-12 w-12" />
       </div>
       <div className="space-y-1 max-w-sm">

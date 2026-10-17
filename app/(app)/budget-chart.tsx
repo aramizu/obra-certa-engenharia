@@ -44,7 +44,7 @@ export function BudgetChart({ rows }: { rows: BudgetChartRow[] }) {
                 y={padT + barMax - budgetH}
                 width={22}
                 height={budgetH}
-                rx={0}
+                rx={8}
                 className="fill-concrete"
               />
               <rect
@@ -52,7 +52,7 @@ export function BudgetChart({ rows }: { rows: BudgetChartRow[] }) {
                 y={padT + barMax - spentH}
                 width={22}
                 height={spentH}
-                rx={0}
+                rx={8}
                 className={over ? "fill-delay" : "fill-primary"}
               />
               <text
@@ -69,10 +69,10 @@ export function BudgetChart({ rows }: { rows: BudgetChartRow[] }) {
       </svg>
       <div className="flex gap-4 text-xs text-muted-foreground mt-2">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 bg-concrete border border-graphite" /> Previsto
+          <span className="h-2.5 w-2.5 rounded-full bg-concrete border border-graphite" /> Previsto
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 bg-primary border border-graphite" /> Gasto
+          <span className="h-2.5 w-2.5 rounded-full bg-primary border border-graphite" /> Gasto
         </span>
       </div>
     </div>

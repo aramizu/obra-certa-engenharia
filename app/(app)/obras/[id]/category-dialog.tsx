@@ -79,7 +79,7 @@ export function CategoryDialog({ open, onOpenChange, projectId, category }: Cate
 
           <div className="space-y-4 px-6 py-4">
             {error && (
-              <div className="text-sm text-delay border-2 border-delay bg-delay-wash p-3">
+              <div className="text-sm text-delay rounded-md border-2 border-delay bg-delay-wash p-3">
                 {error}
               </div>
             )}

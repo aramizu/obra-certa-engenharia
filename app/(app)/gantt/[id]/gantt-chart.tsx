@@ -228,7 +228,7 @@ export function GanttChart({
   return (
     <div className="flex h-full flex-col gap-3 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 bg-white border-2 border-graphite p-0">
+        <div className="flex items-center gap-1 overflow-hidden rounded-lg bg-white border-2 border-graphite p-0">
           {(["day", "week", "month"] as Zoom[]).map((option) => (
             <Button
               key={option}
@@ -253,7 +253,7 @@ export function GanttChart({
         </div>
       </div>
 
-      <div ref={scrollerRef} className="flex-1 min-h-0 overflow-auto border-2 border-graphite bg-white">
+      <div ref={scrollerRef} className="flex-1 min-h-0 overflow-auto rounded-lg border-2 border-graphite bg-white">
         <div className="relative" style={{ minWidth: LABEL_W + timelineW }}>
           <div
             className="absolute top-0 bottom-0 z-20 w-0.5 bg-primary pointer-events-none"
@@ -423,7 +423,7 @@ export function GanttChart({
                         ) : schedule ? (
                           <>
                             <div
-                              className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 rounded-none border text-xs flex items-center overflow-visible font-display uppercase tracking-wide ${
+                              className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 rounded-full border text-xs flex items-center overflow-visible font-display uppercase tracking-wide ${
                                 GANTT_BAR_CLASS[tone]
                               } ${conflict ? "ring-2 ring-delay" : ""} ${canDrag ? "cursor-grab" : "cursor-pointer"}`}
                               style={{ left, width }}

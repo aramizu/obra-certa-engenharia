@@ -4,7 +4,7 @@ import { cn, iconStroke } from "./cn";
 
 const buttonVariants = cva(
   cn(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-none text-sm font-display uppercase tracking-wider font-semibold transition-colors",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-display uppercase tracking-wider font-semibold transition-colors",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     "disabled:pointer-events-none disabled:opacity-50 active:translate-x-px active:translate-y-px",
     iconStroke

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  BADGE_CLASS,
   GANTT_BAR_CLASS,
   GANTT_MILESTONE_CLASS,
   WEEKDAY_LABELS,
@@ -44,6 +45,8 @@ describe("Gantt calendar helpers", () => {
     expect(GANTT_BAR_CLASS.overdue).toContain("text-delay-ink");
     expect(GANTT_BAR_CLASS.done).toContain("bg-done-wash");
     expect(GANTT_BAR_CLASS.high).toEqual(expect.stringContaining("border-delay"));
+    expect(GANTT_BAR_CLASS.high).toContain("rounded-full");
+    expect(BADGE_CLASS.high).toContain("rounded-full");
   });
 
   it("deriva tom de atraso e concluída a partir da coluna", () => {

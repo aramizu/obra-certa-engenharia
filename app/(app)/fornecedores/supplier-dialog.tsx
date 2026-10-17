@@ -70,7 +70,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
 
           <div className="space-y-4 px-6 py-4">
             {error && (
-              <div className="text-sm text-delay border-2 border-delay bg-delay-wash p-3">
+              <div className="text-sm text-delay rounded-md border-2 border-delay bg-delay-wash p-3">
                 {error}
               </div>
             )}
@@ -127,7 +127,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
                 name="notes"
                 defaultValue={supplier?.notes || ""}
                 placeholder="Informações adicionais sobre o fornecedor"
-                className="w-full min-h-[80px] px-3 py-2 text-sm border-2 border-graphite bg-white"
+                className="w-full min-h-[80px] rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
               />
             </div>
           </div>

@@ -273,7 +273,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
               <div className="space-y-2">
                 <Label>Total (R$)</Label>
-                <div className="px-3 py-2 text-sm border-2 border-graphite bg-concrete font-mono tabular-nums">
+                <div className="rounded-md px-3 py-2 text-sm border-2 border-graphite bg-concrete font-mono tabular-nums">
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",

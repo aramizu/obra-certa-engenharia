@@ -10,7 +10,7 @@ export function Stamp({
   return (
     <span
       className={cn(
-        "inline-flex items-center border-2 border-graphite bg-white px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground",
+        "inline-flex items-center rounded-full border-2 border-graphite bg-white px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground",
         className
       )}
     >

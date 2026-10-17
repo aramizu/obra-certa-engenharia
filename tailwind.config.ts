@@ -76,9 +76,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: "0px",
-        md: "0px",
-        sm: "0px",
+        lg: "var(--radius)",
+        md: "var(--radius-md)",
+        sm: "var(--radius-sm)",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

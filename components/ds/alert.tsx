@@ -17,7 +17,7 @@ const tones = {
 
 export function Alert({ children, className, tone = "warning", title }: AlertProps) {
   return (
-    <div className={cn("border-2 bg-white text-sm", tones[tone], className)} role="alert">
+    <div className={cn("overflow-hidden rounded-lg border-2 bg-white text-sm", tones[tone], className)} role="alert">
       <div className="ds-hazard h-2 w-full" />
       <div className="px-4 py-3">
         {title && <p className="text-label mb-1 text-inherit">{title}</p>}

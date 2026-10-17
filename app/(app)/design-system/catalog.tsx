@@ -44,19 +44,37 @@ export function DesignSystemCatalog() {
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-16">
       <Alert tone="info" title="Prancha OC-DS">
-        Identidade técnica da Obra Certa: concreto, laranja de segurança, azul de planta. Superfícies opacas, cantos retos, cotas e carimbos.
+        Identidade da Obra Certa: concreto, laranja de segurança, azul de planta. Superfícies brancas sólidas, cantos arredondados (cards 16px, controles 12px, selos em pílula).
       </Alert>
 
       <section className="space-y-3">
         <h2 className="text-title">Cores</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {swatches.map((swatch) => (
-            <div key={swatch.name} className="border-2 border-graphite bg-white ds-shadow">
+            <div key={swatch.name} className="overflow-hidden rounded-lg border-2 border-graphite bg-white ds-shadow">
               <div className={`h-16 ${swatch.className}`} />
               <div className="p-2">
                 <p className="text-label">{swatch.name}</p>
                 <p className="font-mono text-[10px]">{swatch.hex}</p>
               </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-title">Raios</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { name: "Controles", value: "10–12px", className: "rounded-md" },
+            { name: "Cards · modais", value: "16px", className: "rounded-lg" },
+            { name: "Painéis", value: "20–24px", className: "rounded-2xl" },
+            { name: "Selos · barras", value: "pílula", className: "rounded-full" },
+          ].map((token) => (
+            <div key={token.name} className={`border-2 border-graphite bg-white ds-shadow p-4 ${token.className}`}>
+              <div className={`h-10 bg-primary ${token.className}`} />
+              <p className="text-label mt-3">{token.name}</p>
+              <p className="font-mono text-[10px]">{token.value}</p>
             </div>
           ))}
         </div>

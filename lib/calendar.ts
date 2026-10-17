@@ -73,13 +73,13 @@ export function taskBadgeTone(
 }
 
 export const BADGE_CLASS: Record<BadgeTone, string> = {
-  high: "bg-delay-wash text-delay border-2 border-delay",
-  medium: "bg-signal-wash text-signal-ink border-2 border-graphite",
-  low: "bg-blueprint-wash text-blueprint border-2 border-blueprint",
-  normal: "bg-white text-foreground border-2 border-graphite",
-  milestone: "bg-primary text-primary-foreground border-2 border-graphite font-semibold",
-  overdue: "bg-delay text-delay-ink border-2 border-graphite",
-  done: "bg-done-wash text-done border-2 border-done line-through",
+  high: "rounded-full bg-delay-wash text-delay border-2 border-delay",
+  medium: "rounded-full bg-signal-wash text-signal-ink border-2 border-graphite",
+  low: "rounded-full bg-blueprint-wash text-blueprint border-2 border-blueprint",
+  normal: "rounded-full bg-white text-foreground border-2 border-graphite",
+  milestone: "rounded-full bg-primary text-primary-foreground border-2 border-graphite font-semibold",
+  overdue: "rounded-full bg-delay text-delay-ink border-2 border-graphite",
+  done: "rounded-full bg-done-wash text-done border-2 border-done line-through",
 };
 
 export const DOT_CLASS: Record<BadgeTone, string> = {
@@ -94,13 +94,13 @@ export const DOT_CLASS: Record<BadgeTone, string> = {
 
 /** Same palette as calendar badges, as opaque Gantt bars. */
 export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
-  high: "bg-delay-wash text-delay border-2 border-delay",
-  medium: "bg-signal-wash text-signal-ink border-2 border-graphite",
-  low: "bg-blueprint-wash text-blueprint border-2 border-blueprint",
-  normal: "bg-white text-foreground border-2 border-graphite",
-  milestone: "bg-primary text-primary-foreground border-2 border-graphite font-semibold",
-  overdue: "bg-delay text-delay-ink border-2 border-graphite",
-  done: "bg-done-wash text-done border-2 border-done",
+  high: "rounded-full bg-delay-wash text-delay border-2 border-delay",
+  medium: "rounded-full bg-signal-wash text-signal-ink border-2 border-graphite",
+  low: "rounded-full bg-blueprint-wash text-blueprint border-2 border-blueprint",
+  normal: "rounded-full bg-white text-foreground border-2 border-graphite",
+  milestone: "rounded-full bg-primary text-primary-foreground border-2 border-graphite font-semibold",
+  overdue: "rounded-full bg-delay text-delay-ink border-2 border-graphite",
+  done: "rounded-full bg-done-wash text-done border-2 border-done",
 };
 
 export const GANTT_MILESTONE_CLASS: Record<BadgeTone, string> = {
