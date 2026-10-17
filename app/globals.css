@@ -1,31 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: 0 0% 98%;
-  --foreground: 0 0% 20%;
+  /* Construction-inspired concrete and steel palette */
+  --background: 28 15% 96%; /* Warm concrete */
+  --foreground: 20 14% 12%; /* Deep charcoal */
 
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 20%;
+  --card: 0 0% 100%; /* Clean white for cards */
+  --card-foreground: 20 14% 12%;
 
-  --primary: 0 0% 28%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 37 90% 51%; /* Construction orange for primary actions */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 93%;
-  --secondary-foreground: 0 0% 20%;
+  --secondary: 28 12% 90%; /* Light concrete */
+  --secondary-foreground: 20 14% 12%;
 
-  --muted: 0 0% 93%;
-  --muted-foreground: 0 0% 45%;
+  --muted: 25 10% 88%; /* Muted concrete */
+  --muted-foreground: 25 8% 45%; /* Mid-tone gray */
 
-  --accent: 24 100% 50%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 37 90% 51%; /* Construction orange */
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 89%;
-  --input: 0 0% 89%;
-  --ring: 24 100% 50%;
+  --border: 28 12% 85%; /* Concrete border */
+  --input: 28 12% 90%;
+  --ring: 37 90% 51%; /* Orange focus ring */
 
   --radius: 0.5rem;
 }
@@ -37,38 +37,40 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+/* Typography scale with technical display font */
 .text-display {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.875rem;
-  line-height: 2.25rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 2.25rem;
+  line-height: 2.5rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
 .text-heading {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.5rem;
-  line-height: 2rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
 .text-title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.125rem;
+  font-family: var(--font-oswald), sans-serif;
+  font-size: 1.25rem;
   line-height: 1.75rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
-.font-data {
-  font-family: 'Inter', system-ui, sans-serif;
+/* Tabular numbers for financial data */
+.tabular-nums {
+  font-feature-settings: "tnum" 1;
   font-variant-numeric: tabular-nums;
 }
