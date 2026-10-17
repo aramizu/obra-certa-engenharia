@@ -28,7 +28,7 @@ const navigation = [
   { name: "Painel", href: "/", icon: Home, available: true },
   { name: "Obras", href: "/obras", icon: Building2, available: true },
   { name: "Fornecedores", href: "/fornecedores", icon: Package, available: true },
-  { name: "Kanban", href: "/kanban", icon: KanbanSquare, available: false },
+  { name: "Kanban", href: "/kanban", icon: KanbanSquare, available: true },
   { name: "Gantt", href: "/gantt", icon: GanttChart, available: false },
   { name: "Calendário", href: "/calendario", icon: Calendar, available: false },
 ];
@@ -71,7 +71,9 @@ function SidebarPanel({
 
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto" aria-label="Principal">
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === "/"
+            ? pathname === "/"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 
           return (
