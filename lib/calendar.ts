@@ -32,6 +32,14 @@ export function taskOccursOn(
   return false;
 }
 
+export function isAssignedToUser(task: { assignee: string | null }, userName: string) {
+  const assignee = (task.assignee || "").trim().toLowerCase();
+  if (!assignee) return true;
+  const name = userName.trim().toLowerCase();
+  const first = name.split(" ")[0];
+  return assignee === name || assignee.includes(name) || (first.length > 1 && assignee.includes(first));
+}
+
 export function isDoneColumn(columnName: string | null | undefined) {
   if (!columnName) return false;
   const normalized = columnName.toLowerCase();
