@@ -218,10 +218,10 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-white border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.

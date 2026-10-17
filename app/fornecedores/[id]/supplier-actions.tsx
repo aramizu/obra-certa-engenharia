@@ -55,7 +55,7 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
               className="fixed inset-0 z-10"
               onClick={() => setShowMenu(false)}
             />
-            <div className="absolute right-0 mt-2 w-48 bg-card border rounded-lg shadow-lg z-20">
+            <div className="absolute right-0 mt-2 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20">
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted transition-colors"
                 onClick={() => {
@@ -90,10 +90,10 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/50"
             onClick={() => !loading && setShowDeleteConfirm(false)}
           />
-          <div className="relative z-50 w-full max-w-md bg-card border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir o fornecedor <strong>{supplier.name}</strong>?

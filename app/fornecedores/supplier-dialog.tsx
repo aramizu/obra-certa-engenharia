@@ -127,7 +127,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
                 name="notes"
                 defaultValue={supplier?.notes || ""}
                 placeholder="Informações adicionais sobre o fornecedor"
-                className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-background"
+                className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-white text-foreground"
               />
             </div>
           </div>

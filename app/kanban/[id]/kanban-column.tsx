@@ -103,7 +103,7 @@ export function KanbanColumn({
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg z-20 py-1">
+                <div className="absolute right-0 mt-1 w-48 bg-white text-foreground border rounded-lg shadow-lg z-20 py-1">
                   <button
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted disabled:opacity-40"
                     disabled={!canMoveLeft}
@@ -168,7 +168,7 @@ export function KanbanColumn({
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setShowDeleteConfirm(false)} />
-          <div className="relative z-50 w-full max-w-md bg-white border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white text-foreground border rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-2">Excluir Coluna</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza? As tarefas desta raia ficam sem coluna até você movê-las de novo.
