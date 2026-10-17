@@ -159,7 +159,7 @@ export function BudgetCategoriesList({ projectId, categories }: BudgetCategories
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !loading && setDeletingId(null)}
           />
-          <div className="relative z-50 w-full max-w-md bg-card border rounded-lg shadow-lg p-6">
+          <div className="relative z-50 w-full max-w-md bg-white border rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.
