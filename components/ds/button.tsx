@@ -1,10 +1,11 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn, iconStroke } from "./cn";
+import { cn, CONTROL_RADIUS_CLASS, iconStroke } from "./cn";
 
 const buttonVariants = cva(
   cn(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-display uppercase tracking-wider font-semibold transition-colors",
+    "inline-flex items-center justify-center whitespace-nowrap text-sm font-display uppercase tracking-wider font-semibold transition-colors",
+    CONTROL_RADIUS_CLASS,
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
     "disabled:pointer-events-none disabled:opacity-50 active:translate-x-px active:translate-y-px",
     iconStroke

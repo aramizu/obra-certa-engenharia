@@ -133,23 +133,23 @@ export function KanbanColumn({
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10 lg:left-64" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 mt-1 w-48 overflow-hidden rounded-lg bg-white border-2 border-graphite ds-shadow z-20 py-1">
+                <div className="absolute right-0 mt-1 w-48 py-1 overflow-hidden rounded-md bg-white border-2 border-graphite ds-shadow z-20">
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
+                    className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
                     disabled={!canMoveLeft}
                     onClick={() => moveColumn("left")}
                   >
                     <ChevronLeft className="h-3 w-3" />Mover para esquerda
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
+                    className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm hover:bg-concrete disabled:opacity-40"
                     disabled={!canMoveRight}
                     onClick={() => moveColumn("right")}
                   >
                     <ChevronRight className="h-3 w-3" />Mover para direita
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-concrete"
+                    className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm hover:bg-concrete"
                     onClick={() => {
                       setShowMenu(false);
                       setShowEditDialog(true);
@@ -158,7 +158,7 @@ export function KanbanColumn({
                     <Pencil className="h-3 w-3" />Renomear
                   </button>
                   <button
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-delay hover:bg-delay-wash disabled:opacity-40"
+                    className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm text-delay hover:bg-delay-wash disabled:opacity-40"
                     disabled={!canDelete}
                     onClick={() => {
                       setShowMenu(false);

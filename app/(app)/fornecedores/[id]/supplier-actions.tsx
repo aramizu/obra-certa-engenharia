@@ -58,9 +58,9 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
               className="fixed inset-0 z-10 lg:left-64"
               onClick={() => setShowMenu(false)}
             />
-            <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-lg bg-white border-2 border-graphite ds-shadow z-20">
+            <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md bg-white border-2 border-graphite ds-shadow z-20 py-1">
               <button
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted transition-colors"
+                className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm hover:bg-concrete transition-colors"
                 onClick={() => {
                   setShowMenu(false);
                   setShowEditDialog(true);
@@ -70,7 +70,7 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
                 Editar
               </button>
               <button
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                className="flex items-center gap-2 w-full rounded-sm mx-1 px-3 py-2 text-sm text-delay hover:bg-delay-wash transition-colors"
                 onClick={() => {
                   setShowMenu(false);
                   setShowDeleteConfirm(true);
