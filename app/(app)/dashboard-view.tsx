@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CalendarClock, Package, Plus } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState, Select, StatCard, TASK_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
 import { cn } from "@/lib/utils";
@@ -243,12 +243,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
               illustration="plan"
               className="py-8"
               title="Semana em dia"
-              description="Nenhuma tarefa vencida ou com prazo nesta semana. O Kanban mostra o restante das tarefas."
-              action={
-                <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-                  Ver mais tarefas
-                </Link>
-              }
+              description="Nenhuma tarefa vencida ou com prazo nesta semana."
             />
           ) : (
             <ul className="space-y-2">
@@ -296,17 +291,6 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
             </ul>
           )}
         </CardContent>
-        {weekTasks.length > 0 && (
-          <CardFooter>
-            <Link
-              prefetch
-              href="/kanban"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}
-            >
-              Ver mais tarefas
-            </Link>
-          </CardFooter>
-        )}
       </Card>
 
       <Card className="bg-white">
