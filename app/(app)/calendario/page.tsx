@@ -3,19 +3,16 @@ import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { CalendarView, type CalendarTask } from "./calendar-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
+import { getCachedUserProjects } from "@/lib/cached-queries";
 
 export default async function CalendarioPage() {
   const user = await validateSession();
   if (!user) redirect("/entrar");
 
-  const userProjects = await db
-    .select({ id: projects.id, name: projects.name })
-    .from(projects)
-    .where(eq(projects.userId, user.id))
-    .orderBy(desc(projects.createdAt));
+  const userProjects = await getCachedUserProjects(user.id);
 
   const rows = await db
     .select({

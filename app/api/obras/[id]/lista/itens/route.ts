@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const data = itemSchema.parse(await request.json());
     const item = await addCustomSuggestedItem(id, data);
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true, item });
   } catch (error) {
     if (error instanceof z.ZodError) {

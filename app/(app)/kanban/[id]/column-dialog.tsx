@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { TaskColumn } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 
 export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: boolean; onOpenChange: (open: boolean) => void; projectId: string; column?: TaskColumn }) {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: 
         body: JSON.stringify(data),
       });
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     } catch {
       alert("Erro ao salvar coluna");
     } finally {

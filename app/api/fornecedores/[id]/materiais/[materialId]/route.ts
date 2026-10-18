@@ -92,7 +92,7 @@ export async function PATCH(
       return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(data.projectId, supplierId);
+    revalidateDomainPages({ userId: user.id, projectId: data.projectId, supplierId });
     return NextResponse.json({ success: true, material });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -140,7 +140,7 @@ export async function DELETE(
       return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(material.projectId, supplierId);
+    revalidateDomainPages({ userId: user.id, projectId: material.projectId, supplierId });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting material:", error);

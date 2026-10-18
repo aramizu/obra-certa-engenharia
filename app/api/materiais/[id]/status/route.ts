@@ -37,7 +37,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .where(eq(materials.id, id))
       .returning();
 
-    revalidateDomainPages(material?.projectId);
+    revalidateDomainPages({ userId: user.id, projectId: material?.projectId });
     return NextResponse.json({ success: true, material });
   } catch {
     return NextResponse.json({ error: "Erro ao atualizar material" }, { status: 500 });

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { afterMutation } from "@/lib/after-mutation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -8,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 
 export function AdminBaseView({ initialCatalog }: { initialCatalog: KnowledgeCatalog }) {
+  const router = useRouter();
   const [catalog, setCatalog] = useState(initialCatalog);
   const [saving, setSaving] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -30,6 +33,7 @@ export function AdminBaseView({ initialCatalog }: { initialCatalog: KnowledgeCat
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Erro ao salvar");
+      await afterMutation(() => router.refresh(), { knowledgeBase: true });
       setMessage("Alteração salva na base global.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Erro ao salvar");

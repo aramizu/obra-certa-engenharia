@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, Textarea } from "@/components/ds";
 import type { Task } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface TaskDialogProps {
   open: boolean;
@@ -70,7 +71,7 @@ export function TaskDialog({
         throw new Error(typeof result.error === "string" ? result.error : "Erro ao salvar tarefa");
       }
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: selectedProjectId });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao salvar tarefa");
     } finally {

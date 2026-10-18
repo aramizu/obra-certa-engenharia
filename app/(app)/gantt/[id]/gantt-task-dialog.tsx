@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { dependencyConflict, isMilestoneTask } from "@/lib/gantt";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface GanttTaskDialogProps {
   open: boolean;
@@ -95,7 +96,7 @@ export function GanttTaskDialog({
       }
 
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erro ao salvar tarefa");
     } finally {

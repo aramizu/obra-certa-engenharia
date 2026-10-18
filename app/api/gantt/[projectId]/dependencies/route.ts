@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const [dependency] = await db.insert(taskDependencies).values({ taskId, dependsOnTaskId }).returning();
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, dependency });
   } catch {
     return NextResponse.json({ error: "Erro ao criar dependência" }, { status: 500 });

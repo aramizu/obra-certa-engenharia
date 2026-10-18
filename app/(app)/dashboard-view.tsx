@@ -14,6 +14,7 @@ import { formatBRL } from "@/lib/format";
 import { addDays, formatISODate, today } from "@/lib/date";
 import { BADGE_CLASS, isAssignedToUser, isDoneColumn, isOverdueTask, taskBadgeTone } from "@/lib/calendar";
 import { BudgetChart, type BudgetChartRow } from "./budget-chart";
+import { afterMutation } from "@/lib/after-mutation";
 
 export type DashboardTask = Task & { projectName: string; columnName: string | null };
 
@@ -122,7 +123,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
         body: JSON.stringify({ status: next }),
       });
       if (!response.ok) throw new Error();
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: item.projectId });
     } catch {
       alert("Erro ao atualizar status da compra");
     } finally {
@@ -150,13 +151,13 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           </Select>
         </label>
         <div className="flex flex-wrap gap-2">
-          <Link href="/obras" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+          <Link prefetch href="/obras" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
             <Plus className="h-4 w-4 mr-1" />Obra
           </Link>
-          <Link href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+          <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
             <Plus className="h-4 w-4 mr-1" />Tarefa
           </Link>
-          <Link href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+          <Link prefetch href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
             <Plus className="h-4 w-4 mr-1" />Material
           </Link>
         </div>
@@ -168,7 +169,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
             illustration="helmet"
             title="Nenhuma obra no canteiro"
             description="Comece pelo cadastro da obra para acompanhar orçamento, tarefas e compras."
-            action={<Link href="/obras" className={buttonVariants()}>Criar obra</Link>}
+            action={<Link prefetch href="/obras" className={buttonVariants()}>Criar obra</Link>}
           />
         </Card>
       )}
@@ -212,7 +213,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
             {pending.length === 0 ? (
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>Nenhuma pendência no recorte atual.</p>
-                <Link href="/calendario" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+                <Link prefetch href="/calendario" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
                   Ver calendário
                 </Link>
               </div>
@@ -255,7 +256,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
             {myTasks.length === 0 ? (
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>Nenhuma tarefa sua em aberto.</p>
-                <Link href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+                <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
                   Criar tarefa
                 </Link>
               </div>
@@ -299,7 +300,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           {toBuy.length === 0 ? (
             <div className="text-sm text-muted-foreground space-y-2">
               <p>Nada pendente de compra neste recorte.</p>
-              <Link href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+              <Link prefetch href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
                 Cadastrar material
               </Link>
             </div>

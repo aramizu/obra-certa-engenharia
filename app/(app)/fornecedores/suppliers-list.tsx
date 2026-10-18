@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ds";
 import { Pencil, Trash2, Phone, Mail, User } from "lucide-react";
 import { SupplierDialog } from "./supplier-dialog";
 import type { Supplier } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface SuppliersListProps {
   suppliers: Supplier[];
@@ -32,7 +33,7 @@ export function SuppliersList({ suppliers }: SuppliersListProps) {
       }
 
       setDeletingId(null);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { supplierId });
     } catch (error) {
       console.error("Error deleting supplier:", error);
       alert("Erro ao excluir fornecedor");
@@ -101,7 +102,7 @@ export function SuppliersList({ suppliers }: SuppliersListProps) {
                   {supplier.notes}
                 </p>
               )}
-              <Link href={`/fornecedores/${supplier.id}`}>
+              <Link href={`/fornecedores/${supplier.id}`} prefetch>
                 <Button variant="outline" size="sm" className="w-full mt-3">
                   Ver Materiais
                 </Button>

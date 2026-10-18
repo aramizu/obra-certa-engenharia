@@ -16,6 +16,7 @@ import { modulesForWorkType } from "@/lib/kb-engine";
 import { formatQty } from "@/lib/kb-engine";
 import { formatBRL } from "@/lib/format";
 import { MATERIAL_UNITS } from "@/lib/material-units";
+import { afterMutation } from "@/lib/after-mutation";
 import type { Project, ProjectSuggestedItem, Supplier } from "@/lib/db/schema";
 
 type RoomDraft = {
@@ -136,7 +137,7 @@ export function ListaView({
       if (!response.ok) throw new Error(result.error || "Erro ao gerar lista");
       setItems(result.items);
       setStep("list");
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: project.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao gerar lista");
     } finally {
@@ -166,7 +167,7 @@ export function ListaView({
             ))}
           </div>
         </div>
-        <Link href={`/obras/${project.id}`} className="text-sm underline-offset-4 hover:underline">
+        <Link href={`/obras/${project.id}`} prefetch className="text-sm underline-offset-4 hover:underline">
           Pular
         </Link>
       </div>
@@ -600,6 +601,7 @@ function ItemRow({
   onRemove: () => void;
   onSupplier: (supplier: Supplier) => void;
 }) {
+  const router = useRouter();
   const [qty, setQty] = useState(String(item.quantity));
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "new");
   const [newName, setNewName] = useState("");
@@ -617,13 +619,19 @@ function ItemRow({
       body: JSON.stringify({ quantity }),
     });
     const result = await response.json();
-    if (response.ok) onChange(result.item);
+    if (response.ok) {
+      onChange(result.item);
+      await afterMutation(() => router.refresh(), { projectId });
+    }
   };
 
   const remove = async () => {
     if (!confirm("Remover este item da lista da obra?")) return;
     const response = await fetch(`/api/obras/${projectId}/lista/itens/${item.id}`, { method: "DELETE" });
-    if (response.ok) onRemove();
+    if (response.ok) {
+      onRemove();
+      await afterMutation(() => router.refresh(), { projectId });
+    }
   };
 
   const link = async () => {
@@ -645,6 +653,7 @@ function ItemRow({
       if (!response.ok) throw new Error(result.error || "Erro ao vincular");
       onChange(result.item);
       if (result.supplier) onSupplier(result.supplier);
+      await afterMutation(() => router.refresh(), { projectId, supplierId: result.supplier?.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao vincular");
     } finally {
@@ -727,6 +736,7 @@ function AddItemForm({
   const [quantity, setQuantity] = useState("1");
   const [categoryId, setCategoryId] = useState(catalog.categories[0]?.id ?? "");
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   const submit = async () => {
     const material = catalog.materials.find((item) => item.id === materialId);
@@ -748,6 +758,7 @@ function AddItemForm({
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Erro ao adicionar");
       onAdd(result.item);
+      await afterMutation(() => router.refresh(), { projectId });
       setName("");
       setMaterialId("");
     } finally {

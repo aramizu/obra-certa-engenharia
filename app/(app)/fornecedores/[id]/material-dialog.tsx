@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Alert, Select, Textarea } from "@/components/ds";
 import { MATERIAL_UNITS, shouldShowQuantityPerUnit, getDefaultQuantity } from "@/lib/material-units";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface Project {
   id: string;
@@ -119,7 +120,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
       }
 
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: data.projectId, supplierId });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar material");
     } finally {

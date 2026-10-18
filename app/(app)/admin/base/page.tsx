@@ -1,7 +1,7 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
-import { loadKnowledgeCatalog } from "@/lib/kb-store";
+import { getCachedKnowledgeCatalog } from "@/lib/cached-queries";
 import { AdminBaseView } from "./admin-base-view";
 
 export default async function AdminBasePage() {
@@ -9,7 +9,7 @@ export default async function AdminBasePage() {
   if (!user) redirect("/entrar");
   if (!user.isAdmin) redirect("/");
 
-  const catalog = await loadKnowledgeCatalog();
+  const catalog = await getCachedKnowledgeCatalog();
 
   return (
     <>

@@ -76,7 +76,7 @@ export async function POST(
       })
       .returning();
 
-    revalidateDomainPages(data.projectId, supplierId);
+    revalidateDomainPages({ userId: user.id, projectId: data.projectId, supplierId });
     return NextResponse.json({ success: true, material });
   } catch (error) {
     if (error instanceof z.ZodError) {

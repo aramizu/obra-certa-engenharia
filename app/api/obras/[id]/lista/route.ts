@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const body = saveSchema.parse(await request.json());
     const lista = await saveProjectLista(id, body.workType, body.rooms);
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true, project: { ...project, workType: body.workType }, ...lista });
   } catch (error) {
     if (error instanceof z.ZodError) {

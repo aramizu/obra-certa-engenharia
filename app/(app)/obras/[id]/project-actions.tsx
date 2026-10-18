@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectDialog } from "../project-dialog";
 import type { Project } from "@/lib/db/schema";
 import { formatProjectDeleteWarning } from "@/lib/domain-data";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface ProjectActionsProps {
   project: Project;
@@ -32,6 +33,7 @@ export function ProjectActions({ project, taskCount, materialCount }: ProjectAct
         throw new Error("Erro ao excluir obra");
       }
 
+      await afterMutation(() => router.refresh(), { projectId: project.id });
       router.push("/obras");
     } catch (error) {
       console.error("Error deleting project:", error);

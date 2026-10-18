@@ -69,7 +69,7 @@ export async function POST(
       return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
-    revalidateDomainPages(id, supplierId);
+    revalidateDomainPages({ userId: user.id, projectId: id, supplierId });
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     if (error instanceof z.ZodError) {

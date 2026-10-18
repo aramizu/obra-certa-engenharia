@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ProgressBar } from "@/components/ds";
 import { Pencil, Trash2, GripVertical } from "lucide-react";
 import { CategoryDialog } from "./category-dialog";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface Category {
   id: string;
@@ -39,7 +40,7 @@ export function BudgetCategoriesList({ projectId, categories }: BudgetCategories
       }
 
       setDeletingId(null);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     } catch (error) {
       console.error("Error deleting category:", error);
       alert("Erro ao excluir categoria");
