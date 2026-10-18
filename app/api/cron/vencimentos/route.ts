@@ -60,11 +60,12 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const todayIso = formatISODate(todayInTimeZone(APP_TIME_ZONE, now));
   const currentHour = hourInTimeZone(APP_TIME_ZONE, now);
+  const slot = request.nextUrl.searchParams.get("h");
 
   const subscriptions = await db.select().from(pushSubscriptions);
   const userIds = [...new Set(subscriptions.map((row) => row.userId))];
   if (userIds.length === 0) {
-    return NextResponse.json({ ok: true, hour: currentHour, users: 0, removed: 0 });
+    return NextResponse.json({ ok: true, hour: currentHour, slot, users: 0, removed: 0 });
   }
 
   const settingRows = await db
@@ -171,5 +172,5 @@ export async function GET(request: NextRequest) {
     notifiedUsers += 1;
   }
 
-  return NextResponse.json({ ok: true, hour: currentHour, users: notifiedUsers, removed });
+  return NextResponse.json({ ok: true, hour: currentHour, slot, users: notifiedUsers, removed });
 }

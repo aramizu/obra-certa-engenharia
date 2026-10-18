@@ -101,14 +101,23 @@ describe("arquivos de push", () => {
     expect(sw).not.toMatch(/addEventListener\(\s*["']fetch["']/);
   });
 
-  it("manifest standalone com o nome da obra e cron horário", () => {
+  it("manifest standalone com o nome da obra e 24 crons diários (Hobby)", () => {
     const manifest = source("public/manifest.webmanifest");
     expect(manifest).toContain('"name": "Obra Certa Engenharia"');
     expect(manifest).toContain('"display": "standalone"');
     expect(manifest).toContain("/images/construction-bg.jpg");
-    const vercel = source("vercel.json");
-    expect(vercel).toContain("/api/cron/vencimentos");
-    expect(vercel).toContain("0 * * * *");
+    const vercel = JSON.parse(source("vercel.json")) as {
+      crons: { path: string; schedule: string }[];
+    };
+    expect(vercel.crons).toHaveLength(24);
+    for (let hour = 0; hour < 24; hour += 1) {
+      const pad = String(hour).padStart(2, "0");
+      expect(vercel.crons[hour]).toEqual({
+        path: `/api/cron/vencimentos?h=${pad}`,
+        schedule: `0 ${hour} * * *`,
+      });
+    }
+    expect(source("vercel.json")).not.toContain('"0 * * * *"');
   });
 
   it("migration 0013 é idempotente e o env obrigatório não inclui VAPID/CRON", () => {
@@ -151,6 +160,7 @@ describe("arquivos de push", () => {
     expect(cron).toContain("isDoneColumn");
     expect(cron).toContain("isGonePushStatus");
     expect(cron).toContain("hourInTimeZone");
+    expect(cron).toContain('searchParams.get("h")');
     expect(cron).not.toContain("BEGIN PRIVATE KEY");
   });
 });
