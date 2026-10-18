@@ -153,5 +153,11 @@ describe("regras visuais do Gantt", () => {
     expect(chart).toContain("truncate");
     expect(chart).toContain("Sem datas — toque para definir");
     expect(chart).toContain("ganttNowLineOffset");
+    expect(chart).toContain("md:sticky md:left-0");
+    expect(chart).not.toContain("sticky left-0");
+    expect(chart).toContain("[--gantt-label-w:132px]");
+    expect(chart).toContain("md:[--gantt-label-w:220px]");
+    expect(chart).toContain("GROUP_H = 28");
+    expect(chart).toContain("bg-graphite text-white");
   });
 });

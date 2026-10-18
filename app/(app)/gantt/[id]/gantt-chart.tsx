@@ -26,8 +26,17 @@ import {
 
 const GANTT_UNLINKED_GROUP_LABEL = "Outras atividades";
 
-const LABEL_W = 220;
+const LABEL_W_MOBILE = 132;
+const LABEL_W_DESKTOP = 220;
 const ROW_H = 48;
+const GROUP_H = 28;
+
+function labelColClass(extra: string) {
+  return cn(
+    "shrink-0 border-r w-[var(--gantt-label-w)] min-w-[var(--gantt-label-w)] px-2 md:px-3 md:sticky md:left-0",
+    extra
+  );
+}
 
 export type GanttTask = Task & { columnName: string | null; projectName: string | null };
 
@@ -53,6 +62,10 @@ type DragState = {
 type RenderRow =
   | { kind: "group"; key: string; name: string }
   | { kind: "task"; task: GanttTask };
+
+function ganttRowHeight(row: RenderRow) {
+  return row.kind === "group" ? GROUP_H : ROW_H;
+}
 
 function barTooltip(task: GanttTask, schedule: { start: Date; end: Date }) {
   const dates = formatGanttDateRange(schedule.start, schedule.end);
@@ -103,6 +116,8 @@ export function GanttChart({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<GanttTask | null>(null);
   const [timelinePx, setTimelinePx] = useState(0);
+  const [now, setNow] = useState(() => new Date());
+  const [labelW, setLabelW] = useState(LABEL_W_DESKTOP);
 
   useEffect(() => setTasks(initialTasks), [initialTasks]);
 
@@ -114,7 +129,14 @@ export function GanttChart({
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const update = () => setLabelW(media.matches ? LABEL_W_DESKTOP : LABEL_W_MOBILE);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
   const todayDate = useMemo(() => startOfDay(now), [now]);
   const columns = useMemo(() => ganttColumns(zoom, cursor), [cursor, zoom]);
   const minColWidth = ganttMinColumnPx(zoom);
@@ -139,6 +161,16 @@ export function GanttChart({
     () => buildRenderRows(orderedTasks, groupByProject),
     [groupByProject, orderedTasks]
   );
+
+  const rowTops = useMemo(() => {
+    const tops: number[] = [];
+    let top = 0;
+    for (const row of renderRows) {
+      tops.push(top);
+      top += ganttRowHeight(row);
+    }
+    return { tops, height: top };
+  }, [renderRows]);
 
   const taskRowIndex = useMemo(() => {
     const map = new Map<string, number>();
@@ -192,9 +224,9 @@ export function GanttChart({
   useEffect(() => {
     const node = scrollerRef.current;
     if (!node || !nowLine || colWidthPx <= 0) return;
-    const left = LABEL_W + (nowLine.index + nowLine.progress) * colWidthPx - node.clientWidth / 3;
+    const left = labelW + (nowLine.index + nowLine.progress) * colWidthPx - node.clientWidth / 3;
     node.scrollLeft = Math.max(0, left);
-  }, [colWidthPx, nowLine, zoom]);
+  }, [colWidthPx, labelW, nowLine, zoom]);
 
   useEffect(() => {
     if (!drag) return;
@@ -262,7 +294,6 @@ export function GanttChart({
   };
 
   const allowDrag = canDrag && zoom !== "day";
-  const rowCount = renderRows.length;
 
   return (
     <div className="flex h-full flex-col gap-3 min-h-0">
@@ -312,11 +343,15 @@ export function GanttChart({
       </div>
 
       <div ref={scrollerRef} className="flex-1 min-h-0 overflow-auto rounded-lg border-2 border-graphite bg-white">
-        <div className="w-full" style={{ minWidth: LABEL_W + colCount * minColWidth }}>
+        <div
+          className="w-full [--gantt-label-w:132px] md:[--gantt-label-w:220px]"
+          style={{ minWidth: `calc(var(--gantt-label-w) + ${colCount * minColWidth}px)` }}
+        >
           <div className="sticky top-0 z-30 flex border-b bg-white">
             <div
-              className="sticky left-0 z-40 shrink-0 border-r bg-white px-3 flex items-end pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-              style={{ width: LABEL_W, minWidth: LABEL_W }}
+              className={labelColClass(
+                "md:z-40 bg-white flex items-end pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              )}
             >
               Tarefa
             </div>
@@ -348,7 +383,7 @@ export function GanttChart({
               <div
                 className="absolute top-0 bottom-0 z-20 w-0.5 bg-primary pointer-events-none"
                 style={{
-                  left: `calc(${LABEL_W}px + ${(nowLine.index + nowLine.progress) / colCount} * (100% - ${LABEL_W}px))`,
+                  left: `calc(var(--gantt-label-w) + ${(nowLine.index + nowLine.progress) / colCount} * (100% - var(--gantt-label-w)))`,
                 }}
                 title="Agora"
               />
@@ -362,8 +397,8 @@ export function GanttChart({
               <>
                 <svg
                   className="absolute top-0 z-[1] pointer-events-none"
-                  style={{ left: LABEL_W, right: 0, height: rowCount * ROW_H }}
-                  viewBox={`0 0 ${colCount} ${rowCount * ROW_H}`}
+                  style={{ left: "var(--gantt-label-w)", right: 0, height: rowTops.height }}
+                  viewBox={`0 0 ${colCount} ${rowTops.height}`}
                   preserveAspectRatio="none"
                 >
                   {initialDependencies.map((dep) => {
@@ -380,8 +415,8 @@ export function GanttChart({
                     if (!predSpan || !succSpan) return null;
                     const x1 = predSpan.endIndex + 1;
                     const x2 = succSpan.startIndex;
-                    const y1 = predIndex * ROW_H + ROW_H / 2;
-                    const y2 = succIndex * ROW_H + ROW_H / 2;
+                    const y1 = rowTops.tops[predIndex] + ROW_H / 2;
+                    const y2 = rowTops.tops[succIndex] + ROW_H / 2;
                     const elbow = x2 > x1 ? x1 + Math.max(0.4, (x2 - x1) / 3) : x1 + 0.6;
                     const conflict = dependencyConflict(succ, pred);
                     const color = conflict ? "#ba241c" : "#282320";
@@ -404,14 +439,15 @@ export function GanttChart({
                 {renderRows.map((row) => {
                   if (row.kind === "group") {
                     return (
-                      <div key={`group-${row.key}`} className="relative flex border-b bg-concrete" style={{ height: ROW_H }}>
-                        <div
-                          className="sticky left-0 z-20 shrink-0 border-r bg-concrete px-3 flex items-center text-left"
-                          style={{ width: LABEL_W, minWidth: LABEL_W }}
-                        >
+                      <div
+                        key={`group-${row.key}`}
+                        className="relative z-[2] flex items-center bg-graphite text-white"
+                        style={{ height: GROUP_H }}
+                      >
+                        <div className="flex h-full min-w-[var(--gantt-label-w)] w-[var(--gantt-label-w)] shrink-0 items-center bg-graphite px-2 py-0 md:sticky md:left-0 md:z-20 md:px-3">
                           <span className="truncate text-xs font-semibold uppercase tracking-wide">{row.name}</span>
                         </div>
-                        <div className="min-w-0 flex-1" />
+                        <div className="h-full min-w-0 flex-1 bg-graphite" />
                       </div>
                     );
                   }
@@ -430,8 +466,7 @@ export function GanttChart({
                     <div key={task.id} className="relative flex border-b" style={{ height: ROW_H }}>
                       <button
                         type="button"
-                        className="sticky left-0 z-20 shrink-0 border-r bg-white px-3 flex items-center gap-2 text-left hover:bg-concrete"
-                        style={{ width: LABEL_W, minWidth: LABEL_W }}
+                        className={labelColClass("md:z-20 bg-white flex items-center gap-2 text-left hover:bg-concrete")}
                         onClick={() => {
                           setEditingTask(task);
                           setDialogOpen(true);
