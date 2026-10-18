@@ -18,7 +18,7 @@ import {
 import { resolveTaskColorId, taskColorStyle } from "@/lib/task-color";
 import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
-export type CalendarTask = Task & { projectName: string; columnName: string | null };
+export type CalendarTask = Task & { projectName: string | null; columnName: string | null };
 
 type ViewMode = "month" | "week";
 
@@ -359,7 +359,11 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{task.title}</span>
                       </div>
-                      <p className="text-xs mt-1 opacity-80">{task.projectName}{task.columnName ? ` · ${task.columnName}` : ""}</p>
+                      {(task.projectName || task.columnName) && (
+                        <p className="text-xs mt-1 opacity-80">
+                          {[task.projectName, task.columnName].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
                     </button>
                   </li>
                 );

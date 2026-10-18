@@ -1,9 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { TASK_CHIP_CLASS } from "@/components/ds/chip";
+import { PRIORITY_FILL, PRIORITY_LABELS, priorityChip } from "@/lib/task-priority";
 import {
   OBRA_FILTER_ALL,
   OBRA_FILTER_NONE,
   SEM_OBRA_LABEL,
+  obraChipLabel,
   obraLabel,
   parseObraFilter,
 } from "@/lib/user-tasks";
@@ -21,6 +24,26 @@ describe("filtro de obra", () => {
     expect(parseObraFilter("abc-uuid")).toBe("abc-uuid");
     expect(obraLabel(null)).toBe(SEM_OBRA_LABEL);
     expect(obraLabel("Casa Harmonia")).toBe("Casa Harmonia");
+    expect(obraChipLabel(null)).toBeNull();
+    expect(obraChipLabel("")).toBeNull();
+    expect(obraChipLabel("Casa Harmonia")).toBe("Casa Harmonia");
+  });
+
+  it("ticket sem obra não leva tag Sem obra; filtro e grupo Gantt mantêm o rótulo", () => {
+    const card = source("app/(app)/kanban/[id]/task-card.tsx");
+    const dashboard = source("app/(app)/dashboard-view.tsx");
+    const calendar = source("app/(app)/calendario/calendar-view.tsx");
+    const gantt = source("app/(app)/gantt/[id]/gantt-chart.tsx");
+    const filter = source("components/obra-filter-bar.tsx");
+    const dialog = source("components/task-dialog.tsx");
+    expect(card).toContain("obraChipLabel");
+    expect(card).not.toContain("obraLabel");
+    expect(card).not.toContain(SEM_OBRA_LABEL);
+    expect(dashboard).not.toContain("obraLabel");
+    expect(calendar).not.toContain("obraLabel");
+    expect(gantt).toContain("name: SEM_OBRA_LABEL");
+    expect(filter).toContain("label: SEM_OBRA_LABEL");
+    expect(dialog).toContain(`<option value="">{SEM_OBRA_LABEL}</option>`);
   });
 });
 
@@ -84,5 +107,30 @@ describe("sem marco", () => {
       const text = source(file);
       expect(text, file).not.toMatch(/isMilestone|is_milestone|Marco de entrega|Novo marco|createMilestone/);
     }
+  });
+});
+
+describe("tag de prioridade", () => {
+  it("usa texto Baixa/Média/Alta com raio de Minhas tarefas e fill contrastado", () => {
+    expect(priorityChip("task")).toBeNull();
+    expect(priorityChip(null)).toBeNull();
+    expect(PRIORITY_LABELS).toEqual({ low: "Baixa", medium: "Média", high: "Alta" });
+    expect(PRIORITY_FILL).toEqual({ low: "done-wash", medium: "signal-wash", high: "delay-wash" });
+    const alta = priorityChip("high");
+    expect(alta?.label).toBe("Alta");
+    expect(alta?.className).toContain(TASK_CHIP_CLASS);
+    expect(alta?.className).toContain("ds-chip-surface");
+    expect(alta?.className).not.toContain("ds-chip-pill");
+    expect(priorityChip("low")?.label).toBe("Baixa");
+    expect(priorityChip("medium")?.label).toBe("Média");
+  });
+
+  it("Kanban e Minhas tarefas usam a tag de texto, sem ícone Flag", () => {
+    const card = source("app/(app)/kanban/[id]/task-card.tsx");
+    const dashboard = source("app/(app)/dashboard-view.tsx");
+    expect(card).toContain("PriorityTag");
+    expect(card).not.toContain("Flag");
+    expect(dashboard).toContain("PriorityTag");
+    expect(dashboard).toContain("Minhas tarefas");
   });
 });

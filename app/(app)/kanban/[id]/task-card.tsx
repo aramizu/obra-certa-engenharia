@@ -2,12 +2,13 @@
 
 import { useState, type PointerEvent } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Flag, User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import { TaskDialog } from "./task-dialog";
+import { PriorityTag } from "@/components/priority-tag";
 import type { Task } from "@/lib/db/schema";
 import { taskColorStyle } from "@/lib/task-color";
 import { chipContrastStyle, cn } from "@/components/ds";
-import { obraLabel } from "@/lib/user-tasks";
+import { obraChipLabel } from "@/lib/user-tasks";
 
 export type TaskWithObra = Task & { projectName: string | null };
 
@@ -19,25 +20,27 @@ interface TaskCardProps {
   shouldIgnoreClick: (taskId: string) => boolean;
 }
 
-const priorityColors: Record<string, string> = {
-  high: "text-delay",
-  medium: "text-signal-ink",
-  low: "text-blueprint",
-};
-
 export function TaskCardBody({ task }: { task: TaskWithObra }) {
+  const obra = obraChipLabel(task.projectName);
   return (
     <CardContent className="p-3 space-y-2">
       <h4 className="font-medium text-sm flex items-center gap-1.5">
         {task.title}
       </h4>
-      <span
-        className="ds-chip-surface ds-chip-pill inline-flex text-[10px] font-display uppercase tracking-wide px-2 py-0.5"
-        data-fill="concrete"
-        style={chipContrastStyle("concrete")}
-      >
-        {obraLabel(task.projectName)}
-      </span>
+      {(obra || (task.taskType && task.taskType !== "task")) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {obra && (
+            <span
+              className="ds-chip-surface ds-chip-pill inline-flex text-[10px] font-display uppercase tracking-wide px-2 py-0.5"
+              data-fill="concrete"
+              style={chipContrastStyle("concrete")}
+            >
+              {obra}
+            </span>
+          )}
+          <PriorityTag taskType={task.taskType} />
+        </div>
+      )}
       {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {task.assignee && (
@@ -53,9 +56,6 @@ export function TaskCardBody({ task }: { task: TaskWithObra }) {
             {task.startDate && task.dueDate && " – "}
             {task.dueDate && new Date(task.dueDate + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
           </div>
-        )}
-        {task.taskType && task.taskType !== "task" && (
-          <Flag className={`h-3 w-3 ${priorityColors[task.taskType] || ""}`} />
         )}
       </div>
     </CardContent>
