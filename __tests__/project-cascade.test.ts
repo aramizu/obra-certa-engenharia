@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DOMAIN_KEEP_TABLES,
   DOMAIN_RESET_TABLES,
+  KB_GLOBAL_TABLES,
   OBRA_CASCADE_TABLES,
   OBRA_PRESERVE_ON_DELETE,
   SUPPLIER_FK_ON_OBRA_DELETE,
@@ -16,12 +17,27 @@ describe("exclusão de obra (cascade)", () => {
       "task_columns",
       "tasks",
       "task_dependencies",
+      "project_rooms",
+      "project_room_modules",
+      "project_suggested_items",
     ]);
-    expect(OBRA_PRESERVE_ON_DELETE).toEqual(["suppliers"]);
+    expect(OBRA_PRESERVE_ON_DELETE).toEqual([
+      "suppliers",
+      "kb_supplier_categories",
+      "kb_materials",
+      "kb_modules",
+      "kb_compositions",
+      "kb_packages",
+      "kb_package_modules",
+    ]);
     expect(SUPPLIER_FK_ON_OBRA_DELETE).toBe("set null");
     expect(OBRA_CASCADE_TABLES).not.toContain("suppliers");
     expect(OBRA_CASCADE_TABLES).not.toContain("users");
     expect(OBRA_CASCADE_TABLES).not.toContain("sessions");
+    for (const table of KB_GLOBAL_TABLES) {
+      expect(OBRA_CASCADE_TABLES).not.toContain(table);
+      expect(DOMAIN_RESET_TABLES).not.toContain(table);
+    }
   });
 
   it("formata o aviso do diálogo com as quantidades da obra", () => {

@@ -11,6 +11,7 @@ const projectSchema = z.object({
   startDate: z.string().nullable().optional(),
   targetEndDate: z.string().nullable().optional(),
   totalBudget: z.string().optional(),
+  workType: z.enum(["reforma", "na_planta"]).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
         startDate: data.startDate || null,
         targetEndDate: data.targetEndDate || null,
         totalBudget: data.totalBudget || "0",
+        workType: data.workType || "reforma",
       })
       .returning();
 

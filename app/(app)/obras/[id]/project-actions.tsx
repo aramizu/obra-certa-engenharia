@@ -101,7 +101,7 @@ export function ProjectActions({ project, taskCount, materialCount }: ProjectAct
             <p className="text-sm text-muted-foreground mb-6">
               Tem certeza que deseja excluir a obra <strong>{project.name}</strong>?{" "}
               {formatProjectDeleteWarning({ tasks: taskCount, materials: materialCount })}{" "}
-              Categorias de orçamento, colunas do Kanban e marcos também saem. Fornecedores do cadastro geral não são excluídos. Esta ação não pode ser desfeita.
+              Categorias de orçamento, colunas do Kanban, marcos e a lista sugerida desta obra também saem. A base SINAPI e os fornecedores do cadastro geral não são excluídos. Esta ação não pode ser desfeita.
             </p>
             <div className="flex justify-end gap-3">
               <Button

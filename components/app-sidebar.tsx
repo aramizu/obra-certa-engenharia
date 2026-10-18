@@ -14,6 +14,7 @@ import {
   LogOut,
   X,
   Ruler,
+  Library,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Stamp } from "@/components/ds";
@@ -21,6 +22,7 @@ import { cn, iconStroke } from "@/components/ds/cn";
 
 interface AppSidebarProps {
   userName: string;
+  isAdmin?: boolean;
   variant?: "desktop" | "mobile";
   isOpen?: boolean;
   onClose?: () => void;
@@ -67,16 +69,21 @@ function NavItemStatus({
 
 function SidebarPanel({
   userName,
+  isAdmin = false,
   onNavigate,
   showCloseButton,
   closeButtonRef,
 }: {
   userName: string;
+  isAdmin?: boolean;
   onNavigate?: () => void;
   showCloseButton?: boolean;
   closeButtonRef?: RefObject<HTMLButtonElement | null>;
 }) {
   const pathname = usePathname();
+  const items = isAdmin
+    ? [...navigation, { name: "Base SINAPI", href: "/admin/base", icon: Library }]
+    : navigation;
 
   return (
     <div className="flex h-full w-64 flex-col border-r-2 border-graphite bg-white text-foreground pointer-events-auto">
@@ -105,7 +112,7 @@ function SidebarPanel({
       </div>
 
       <nav className={cn("flex-1 space-y-0.5 p-3 overflow-y-auto", iconStroke)} aria-label="Principal">
-        {navigation.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === "/"
             ? pathname === "/"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -156,6 +163,7 @@ function SidebarPanel({
 
 export function AppSidebar({
   userName,
+  isAdmin = false,
   variant = "desktop",
   isOpen = false,
   onClose,
@@ -224,7 +232,7 @@ export function AppSidebar({
   if (variant === "desktop") {
     return (
       <aside className="hidden lg:flex h-screen shrink-0 z-30 relative pointer-events-auto">
-        <SidebarPanel userName={userName} />
+        <SidebarPanel userName={userName} isAdmin={isAdmin} />
       </aside>
     );
   }
@@ -248,6 +256,7 @@ export function AppSidebar({
       >
         <SidebarPanel
           userName={userName}
+          isAdmin={isAdmin}
           onNavigate={onClose}
           showCloseButton
           closeButtonRef={closeButtonRef}

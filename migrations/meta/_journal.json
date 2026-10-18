@@ -36,6 +36,20 @@
       "when": 1792280000000,
       "tag": "0004_domain_cascade_reset",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792285000000,
+      "tag": "0005_knowledge_base",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792285000001,
+      "tag": "0006_knowledge_base_seed",
+      "breakpoints": true
     }
   ]
 }

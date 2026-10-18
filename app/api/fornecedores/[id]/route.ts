@@ -13,6 +13,7 @@ const supplierSchema = z.object({
   phone: z.string().nullable().optional(),
   email: z.string().email("Email inválido").nullable().optional().or(z.literal("")),
   notes: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
 });
 
 export async function PATCH(
@@ -37,6 +38,7 @@ export async function PATCH(
         phone: data.phone || null,
         email: data.email || null,
         notes: data.notes || null,
+        category: data.category || null,
         updatedAt: new Date(),
       })
       .where(and(eq(suppliers.id, id), eq(suppliers.userId, user.id)))

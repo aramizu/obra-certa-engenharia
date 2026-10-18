@@ -13,6 +13,7 @@ const projectSchema = z.object({
   startDate: z.string().nullable().optional(),
   targetEndDate: z.string().nullable().optional(),
   totalBudget: z.string().optional(),
+  workType: z.enum(["reforma", "na_planta"]).optional(),
 });
 
 export async function PATCH(
@@ -37,6 +38,7 @@ export async function PATCH(
         startDate: data.startDate || null,
         targetEndDate: data.targetEndDate || null,
         totalBudget: data.totalBudget || "0",
+        ...(data.workType ? { workType: data.workType } : {}),
         updatedAt: new Date(),
       })
       .where(and(eq(projects.id, id), eq(projects.userId, user.id)))
