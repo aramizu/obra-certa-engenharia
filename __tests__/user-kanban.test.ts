@@ -133,6 +133,9 @@ describe("tag de prioridade", () => {
     expect(card).not.toContain("Flag");
     expect(dashboard).toContain("PriorityTag");
     expect(dashboard).toContain("Tarefas da semana");
+    expect(dashboard).toContain("Ver mais tarefas");
+    expect(dashboard).toContain('href="/kanban"');
     expect(dashboard).not.toContain("Flag");
+    expect(dashboard).not.toContain("Ver calendário");
   });
 });

@@ -230,10 +230,10 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
             </div>
             <Link
               prefetch
-              href="/calendario"
+              href="/kanban"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white shrink-0")}
             >
-              Ver calendário
+              Ver mais tarefas
             </Link>
           </div>
         </CardHeader>
@@ -243,10 +243,10 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
               illustration="plan"
               className="py-8"
               title="Semana em dia"
-              description="Nenhuma tarefa vencida ou com prazo nesta semana. O calendário mostra o restante da agenda."
+              description="Nenhuma tarefa vencida ou com prazo nesta semana. O Kanban mostra o restante das tarefas."
               action={
-                <Link prefetch href="/calendario" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-                  Ver calendário
+                <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+                  Ver mais tarefas
                 </Link>
               }
             />
@@ -300,10 +300,10 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
           <CardFooter>
             <Link
               prefetch
-              href="/calendario"
+              href="/kanban"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}
             >
-              Ver calendário
+              Ver mais tarefas
             </Link>
           </CardFooter>
         )}
