@@ -1,11 +1,12 @@
 import { unstable_cache } from "next/cache";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { projects, tasks } from "@/lib/db/schema";
+import { materials, projects, suppliers, tasks } from "@/lib/db/schema";
 import { CLIENT_STALE_TIMES, KB_CACHE_TAG, userDomainTag } from "@/lib/nav-cache";
 import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 import { loadKnowledgeCatalog } from "@/lib/kb-store";
+import { STOCK_MATERIAL_STATUSES, type StockItem } from "@/lib/stock";
 
 export type CachedProjectSummary = {
   id: string;
@@ -82,5 +83,49 @@ export function getCachedKnowledgeCatalog() {
     async (): Promise<KnowledgeCatalog> => loadKnowledgeCatalog(),
     ["kb-catalog"],
     { tags: [KB_CACHE_TAG], revalidate: CLIENT_STALE_TIMES.static }
+  )();
+}
+
+/** Materiais comprados das obras ativas (e sem obra, se existir) do usuário. */
+export function getCachedUserStock(userId: string) {
+  return unstable_cache(
+    async (): Promise<StockItem[]> => {
+      const rows = await db
+        .select({
+          id: materials.id,
+          name: materials.name,
+          brand: materials.brand,
+          quantity: materials.quantity,
+          unit: materials.unit,
+          totalPrice: materials.totalPrice,
+          purchaseDate: materials.purchaseDate,
+          status: materials.status,
+          projectId: materials.projectId,
+          projectName: projects.name,
+          supplierId: materials.supplierId,
+          supplierName: suppliers.name,
+        })
+        .from(materials)
+        .leftJoin(projects, eq(materials.projectId, projects.id))
+        .leftJoin(suppliers, eq(materials.supplierId, suppliers.id))
+        .where(
+          and(
+            inArray(materials.status, [...STOCK_MATERIAL_STATUSES]),
+            or(
+              activeProjectsOwnedBy(userId),
+              and(isNull(materials.projectId), eq(suppliers.userId, userId))
+            )
+          )
+        )
+        .orderBy(asc(projects.name), asc(materials.name));
+
+      return rows.map((row) => ({
+        ...row,
+        projectId: row.projectId,
+        projectName: row.projectName,
+      }));
+    },
+    ["user-stock", userId],
+    { tags: [userDomainTag(userId)], revalidate: CLIENT_STALE_TIMES.dynamic }
   )();
 }

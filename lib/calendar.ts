@@ -1,5 +1,5 @@
 import { PILL_CHIP_CLASS, TASK_CHIP_CLASS, chipContrastStyle, type ChipFillToken } from "@/components/ds/chip";
-import { addDays, eachDay, formatISODate, startOfDay } from "./date";
+import { addDays, diffDays, eachDay, formatISODate, parseISODate, startOfDay } from "./date";
 import type { Task } from "./db/schema";
 
 export const WEEKDAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -47,6 +47,10 @@ export function isDoneColumn(columnName: string | null | undefined) {
   return normalized.includes("conclu") || normalized.includes("feito");
 }
 
+export function taskDueIso(task: Pick<Task, "dueDate" | "endDate" | "startDate">) {
+  return task.dueDate || task.endDate || task.startDate;
+}
+
 export function isOverdueTask(
   task: Pick<Task, "dueDate" | "endDate">,
   columnName: string | null | undefined,
@@ -55,6 +59,37 @@ export function isOverdueTask(
   if (isDoneColumn(columnName)) return false;
   const due = task.dueDate || task.endDate;
   return Boolean(due && due < todayIso);
+}
+
+export type RelativeDueChip = {
+  label: string;
+  fill: Extract<ChipFillToken, "delay" | "signal" | "concrete">;
+};
+
+/** Tag de prazo relativa a hoje: vence em N dias / hoje / vencida há N dias. */
+export function relativeDueChip(dueIso: string, todayIso: string): RelativeDueChip {
+  const days = diffDays(parseISODate(dueIso), parseISODate(todayIso));
+  if (days < 0) {
+    const overdue = Math.abs(days);
+    return {
+      label: overdue === 1 ? "Vencida há 1 dia" : `Vencida há ${overdue} dias`,
+      fill: "delay",
+    };
+  }
+  if (days === 0) return { label: "Vence hoje", fill: "signal" };
+  if (days === 1) return { label: "Vence amanhã", fill: "concrete" };
+  return { label: `Vence em ${days} dias`, fill: "concrete" };
+}
+
+/** Não concluídas com vencimento até o domingo da semana corrente (inclui atrasadas). */
+export function isWeekOrOverdueTask(
+  task: Pick<Task, "dueDate" | "endDate">,
+  columnName: string | null | undefined,
+  weekEndIso: string
+) {
+  if (isDoneColumn(columnName)) return false;
+  const due = task.dueDate || task.endDate;
+  return Boolean(due && due <= weekEndIso);
 }
 
 export type BadgeTone = "high" | "medium" | "low" | "normal" | "overdue" | "done";

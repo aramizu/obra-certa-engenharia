@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CalendarClock, Package, Plus } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarClock, Package, Plus } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState, Select, StatCard, TASK_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
 import { cn } from "@/lib/utils";
@@ -12,12 +12,11 @@ import { PriorityTag } from "@/components/priority-tag";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { formatBRL } from "@/lib/format";
-import { addDays, formatISODate, today } from "@/lib/date";
-import { BADGE_FILL, isAssignedToUser, isDoneColumn, isOverdueTask, taskBadgeTone } from "@/lib/calendar";
-import { taskColorStyle } from "@/lib/task-color";
+import { addDays, endOfWeekSunday, formatISODate, todayInTimeZone } from "@/lib/date";
+import { isDoneColumn, isOverdueTask, isWeekOrOverdueTask, relativeDueChip, taskDueIso } from "@/lib/calendar";
 import { BudgetChart, type BudgetChartRow } from "./budget-chart";
 import { afterMutation } from "@/lib/after-mutation";
-import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
+import { SEM_OBRA_LABEL, obraChipLabel } from "@/lib/user-tasks";
 
 export type DashboardTask = Task & { projectName: string | null; columnName: string | null };
 
@@ -42,20 +41,33 @@ interface DashboardViewProps {
   categories: DashboardCategory[];
 }
 
-function dueIso(task: DashboardTask) {
-  return task.dueDate || task.endDate || task.startDate;
+function TaskMetric({ label, value, alert = false }: { label: string; value: number; alert?: boolean }) {
+  return (
+    <div className="space-y-1 min-w-0">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          "font-mono text-3xl font-semibold tabular-nums leading-none",
+          alert && value > 0 && "text-delay"
+        )}
+      >
+        {value}
+      </p>
+    </div>
+  );
 }
 
-export function DashboardView({ userName, projects, tasks, materials, categories }: DashboardViewProps) {
+export function DashboardView({ projects, tasks, materials, categories }: DashboardViewProps) {
   const router = useRouter();
   const [projectId, setProjectId] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  const todayDate = useMemo(() => today(), []);
+  const todayDate = useMemo(() => todayInTimeZone(), []);
   const todayIso = formatISODate(todayDate);
   const weekIso = formatISODate(addDays(todayDate, 7));
+  const weekEndIso = formatISODate(endOfWeekSunday(todayDate));
 
   const filteredTasks = useMemo(
     () =>
@@ -91,11 +103,17 @@ export function DashboardView({ userName, projects, tasks, materials, categories
   const openTasks = filteredTasks.filter((task) => !isDoneColumn(task.columnName));
   const overdue = openTasks.filter((task) => isOverdueTask(task, task.columnName, todayIso));
   const dueSoon = openTasks.filter((task) => {
-    const due = dueIso(task);
+    const due = taskDueIso(task);
     return Boolean(due && due >= todayIso && due <= weekIso);
   });
-  const pending = [...overdue, ...dueSoon.filter((task) => !overdue.some((item) => item.id === task.id))];
-  const myTasks = openTasks.filter((task) => isAssignedToUser(task, userName));
+  const weekTasks = [...openTasks]
+    .filter((task) => isWeekOrOverdueTask(task, task.columnName, weekEndIso))
+    .sort((a, b) => {
+      const dueA = a.dueDate || a.endDate || "";
+      const dueB = b.dueDate || b.endDate || "";
+      return dueA.localeCompare(dueB) || a.title.localeCompare(b.title, "pt-BR");
+    });
+  const unlinkedTasks = filteredTasks.filter((task) => !task.projectId).length;
   const toBuy = filteredMaterials.filter((item) => item.status !== "purchased");
   const toBuyTotal = toBuy.reduce((sum, item) => sum + parseFloat(item.totalPrice || "0"), 0);
 
@@ -177,130 +195,119 @@ export function DashboardView({ userName, projects, tasks, materials, categories
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Orçamento total" value={formatBRL(budgetBase, true)} stamp="FIN" hint={`Previsto ${formatBRL(planned || budgetBase, true)}`} />
-        <StatCard label="Gasto em materiais" value={formatBRL(spent, true)} stamp="MAT" hint="Compras marcadas como compradas" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard label="Orçamento total" value={formatBRL(budgetBase, true)} hint={`Previsto ${formatBRL(planned || budgetBase, true)}`} />
+        <StatCard label="Gasto em materiais" value={formatBRL(spent, true)} hint="Compras marcadas como compradas" />
         <StatCard
           label="Saldo"
           value={formatBRL(remaining, true)}
-          stamp="SALDO"
           progress={usedPct}
           valueClassName={remaining < 0 ? "text-delay" : ""}
           hint={`${usedPct.toFixed(0)}% do orçamento`}
         />
-        <StatCard
-          label="Sem obra"
-          value={filteredTasks.filter((task) => !task.projectId).length}
-          stamp="LIVRE"
-          hint="Tarefas sem obra vinculada"
-        />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Tarefas abertas" value={openTasks.length} stamp="ABR" />
-        <StatCard label="Atrasadas" value={overdue.length} stamp="ATR" valueClassName="text-delay" />
-        <StatCard label="Vencem em 7 dias" value={dueSoon.length} stamp="7D" />
-      </div>
+      <Card className="bg-white overflow-hidden">
+        <div className="flex items-center border-b-2 border-graphite bg-blueprint-wash px-4 py-2">
+          <p className="text-label m-0">Tarefas</p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+          <TaskMetric label="Tarefas sem obra" value={unlinkedTasks} />
+          <TaskMetric label="Abertas" value={openTasks.length} />
+          <TaskMetric label="Atrasadas" value={overdue.length} alert />
+          <TaskMetric label="Vence em 7 dias" value={dueSoon.length} />
+        </div>
+      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive" />Pendências</CardTitle>
-            <CardDescription>Atrasadas e com prazo nesta semana</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pending.length === 0 ? (
-              <div className="text-sm text-muted-foreground space-y-2">
-                <p>Nenhuma pendência no recorte atual.</p>
-                <Link prefetch href="/calendario" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-                  Ver calendário
-                </Link>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {pending.slice(0, 8).map((task) => {
-                  const tone = taskBadgeTone(task, task.columnName, todayIso);
-                  const due = dueIso(task);
-                  return (
-                    <li key={task.id}>
-                      <button
-                        type="button"
-                        onClick={() => openTask(task)}
-                        className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2`}
-                        data-fill={BADGE_FILL[tone]}
-                        style={chipContrastStyle(BADGE_FILL[tone])}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-sm truncate">{task.title}</span>
-                          <span className="flex items-center gap-2 shrink-0">
-                            <PriorityTag taskType={task.taskType} />
-                            {due && (
-                              <span className="text-xs tabular-nums">
-                                {new Date(due + "T00:00:00").toLocaleDateString("pt-BR")}
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                        {task.projectName && (
-                          <p className="text-xs mt-1 opacity-80 truncate">{task.projectName}</p>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><CalendarClock className="h-4 w-4" />Minhas tarefas</CardTitle>
-            <CardDescription>Responsável = você (ou sem responsável)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {myTasks.length === 0 ? (
-              <div className="text-sm text-muted-foreground space-y-2">
-                <p>Nenhuma tarefa sua em aberto.</p>
+      <Card className="bg-white">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4" />Tarefas da semana
+              </CardTitle>
+              <CardDescription>Vencidas e com prazo de segunda a domingo</CardDescription>
+            </div>
+            <Link
+              prefetch
+              href="/kanban"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white shrink-0")}
+            >
+              Ver mais tarefas
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {weekTasks.length === 0 ? (
+            <EmptyState
+              illustration="plan"
+              className="py-8"
+              title="Semana em dia"
+              description="Nenhuma tarefa vencida ou com prazo nesta semana. O Kanban mostra o restante das tarefas."
+              action={
                 <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-                  Criar tarefa
+                  Ver mais tarefas
                 </Link>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {myTasks.slice(0, 8).map((task) => (
+              }
+            />
+          ) : (
+            <ul className="space-y-2">
+              {weekTasks.map((task) => {
+                const due = task.dueDate || task.endDate;
+                const chip = due ? relativeDueChip(due, todayIso) : null;
+                const obra = obraChipLabel(task.projectName);
+                return (
                   <li key={task.id}>
                     <button
                       type="button"
                       onClick={() => openTask(task)}
                       className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2 hover:brightness-95`}
-                      data-fill={taskColorStyle(task.color).fill}
-                      style={chipContrastStyle(taskColorStyle(task.color).fill)}
+                      data-fill="white"
+                      style={chipContrastStyle("white")}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-start justify-between gap-2">
                         <span className="font-medium text-sm truncate">{task.title}</span>
-                        <PriorityTag taskType={task.taskType} />
+                        <span className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+                          {chip && (
+                            <span
+                              className="ds-chip-surface ds-chip-pill text-[10px] font-mono px-2 py-0.5"
+                              data-fill={chip.fill}
+                              style={chipContrastStyle(chip.fill)}
+                            >
+                              {chip.label}
+                            </span>
+                          )}
+                          <PriorityTag taskType={task.taskType} />
+                          {obra && (
+                            <span
+                              className="ds-chip-surface ds-chip-pill inline-flex text-[10px] font-display uppercase tracking-wide px-2 py-0.5"
+                              data-fill="concrete"
+                              style={chipContrastStyle("concrete")}
+                            >
+                              {obra}
+                            </span>
+                          )}
+                        </span>
                       </div>
-                      {(task.projectName || dueIso(task)) && (
-                        <p className="text-xs mt-1 truncate opacity-80">
-                          {[
-                            task.projectName,
-                            dueIso(task)
-                              ? new Date(dueIso(task)! + "T00:00:00").toLocaleDateString("pt-BR")
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      )}
                     </button>
                   </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+        {weekTasks.length > 0 && (
+          <CardFooter>
+            <Link
+              prefetch
+              href="/kanban"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}
+            >
+              Ver mais tarefas
+            </Link>
+          </CardFooter>
+        )}
+      </Card>
 
       <Card className="bg-white">
         <CardHeader>

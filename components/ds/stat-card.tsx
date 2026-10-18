@@ -9,7 +9,7 @@ interface StatCardProps {
   value: ReactNode;
   hint?: ReactNode;
   progress?: number;
-  stamp?: string;
+  stamp?: string | null;
   className?: string;
   valueClassName?: string;
 }
@@ -19,7 +19,7 @@ export function StatCard({
   value,
   hint,
   progress,
-  stamp = "KPI",
+  stamp,
   className,
   valueClassName,
 }: StatCardProps) {
@@ -27,7 +27,7 @@ export function StatCard({
     <Card className={cn("overflow-hidden", className)}>
       <div className="flex items-center justify-between border-b-2 border-graphite bg-blueprint-wash px-4 py-2">
         <p className="text-label m-0">{label}</p>
-        <Stamp>{stamp}</Stamp>
+        {stamp ? <Stamp>{stamp}</Stamp> : null}
       </div>
       <div className="p-4 space-y-3">
         <div className={cn("font-mono text-3xl font-semibold tabular-nums leading-none", valueClassName)}>
