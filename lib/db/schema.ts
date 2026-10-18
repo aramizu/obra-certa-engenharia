@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date, customType } from "drizzle-orm/pg-core";
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -14,6 +20,8 @@ export const users = pgTable("users", {
   passwordResetExpiry: timestamp("password_reset_expiry"),
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until"),
+  avatar: bytea("avatar"),
+  avatarMime: text("avatar_mime"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({

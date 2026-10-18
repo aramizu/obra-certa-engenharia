@@ -18,12 +18,13 @@ import {
   Library,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Stamp } from "@/components/ds";
 import { cn, iconStroke } from "@/components/ds/cn";
+import { avatarImageSrc, firstNameFrom, initialsFrom } from "@/lib/avatar";
 
 interface AppSidebarProps {
   userName: string;
   isAdmin?: boolean;
+  avatarVersion?: string | null;
   variant?: "desktop" | "mobile";
   isOpen?: boolean;
   onClose?: () => void;
@@ -72,12 +73,14 @@ function NavItemStatus({
 function SidebarPanel({
   userName,
   isAdmin = false,
+  avatarVersion = null,
   onNavigate,
   showCloseButton,
   closeButtonRef,
 }: {
   userName: string;
   isAdmin?: boolean;
+  avatarVersion?: string | null;
   onNavigate?: () => void;
   showCloseButton?: boolean;
   closeButtonRef?: RefObject<HTMLButtonElement | null>;
@@ -138,15 +141,29 @@ function SidebarPanel({
       </nav>
 
       <div className="border-t-2 border-graphite p-4 bg-white">
-        <div className="mb-3 flex items-center gap-3 px-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-graphite bg-primary text-primary-foreground font-display text-sm">
-            {userName.charAt(0).toUpperCase()}
-          </div>
+        <Link
+          href="/perfil"
+          prefetch
+          onClick={onNavigate}
+          className="mb-3 flex items-center gap-3 px-1 rounded-md hover:bg-concrete py-1"
+        >
+          {avatarImageSrc(avatarVersion) ? (
+            <img
+              src={avatarImageSrc(avatarVersion) ?? undefined}
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg border-2 border-graphite object-cover bg-white"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-graphite bg-primary text-primary-foreground font-display text-sm">
+              {initialsFrom(userName)}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium">{userName}</p>
-            <Stamp>CREA</Stamp>
+            <p className="truncate text-sm font-medium">{firstNameFrom(userName)}</p>
           </div>
-        </div>
+        </Link>
         <form action="/api/auth/sair" method="POST">
           <Button
             type="submit"
@@ -166,6 +183,7 @@ function SidebarPanel({
 export function AppSidebar({
   userName,
   isAdmin = false,
+  avatarVersion = null,
   variant = "desktop",
   isOpen = false,
   onClose,
@@ -234,7 +252,7 @@ export function AppSidebar({
   if (variant === "desktop") {
     return (
       <aside className="hidden lg:flex h-screen shrink-0 z-30 relative pointer-events-auto">
-        <SidebarPanel userName={userName} isAdmin={isAdmin} />
+        <SidebarPanel userName={userName} isAdmin={isAdmin} avatarVersion={avatarVersion} />
       </aside>
     );
   }
@@ -259,6 +277,7 @@ export function AppSidebar({
         <SidebarPanel
           userName={userName}
           isAdmin={isAdmin}
+          avatarVersion={avatarVersion}
           onNavigate={onClose}
           showCloseButton
           closeButtonRef={closeButtonRef}

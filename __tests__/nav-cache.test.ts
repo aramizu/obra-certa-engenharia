@@ -22,6 +22,7 @@ describe("Client Router Cache", () => {
       "/calendario",
       "/post-its",
       "/fornecedores",
+      "/perfil",
       "/admin/base",
     ]);
     expect(projectRevalidatePaths("obra-1")).toEqual([
