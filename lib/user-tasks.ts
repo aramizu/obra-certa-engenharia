@@ -24,6 +24,12 @@ export function obraLabel(name: string | null | undefined) {
   return trimmed ? trimmed : SEM_OBRA_LABEL;
 }
 
+/** Nome da obra para chip/tag no ticket. Sem obra → não mostra tag. */
+export function obraChipLabel(name: string | null | undefined) {
+  const trimmed = name?.trim();
+  return trimmed ? trimmed : null;
+}
+
 /** Tarefas do usuário, sem obras arquivadas (as sem obra entram). */
 export function visibleUserTasksWhere(userId: string) {
   return and(

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState, Select, StatCard, TASK_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
 import { cn } from "@/lib/utils";
+import { PriorityTag } from "@/components/priority-tag";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { formatBRL } from "@/lib/format";
@@ -18,7 +19,7 @@ import { BudgetChart, type BudgetChartRow } from "./budget-chart";
 import { afterMutation } from "@/lib/after-mutation";
 import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
-export type DashboardTask = Task & { projectName: string; columnName: string | null };
+export type DashboardTask = Task & { projectName: string | null; columnName: string | null };
 
 export type DashboardMaterial = {
   id: string;
@@ -231,13 +232,18 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-sm truncate">{task.title}</span>
-                          {due && (
-                            <span className="text-xs tabular-nums shrink-0">
-                              {new Date(due + "T00:00:00").toLocaleDateString("pt-BR")}
-                            </span>
-                          )}
+                          <span className="flex items-center gap-2 shrink-0">
+                            <PriorityTag taskType={task.taskType} />
+                            {due && (
+                              <span className="text-xs tabular-nums">
+                                {new Date(due + "T00:00:00").toLocaleDateString("pt-BR")}
+                              </span>
+                            )}
+                          </span>
                         </div>
-                        <p className="text-xs mt-1 opacity-80 truncate">{task.projectName}</p>
+                        {task.projectName && (
+                          <p className="text-xs mt-1 opacity-80 truncate">{task.projectName}</p>
+                        )}
                       </button>
                     </li>
                   );
@@ -273,11 +279,20 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{task.title}</span>
+                        <PriorityTag taskType={task.taskType} />
                       </div>
-                      <p className="text-xs mt-1 truncate opacity-80">
-                        {task.projectName}
-                        {dueIso(task) ? ` · ${new Date(dueIso(task)! + "T00:00:00").toLocaleDateString("pt-BR")}` : ""}
-                      </p>
+                      {(task.projectName || dueIso(task)) && (
+                        <p className="text-xs mt-1 truncate opacity-80">
+                          {[
+                            task.projectName,
+                            dueIso(task)
+                              ? new Date(dueIso(task)! + "T00:00:00").toLocaleDateString("pt-BR")
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      )}
                     </button>
                   </li>
                 ))}
