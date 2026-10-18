@@ -21,7 +21,7 @@ describe("Gantt calendar helpers", () => {
     expect(isWeekend(new Date(2026, 9, 16))).toBe(false);
   });
 
-  it("coloca o nome dentro da barra só quando ela é larga o suficiente", () => {
+  it("mantém o limiar de largura para rótulo interno", () => {
     expect(ganttLabelFitsInside(71)).toBe(false);
     expect(ganttLabelFitsInside(72)).toBe(true);
   });

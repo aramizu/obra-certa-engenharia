@@ -8,19 +8,18 @@ import { TaskChip, Tabs, cn } from "@/components/ds";
 import { GanttTaskDialog } from "./gantt-task-dialog";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
-import { today } from "@/lib/date";
+import { startOfDay, today } from "@/lib/date";
 import { dependencyConflict, shiftSchedule, taskSchedule } from "@/lib/gantt";
-import { formatGanttDateRange, ganttLabelFitsInside, isWeekend } from "@/lib/calendar";
+import { formatGanttDateRange } from "@/lib/calendar";
 import { taskColorStyle } from "@/lib/task-color";
 import {
-  GANTT_BAR_INSET_PX,
   formatGanttHeaderBottom,
   formatGanttHeaderTop,
   ganttBarBoxStyle,
   ganttBarColumnSpan,
-  ganttClockHourToColumn,
   ganttColumns,
   ganttMinColumnPx,
+  ganttNowLineOffset,
   shiftGanttCursor,
   type GanttZoom,
 } from "@/lib/gantt-header";
@@ -54,10 +53,6 @@ type DragState = {
 type RenderRow =
   | { kind: "group"; key: string; name: string }
   | { kind: "task"; task: GanttTask };
-
-function sameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
 
 function barTooltip(task: GanttTask, schedule: { start: Date; end: Date }) {
   const dates = formatGanttDateRange(schedule.start, schedule.end);
@@ -119,7 +114,8 @@ export function GanttChart({
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const todayDate = useMemo(() => today(), []);
+  const [now, setNow] = useState(() => new Date());
+  const todayDate = useMemo(() => startOfDay(now), [now]);
   const columns = useMemo(() => ganttColumns(zoom, cursor), [cursor, zoom]);
   const minColWidth = ganttMinColumnPx(zoom);
   const colCount = columns.length;
@@ -172,21 +168,33 @@ export function GanttChart({
     return () => observer.disconnect();
   }, [colCount, zoom]);
 
-  const todayIndex = useMemo(() => {
-    if (zoom === "day") {
-      if (!sameDay(cursor, todayDate)) return -1;
-      const hour = ganttClockHourToColumn(new Date().getHours());
-      return columns.findIndex((column) => column.hour === hour);
-    }
-    return columns.findIndex((column) => sameDay(column.date, todayDate));
-  }, [columns, cursor, todayDate, zoom]);
+  const nowLine = useMemo(() => ganttNowLineOffset(zoom, columns, now), [columns, now, zoom]);
+
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    const msToNextMinute = 60_000 - (Date.now() % 60_000);
+    let intervalId: number | undefined;
+    const timeoutId = window.setTimeout(() => {
+      tick();
+      intervalId = window.setInterval(tick, 60_000);
+    }, msToNextMinute);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (intervalId) window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   useEffect(() => {
     const node = scrollerRef.current;
-    if (!node || todayIndex < 0 || colWidthPx <= 0) return;
-    const left = LABEL_W + todayIndex * colWidthPx - node.clientWidth / 3;
+    if (!node || !nowLine || colWidthPx <= 0) return;
+    const left = LABEL_W + (nowLine.index + nowLine.progress) * colWidthPx - node.clientWidth / 3;
     node.scrollLeft = Math.max(0, left);
-  }, [colWidthPx, todayIndex, zoom]);
+  }, [colWidthPx, nowLine, zoom]);
 
   useEffect(() => {
     if (!drag) return;
@@ -317,15 +325,13 @@ export function GanttChart({
                 {topLabel}
               </div>
               <div className="flex h-8">
-                {columns.map((column) => {
-                  const isTodayCol =
-                    zoom === "day" ? todayIndex === (column.hour ?? -1) : sameDay(column.date, todayDate);
-                  const weekend = zoom !== "day" && isWeekend(column.date);
+                {columns.map((column, index) => {
+                  const isTodayCol = nowLine?.index === index;
                   return (
                     <div
                       key={column.key}
                       className={`flex min-w-0 flex-1 items-center justify-center border-r font-mono text-[10px] leading-tight ${
-                        isTodayCol ? "bg-primary text-primary-foreground font-semibold" : weekend ? "bg-concrete text-muted-foreground" : "text-muted-foreground"
+                        isTodayCol ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
                       }`}
                       style={{ minWidth: minColWidth }}
                     >
@@ -338,13 +344,13 @@ export function GanttChart({
           </div>
 
           <div className="relative">
-            {todayIndex >= 0 && (
+            {nowLine && colCount > 0 && (
               <div
                 className="absolute top-0 bottom-0 z-20 w-0.5 bg-primary pointer-events-none"
                 style={{
-                  left: `calc(${LABEL_W}px + ${(todayIndex + 0.5) / colCount} * (100% - ${LABEL_W}px))`,
+                  left: `calc(${LABEL_W}px + ${(nowLine.index + nowLine.progress) / colCount} * (100% - ${LABEL_W}px))`,
                 }}
-                title="Hoje"
+                title="Agora"
               />
             )}
 
@@ -418,10 +424,6 @@ export function GanttChart({
                     ? ganttBarColumnSpan(zoom, columns, schedule.start, schedule.end)
                     : null;
                   const spanCount = span ? span.endIndex - span.startIndex + 1 : 0;
-                  const widthPx = Math.max(0, spanCount * colWidthPx - GANTT_BAR_INSET_PX * 2);
-                  const labelInside = ganttLabelFitsInside(widthPx);
-                  const remainingCols = span ? colCount - span.endIndex - 1 : 0;
-                  const showOutsideLabel = Boolean(span) && !labelInside && remainingCols > 0;
                   const tooltip = schedule ? barTooltip(task, schedule) : `${task.title} · sem datas`;
 
                   return (
@@ -447,86 +449,62 @@ export function GanttChart({
                           }
                         }}
                       >
-                        {columns.map((column) => {
-                          const isTodayCol =
-                            zoom === "day" ? todayIndex === (column.hour ?? -1) : sameDay(column.date, todayDate);
-                          const weekend = zoom !== "day" && isWeekend(column.date);
-                          return (
-                            <div
-                              key={column.key}
-                              className={`min-w-0 flex-1 border-r pointer-events-none ${
-                                isTodayCol ? "bg-signal-wash" : weekend ? "bg-concrete" : "bg-white"
-                              }`}
-                              style={{ minWidth: minColWidth }}
-                            />
-                          );
-                        })}
+                        {columns.map((column) => (
+                          <div
+                            key={column.key}
+                            className="min-w-0 flex-1 border-r bg-white pointer-events-none"
+                            style={{ minWidth: minColWidth }}
+                          />
+                        ))}
                         {span ? (
-                          <>
-                            <TaskChip
-                              as="div"
-                              fill={color.fill}
-                              role="button"
-                              tabIndex={0}
-                              className={cn(
-                                "absolute top-2 bottom-2 z-[3] min-w-0 overflow-hidden px-2 text-xs flex items-center font-display uppercase tracking-wide",
-                                conflict && "ring-2 ring-delay",
-                                allowDrag ? "cursor-grab" : "cursor-pointer"
-                              )}
-                              style={ganttBarBoxStyle(span.startIndex, spanCount, colCount)}
-                              title={tooltip}
-                              onPointerDown={(event) => startDrag(event, task, "move")}
-                              onClick={() => {
-                                if (allowDrag) return;
+                          <TaskChip
+                            as="div"
+                            fill={color.fill}
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                              "absolute top-2 bottom-2 z-[3] min-w-0 overflow-hidden px-1 text-xs flex items-center font-display uppercase tracking-wide",
+                              conflict && "ring-2 ring-delay",
+                              allowDrag ? "cursor-grab" : "cursor-pointer"
+                            )}
+                            style={ganttBarBoxStyle(span.startIndex, spanCount, colCount)}
+                            title={tooltip}
+                            onPointerDown={(event) => startDrag(event, task, "move")}
+                            onClick={() => {
+                              if (allowDrag) return;
+                              setEditingTask(task);
+                              setDialogOpen(true);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
                                 setEditingTask(task);
                                 setDialogOpen(true);
-                              }}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                  event.preventDefault();
-                                  setEditingTask(task);
-                                  setDialogOpen(true);
-                                }
-                              }}
-                            >
-                              {allowDrag && (
-                                <>
-                                  <span
-                                    className="absolute left-0 top-0 h-full w-2 cursor-ew-resize"
-                                    onPointerDown={(event) => startDrag(event, task, "resize-start")}
-                                  />
-                                  <span
-                                    className="absolute right-0 top-0 h-full w-2 cursor-ew-resize"
-                                    onPointerDown={(event) => startDrag(event, task, "resize-end")}
-                                  />
-                                </>
-                              )}
-                              {labelInside && (
-                                <span className="block min-w-0 w-full truncate whitespace-nowrap pointer-events-none">
-                                  {task.title}
-                                </span>
-                              )}
-                            </TaskChip>
-                            {showOutsideLabel && (
-                              <span
-                                className="absolute top-2 bottom-2 z-[3] flex items-center text-xs font-medium text-foreground pointer-events-none min-w-0 truncate whitespace-nowrap"
-                                style={{
-                                  left: `calc(${((span.endIndex + 1) / colCount) * 100}% + ${GANTT_BAR_INSET_PX + 4}px)`,
-                                  maxWidth: `calc(${(remainingCols / colCount) * 100}% - ${GANTT_BAR_INSET_PX + 8}px)`,
-                                }}
-                              >
-                                {task.title}
-                              </span>
+                              }
+                            }}
+                          >
+                            {allowDrag && (
+                              <>
+                                <span
+                                  className="absolute left-0 top-0 h-full w-2 cursor-ew-resize"
+                                  onPointerDown={(event) => startDrag(event, task, "resize-start")}
+                                />
+                                <span
+                                  className="absolute right-0 top-0 h-full w-2 cursor-ew-resize"
+                                  onPointerDown={(event) => startDrag(event, task, "resize-end")}
+                                />
+                              </>
                             )}
-                          </>
-                        ) : schedule ? (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                            Fora desta visão
-                          </span>
+                            <span className="block min-w-0 w-full truncate whitespace-nowrap pointer-events-none">
+                              {task.title}
+                            </span>
+                          </TaskChip>
                         ) : (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                            Sem datas — toque para definir
-                          </span>
+                          !schedule && (
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                              Sem datas — toque para definir
+                            </span>
+                          )
                         )}
                       </div>
                     </div>
