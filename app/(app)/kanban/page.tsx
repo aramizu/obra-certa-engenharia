@@ -61,12 +61,17 @@ export default async function KanbanPage({
   return (
     <>
       <PageTitle title="Kanban" description="Quadro único de todas as tarefas, com ou sem obra" />
-      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6 space-y-4">
-        <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
-        <MissingEntityBanner aviso={aviso} />
-        {archivedProjectId && <ArchivedObraBanner projectId={archivedProjectId} />}
-        <ObraFilterBar projects={userProjects} value={filter} basePath="/kanban" />
-        <div {...(locked ? { inert: true } : {})} className="h-full min-h-0">
+      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:p-6">
+        <div className="shrink-0 space-y-4">
+          <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+          <MissingEntityBanner aviso={aviso} />
+          {archivedProjectId && <ArchivedObraBanner projectId={archivedProjectId} />}
+          <ObraFilterBar projects={userProjects} value={filter} basePath="/kanban" />
+        </div>
+        <div
+          {...(locked ? { inert: true } : {})}
+          className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden"
+        >
           <KanbanBoard
             projects={userProjects}
             defaultProjectId={defaultProjectId}

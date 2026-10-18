@@ -48,8 +48,8 @@ export function DetailSkeleton() {
 
 export function BoardSkeleton() {
   return (
-    <div className="flex-1 overflow-hidden p-4 lg:p-6" aria-busy="true" aria-label="Carregando">
-      <div className="flex gap-4 h-full animate-pulse">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:p-6" aria-busy="true" aria-label="Carregando">
+      <div className="flex h-full min-h-0 gap-4 pb-1.5 pr-1.5 animate-pulse">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="w-80 shrink-0 space-y-3 rounded-lg border bg-white p-3">
             <div className="h-4 w-24 rounded bg-muted" />

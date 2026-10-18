@@ -32,7 +32,11 @@ export function KanbanBoard({
 
   return (
     <>
-      <div className={`flex gap-4 h-full min-w-max pb-4 ${drag ? "select-none cursor-grabbing" : ""}`}>
+      <div
+        className={`flex h-full min-h-0 min-w-max gap-4 pb-1.5 pr-1.5 ${
+          drag ? "select-none cursor-grabbing" : ""
+        }`}
+      >
         {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}
