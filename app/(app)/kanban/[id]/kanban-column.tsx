@@ -118,7 +118,7 @@ export function KanbanColumn({
         <div className="flex items-center justify-between px-3 pt-3 pb-2">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="font-semibold text-sm uppercase tracking-wide truncate">{column.name}</h3>
-            <span className="text-[10px] font-mono text-foreground bg-concrete border-2 border-graphite rounded-full px-2 py-0.5 shrink-0">
+            <span className="ds-chip-surface ds-chip-pill text-[10px] font-mono px-2 py-0.5 shrink-0" data-fill="concrete">
               {tasks.length}
             </span>
           </div>

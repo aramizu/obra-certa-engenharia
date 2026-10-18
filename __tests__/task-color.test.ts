@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TABS_GROUP_CLASS, TABS_TAB_CLASS } from "@/components/ds/tabs";
+import { TASK_CHIP_CLASS } from "@/components/ds/chip";
 import {
   DEFAULT_TASK_COLOR,
   TASK_COLOR_IDS,
@@ -17,13 +18,14 @@ describe("cor da tarefa", () => {
     expect(resolveTaskColorId("blueprint")).toBe("blueprint");
   });
 
-  it("barra tem preenchimento claro e borda da mesma família", () => {
-    const bar = taskColorStyle("safety").bar;
-    expect(bar).toContain("bg-primary/15");
-    expect(bar).toContain("border-primary");
-    expect(bar).toContain("text-primary");
-    expect(taskColorStyle("signal").bar).toContain("border-signal");
+  it("barra e chip compartilham o raio de Minhas tarefas e o fill contrastado", () => {
+    const safety = taskColorStyle("safety");
+    expect(safety.bar).toBe(TASK_CHIP_CLASS);
+    expect(safety.chip).toBe(TASK_CHIP_CLASS);
+    expect(safety.fill).toBe("primary-wash");
+    expect(taskColorStyle("signal").fill).toBe("signal-wash");
     expect(taskColorStyle(null).accent).toBe("bg-primary");
+    expect(TASK_CHIP_CLASS).not.toContain("rounded-full");
   });
 
   it("create usa o padrão; patch ignora ausente e rejeita inválida", () => {

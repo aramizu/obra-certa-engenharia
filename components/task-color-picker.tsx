@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/components/ds";
+import { PILL_CHIP_CLASS, cn } from "@/components/ds";
 import { DEFAULT_TASK_COLOR, TASK_COLORS, type TaskColorId } from "@/lib/task-color";
 
 export function TaskColorPicker({
@@ -29,10 +29,11 @@ export function TaskColorPicker({
             disabled={disabled}
             onClick={() => onChange(color.id)}
             className={cn(
-              "h-8 w-8 rounded-full border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-              color.swatch,
-              isSelected ? "border-graphite ring-2 ring-primary ring-offset-2" : "border-graphite/40"
+              PILL_CHIP_CLASS,
+              "h-8 w-8 p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              isSelected ? "ring-2 ring-primary ring-offset-2" : ""
             )}
+            data-fill={color.swatch}
           />
         );
       })}

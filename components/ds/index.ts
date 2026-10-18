@@ -5,7 +5,20 @@ export { Textarea } from "./textarea";
 export { Select } from "./select";
 export { Label } from "./label";
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card";
-export { Badge, badgeVariants } from "./badge";
+export { Badge, badgeVariants, BADGE_TONE_FILL } from "./badge";
+export {
+  CHIP_FILL_TOKENS,
+  CHIP_SURFACE_CLASS,
+  PILL_CHIP_CLASS,
+  TASK_CHIP_CLASS,
+  TASK_CHIP_RADIUS_CLASS,
+  TaskChip,
+  chipSurfaceProps,
+  contrastLuminance,
+  pillChipProps,
+  taskChipProps,
+  type ChipFillToken,
+} from "./chip";
 export { ProgressBar } from "./progress";
 export { Alert } from "./alert";
 export { Stamp } from "./stamp";

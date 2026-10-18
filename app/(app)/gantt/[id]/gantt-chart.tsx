@@ -409,6 +409,7 @@ export function GanttChart({
                               className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 overflow-hidden text-xs flex items-center font-display uppercase tracking-wide ${
                                 color.bar
                               } ${conflict ? "ring-2 ring-delay" : ""} ${allowDrag ? "cursor-grab" : "cursor-pointer"}`}
+                              data-fill={color.fill}
                               style={{
                                 left: `${(span.startIndex / colCount) * 100}%`,
                                 width: `${(spanCount / colCount) * 100}%`,
