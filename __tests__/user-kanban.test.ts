@@ -29,7 +29,7 @@ describe("filtro de obra", () => {
     expect(obraChipLabel("Casa Harmonia")).toBe("Casa Harmonia");
   });
 
-  it("ticket sem obra não leva tag Sem obra; filtro e grupo Gantt mantêm o rótulo", () => {
+  it("ticket sem obra não leva tag Sem obra; filtro mantém o rótulo e o Gantt usa Outras atividades", () => {
     const card = source("app/(app)/kanban/[id]/task-card.tsx");
     const dashboard = source("app/(app)/dashboard-view.tsx");
     const calendar = source("app/(app)/calendario/calendar-view.tsx");
@@ -41,7 +41,8 @@ describe("filtro de obra", () => {
     expect(card).not.toContain(SEM_OBRA_LABEL);
     expect(dashboard).not.toContain("obraLabel");
     expect(calendar).not.toContain("obraLabel");
-    expect(gantt).toContain("name: SEM_OBRA_LABEL");
+    expect(gantt).toContain("Outras atividades");
+    expect(gantt).not.toContain("name: SEM_OBRA_LABEL");
     expect(filter).toContain("label: SEM_OBRA_LABEL");
     expect(dialog).toContain(`<option value="">{SEM_OBRA_LABEL}</option>`);
   });

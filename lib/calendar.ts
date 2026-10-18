@@ -119,7 +119,7 @@ export function ganttBarChipProps(tone: BadgeTone) {
   return { className: GANTT_BAR_CLASS[tone], "data-fill": fill, style: chipContrastStyle(fill) };
 }
 
-export const GANTT_MIN_INNER_LABEL_PX = 80;
+export const GANTT_MIN_INNER_LABEL_PX = 72;
 
 export function isWeekend(date: Date) {
   const day = date.getDay();

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  GANTT_BAR_INSET_PX,
   formatGanttHeaderBottom,
   formatGanttHeaderTop,
+  ganttBarBoxStyle,
   ganttBarColumnSpan,
   ganttClockHourToColumn,
   ganttColumns,
@@ -106,5 +108,19 @@ describe("colunas e barras alinhadas ao cabeçalho", () => {
     expect(shiftGanttCursor(cursor, "month", 1)).toEqual(new Date(2026, 10, 1));
     expect(shiftGanttCursor(cursor, "week", -1)).toEqual(new Date(2026, 9, 10));
     expect(shiftGanttCursor(cursor, "day", 1)).toEqual(new Date(2026, 9, 18));
+  });
+
+  it("recua a pílula 4px de cada lado, inclusive na primeira, na última e em 1 coluna", () => {
+    expect(GANTT_BAR_INSET_PX).toBe(4);
+    const first = ganttBarBoxStyle(0, 1, 7);
+    expect(first.left).toBe("calc(0% + 4px)");
+    expect(first.width).toMatch(/^calc\(.+% - 8px\)$/);
+    const last = ganttBarBoxStyle(23, 1, 24);
+    expect(last.left).toMatch(/^calc\(.+% \+ 4px\)$/);
+    expect(last.width).toMatch(/^calc\(.+% - 8px\)$/);
+    expect(ganttBarBoxStyle(0, 24, 24)).toEqual({
+      left: "calc(0% + 4px)",
+      width: "calc(100% - 8px)",
+    });
   });
 });
