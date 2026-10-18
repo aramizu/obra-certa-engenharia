@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SupplierDialog } from "../supplier-dialog";
 import type { Supplier } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
@@ -89,37 +90,19 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
         supplier={supplier}
       />
 
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => !loading && setShowDeleteConfirm(false)}
-          />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Tem certeza que deseja excluir o fornecedor <strong>{supplier.name}</strong>?
-              Esta ação não pode ser desfeita e todos os materiais relacionados serão desvinculados.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-              >
-                {loading ? "Excluindo..." : "Excluir"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Confirmar Exclusão"
+        description={
+          <>
+            Tem certeza que deseja excluir o fornecedor <strong>{supplier.name}</strong>?
+            Esta ação não pode ser desfeita e todos os materiais relacionados serão desvinculados.
+          </>
+        }
+        loading={loading}
+        onConfirm={() => void handleDelete()}
+      />
     </>
   );
 }

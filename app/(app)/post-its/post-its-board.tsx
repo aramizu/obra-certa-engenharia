@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, Select, TASK_CHIP_RADIUS_CLASS, chipSurfaceProps } from "@/components/ds";
 import { afterMutation } from "@/lib/after-mutation";
 import {
@@ -281,25 +282,20 @@ export function PostItsBoard({
           document.body
         )}
 
-      {deleting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setDeleting(null)} />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">Excluir post-it</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Apagar {deleting.title?.trim() ? <strong>{deleting.title}</strong> : "esta nota"}? Isso não pode ser desfeito.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setDeleting(null)} disabled={loading}>
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={() => void removeNote()} disabled={loading}>
-                {loading ? "Excluindo..." : "Excluir"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Excluir post-it"
+        description={
+          <>
+            Apagar {deleting?.title?.trim() ? <strong>{deleting.title}</strong> : "esta nota"}? Isso não pode ser desfeito.
+          </>
+        }
+        loading={loading}
+        onConfirm={() => void removeNote()}
+      />
     </div>
   );
 }

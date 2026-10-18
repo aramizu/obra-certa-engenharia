@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,9 +102,9 @@ export function TaskDialog({
             <DialogDescription>Preencha as informações da tarefa</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
+          <DialogBody className="space-y-3 py-3">
             {needsProject && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="projectId">Obra *</Label>
                 <select
                   id="projectId"
@@ -121,51 +121,54 @@ export function TaskDialog({
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="title">Título *</Label>
               <Input id="title" name="title" defaultValue={task?.title} required className="bg-white" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
                 name="description"
                 defaultValue={task?.description || ""}
+                className="min-h-[64px]"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="assignee">Responsável</Label>
-              <Input id="assignee" name="assignee" defaultValue={task?.assignee || ""} placeholder="Opcional" className="bg-white" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="assignee">Responsável</Label>
+                <Input id="assignee" name="assignee" defaultValue={task?.assignee || ""} placeholder="Opcional" className="bg-white" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="taskType">Prioridade</Label>
+                <Select
+                  id="taskType"
+                  name="taskType"
+                  defaultValue={task?.taskType || "task"}
+                >
+                  <option value="task">Normal</option>
+                  <option value="low">Baixa</option>
+                  <option value="medium">Média</option>
+                  <option value="high">Alta</option>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Cor</Label>
-              <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Cor</Label>
+                <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
+              </div>
+              <label className="flex items-end gap-2 pb-2 text-sm">
+                <input type="checkbox" name="isMilestone" defaultChecked={task?.isMilestone} />
+                Marco de entrega (sem duração no Gantt)
+              </label>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="taskType">Prioridade</Label>
-              <Select
-                id="taskType"
-                name="taskType"
-                defaultValue={task?.taskType || "task"}
-              >
-                <option value="task">Normal</option>
-                <option value="low">Baixa</option>
-                <option value="medium">Média</option>
-                <option value="high">Alta</option>
-              </Select>
-            </div>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="isMilestone" defaultChecked={task?.isMilestone} />
-              Marco de entrega (sem duração no Gantt)
-            </label>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
                 <Label htmlFor="startDate">Início</Label>
                 <Input
                   id="startDate"
@@ -175,7 +178,7 @@ export function TaskDialog({
                   className="bg-white"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="dueDate">Prazo</Label>
                 <Input
                   id="dueDate"
@@ -186,7 +189,7 @@ export function TaskDialog({
                 />
               </div>
             </div>
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>

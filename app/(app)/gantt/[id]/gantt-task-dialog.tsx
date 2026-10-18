@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -125,67 +125,68 @@ export function GanttTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <form onSubmit={handleSubmit} key={task?.id ?? (createMilestone ? "milestone" : "task")}>
           <DialogHeader>
             <DialogTitle>{task ? "Editar tarefa" : isMilestone ? "Novo marco" : "Nova tarefa"}</DialogTitle>
             <DialogDescription>As datas alimentam o Gantt e o Kanban da mesma obra.</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
-            <div className="space-y-2">
+          <DialogBody className="space-y-3 py-3">
+            <div className="space-y-1.5">
               <Label htmlFor="gantt-title">Título *</Label>
               <Input id="gantt-title" name="title" defaultValue={task?.title} required className="bg-white" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="gantt-description">Descrição</Label>
               <textarea
                 id="gantt-description"
                 name="description"
                 defaultValue={task?.description || ""}
-                className="w-full min-h-[72px] rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
+                className="w-full min-h-[64px] rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Cor</Label>
-              <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Cor</Label>
+                <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
+              </div>
+              <label className="flex items-end gap-2 pb-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isMilestone}
+                  onChange={(e) => setIsMilestone(e.target.checked)}
+                />
+                Marco de entrega (sem duração, losango no Gantt)
+              </label>
             </div>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={isMilestone}
-                onChange={(e) => setIsMilestone(e.target.checked)}
-              />
-              Marco de entrega (sem duração, losango no Gantt)
-            </label>
 
             {isMilestone ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="gantt-start">Data do marco</Label>
                 <Input id="gantt-start" name="startDate" type="date" defaultValue={task?.startDate || task?.dueDate || ""} className="bg-white" />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
                   <Label htmlFor="gantt-start">Início</Label>
                   <Input id="gantt-start" name="startDate" type="date" defaultValue={task?.startDate || ""} className="bg-white" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="gantt-due">Prazo</Label>
                   <Input id="gantt-due" name="dueDate" type="date" defaultValue={task?.dueDate || ""} className="bg-white" />
                 </div>
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Predecessores (término → início)</Label>
               {otherTasks.length === 0 ? (
                 <p className="text-xs text-muted-foreground">Cadastre outras tarefas para ligar dependências.</p>
               ) : (
-                <div className="max-h-40 overflow-y-auto rounded-md border-2 border-graphite bg-white p-2 space-y-1">
+                <div className="max-h-32 overflow-y-auto rounded-md border-2 border-graphite bg-white p-2 space-y-1">
                   {otherTasks.map((item) => (
                     <label key={item.id} className="flex items-center gap-2 text-sm">
                       <input
@@ -209,7 +210,7 @@ export function GanttTaskDialog({
                 Atenção: esta tarefa começa antes do término de {warnings.join(", ")}.
               </p>
             )}
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
