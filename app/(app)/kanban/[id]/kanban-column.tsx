@@ -10,6 +10,7 @@ import { ColumnDialog } from "./column-dialog";
 import type { TaskColumn, Task } from "@/lib/db/schema";
 import type { DropTarget } from "@/lib/kanban-dnd";
 import { afterMutation } from "@/lib/after-mutation";
+import { chipContrastStyle } from "@/components/ds";
 
 interface KanbanColumnProps {
   column: TaskColumn;
@@ -118,7 +119,7 @@ export function KanbanColumn({
         <div className="flex items-center justify-between px-3 pt-3 pb-2">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="font-semibold text-sm uppercase tracking-wide truncate">{column.name}</h3>
-            <span className="ds-chip-surface ds-chip-pill text-[10px] font-mono px-2 py-0.5 shrink-0" data-fill="concrete">
+            <span className="ds-chip-surface ds-chip-pill text-[10px] font-mono px-2 py-0.5 shrink-0" data-fill="concrete" style={chipContrastStyle("concrete")}>
               {tasks.length}
             </span>
           </div>

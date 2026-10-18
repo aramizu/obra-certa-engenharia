@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { taskColumns, tasks } from "@/lib/db/schema";
+import { tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { getColumnOnProject } from "@/lib/owned-refs";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
@@ -26,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Coluna obrigatória" }, { status: 400 });
     }
 
-    const [column] = await db.select().from(taskColumns).where(and(eq(taskColumns.id, columnId), eq(taskColumns.projectId, projectId))).limit(1);
+    const column = await getColumnOnProject(columnId, projectId);
     if (!column) return NextResponse.json({ error: MISSING_COLUMN_ERROR }, { status: 404 });
 
     const destTasks = await db

@@ -1,6 +1,6 @@
 "use client";
 
-import { PILL_CHIP_CLASS, cn } from "@/components/ds";
+import { PILL_CHIP_CLASS, chipContrastStyle, cn } from "@/components/ds";
 import { DEFAULT_TASK_COLOR, TASK_COLORS, type TaskColorId } from "@/lib/task-color";
 
 export function TaskColorPicker({
@@ -34,6 +34,7 @@ export function TaskColorPicker({
               isSelected ? "ring-2 ring-primary ring-offset-2" : ""
             )}
             data-fill={color.swatch}
+            style={chipContrastStyle(color.swatch)}
           />
         );
       })}

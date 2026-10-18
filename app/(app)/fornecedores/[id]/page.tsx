@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { suppliers, materials, projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { activeProjectsOwnedBy } from "@/lib/project-archive";
+import { categoryNameOnMaterialProject } from "@/lib/owned-refs";
 import { SupplierActions } from "./supplier-actions";
 import { MaterialsList } from "./materials-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +51,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
     })
     .from(materials)
     .innerJoin(projects, eq(materials.projectId, projects.id))
-    .leftJoin(budgetCategories, eq(materials.budgetCategoryId, budgetCategories.id))
+    .leftJoin(budgetCategories, categoryNameOnMaterialProject())
     .where(and(eq(materials.supplierId, supplier.id), eq(projects.userId, user.id)))
     .orderBy(sql`${materials.createdAt} DESC`);
 

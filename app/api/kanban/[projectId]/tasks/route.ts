@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { taskColumns, tasks } from "@/lib/db/schema";
+import { tasks } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { getColumnOnProject } from "@/lib/owned-refs";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { isTaskColorId, parseTaskColorInput } from "@/lib/task-color";
@@ -32,11 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     let statusColumnId: string | null = emptyToNull(columnId);
     if (statusColumnId) {
-      const [column] = await db
-        .select()
-        .from(taskColumns)
-        .where(and(eq(taskColumns.id, statusColumnId), eq(taskColumns.projectId, projectId)))
-        .limit(1);
+      const column = await getColumnOnProject(statusColumnId, projectId);
       if (!column) return NextResponse.json({ error: MISSING_COLUMN_ERROR }, { status: 400 });
     }
 

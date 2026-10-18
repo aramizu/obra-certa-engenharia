@@ -6,6 +6,7 @@ import {
   dropIndexFromPoint,
   noteFill,
   noteRotationDeg,
+  noteTapeRotationDeg,
   resolveNoteColorId,
 } from "@/lib/notes";
 
@@ -23,6 +24,12 @@ describe("post-its", () => {
     expect(noteRotationDeg("abc")).toBe(noteRotationDeg("abc"));
     expect(Math.abs(noteRotationDeg("abc"))).toBeLessThanOrEqual(2.5);
     expect(noteRotationDeg("abc")).not.toBe(noteRotationDeg("xyz"));
+  });
+
+  it("rotação da fita é estável, leve e distinta da nota", () => {
+    expect(noteTapeRotationDeg("abc")).toBe(noteTapeRotationDeg("abc"));
+    expect(Math.abs(noteTapeRotationDeg("abc"))).toBeLessThanOrEqual(6);
+    expect(noteTapeRotationDeg("abc")).not.toBe(noteTapeRotationDeg("xyz"));
   });
 
   it("reordena pela posição e aceita soltar o último", () => {

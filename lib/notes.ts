@@ -37,13 +37,22 @@ export function noteFill(color: string | null | undefined) {
   return NOTE_COLORS.find((item) => item.id === id)!.fill;
 }
 
-/** Rotação leve e estável a partir do id (−2.4° a 2.4°). */
-export function noteRotationDeg(id: string) {
-  let hash = 0;
+function hashId(id: string, salt: number) {
+  let hash = salt;
   for (let i = 0; i < id.length; i += 1) {
     hash = (hash * 31 + id.charCodeAt(i)) | 0;
   }
-  return ((Math.abs(hash) % 11) - 5) * 0.48;
+  return Math.abs(hash);
+}
+
+/** Rotação leve e estável a partir do id (−2.4° a 2.4°). */
+export function noteRotationDeg(id: string) {
+  return ((hashId(id, 0) % 11) - 5) * 0.48;
+}
+
+/** Rotação da fita, independente da nota (~−5° a 5°). */
+export function noteTapeRotationDeg(id: string) {
+  return ((hashId(id, 17) % 13) - 6) * 0.85;
 }
 
 export type SortableNote = { id: string; position: number };

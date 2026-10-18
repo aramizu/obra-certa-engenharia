@@ -9,10 +9,13 @@ export { Badge, badgeVariants, BADGE_TONE_FILL } from "./badge";
 export {
   CHIP_FILL_TOKENS,
   CHIP_SURFACE_CLASS,
+  DARK_CHIP_FILLS,
   PILL_CHIP_CLASS,
   TASK_CHIP_CLASS,
   TASK_CHIP_RADIUS_CLASS,
   TaskChip,
+  chipContrastStyle,
+  chipInkMix,
   chipSurfaceProps,
   contrastLuminance,
   pillChipProps,

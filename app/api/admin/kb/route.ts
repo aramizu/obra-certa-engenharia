@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin";
 import { patchKbCategory, patchKbComposition, patchKbMaterial, patchKbModule } from "@/lib/kb-store";
 import { getCachedKnowledgeCatalog } from "@/lib/cached-queries";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { isInvalidRefError } from "@/lib/owned-refs";
 
 const patchSchema = z.object({
   kind: z.enum(["category", "material", "composition", "module"]),
@@ -75,6 +76,9 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+    }
+    if (isInvalidRefError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("Error updating knowledge base:", error);
     return NextResponse.json({ error: "Erro ao salvar a base" }, { status: 500 });

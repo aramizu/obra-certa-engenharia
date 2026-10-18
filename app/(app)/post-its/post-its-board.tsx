@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, Select, TASK_CHIP_RADIUS_CLASS } from "@/components/ds";
+import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, Select, TASK_CHIP_RADIUS_CLASS, chipSurfaceProps } from "@/components/ds";
 import { afterMutation } from "@/lib/after-mutation";
 import {
   DEFAULT_NOTE_COLOR,
@@ -14,6 +14,7 @@ import {
   dropIndexFromPoint,
   noteFill,
   noteRotationDeg,
+  noteTapeRotationDeg,
   resolveNoteColorId,
   type NoteColorId,
 } from "@/lib/notes";
@@ -247,7 +248,7 @@ export function PostItsBoard({
           }
         />
       ) : (
-        <div className={`grid gap-6 sm:grid-cols-2 xl:grid-cols-3 ${drag ? "select-none cursor-grabbing" : ""}`}>
+        <div className={`grid gap-8 pt-5 overflow-visible sm:grid-cols-2 xl:grid-cols-3 ${drag ? "select-none cursor-grabbing" : ""}`}>
           {visible.map((note) => (
             <PostItCard
               key={note.id}
@@ -267,11 +268,11 @@ export function PostItsBoard({
         createPortal(
           <div
             aria-hidden
-            className="fixed z-50 pointer-events-none p-2"
+            className="fixed z-50 pointer-events-none overflow-visible pt-4"
             style={{
-              left: drag.x - drag.offsetX - 8,
-              top: drag.y - drag.offsetY - 8,
-              width: drag.width + 16,
+              left: drag.x - drag.offsetX,
+              top: drag.y - drag.offsetY - 16,
+              width: drag.width,
               transform: `rotate(${noteRotationDeg(dragged.id)}deg)`,
             }}
           >
@@ -304,12 +305,21 @@ export function PostItsBoard({
 }
 
 function PostItFace({ note, children }: { note: BoardNote; children?: ReactNode }) {
+  const surface = chipSurfaceProps(noteFill(note.color));
   return (
     <div
-      className={cn(CHIP_SURFACE_CLASS, TASK_CHIP_RADIUS_CLASS, "relative ds-shadow p-4 pt-6 min-h-[12rem]")}
-      style={{ "--ds-chip-fill": noteFill(note.color) } as CSSProperties}
+      className={cn(
+        CHIP_SURFACE_CLASS,
+        TASK_CHIP_RADIUS_CLASS,
+        "relative overflow-visible ds-shadow p-4 pt-6 min-h-[12rem]"
+      )}
+      style={surface.style}
     >
-      <span aria-hidden className="ds-sticky-tape absolute left-1/2 top-1.5 h-3.5 w-[42%] -translate-x-1/2 -rotate-2" />
+      <span
+        aria-hidden
+        className="ds-sticky-tape"
+        style={{ transform: `translateX(-50%) rotate(${noteTapeRotationDeg(note.id)}deg)` }}
+      />
       {children}
     </div>
   );
@@ -343,7 +353,7 @@ function PostItCard({
     <article
       data-note-id={note.id}
       onPointerDown={(event) => onPointerDown(event, note.id)}
-      className={cn("cursor-grab", dimmed && "opacity-40")}
+      className={cn("cursor-grab overflow-visible", dimmed && "opacity-40")}
       style={{ transform: `rotate(${noteRotationDeg(note.id)}deg)`, touchAction: "none" }}
     >
       <PostItFace note={note}>
@@ -386,7 +396,7 @@ function PostItCard({
                   "h-5 w-5 p-0",
                   item.id === color ? "ring-2 ring-graphite ring-offset-1" : ""
                 )}
-                style={{ "--ds-chip-fill": item.fill } as CSSProperties}
+                style={chipSurfaceProps(item.fill).style}
                 onClick={() => {
                   if (item.id !== color) void onSave(note.id, { color: item.id });
                 }}

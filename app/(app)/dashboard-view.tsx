@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Diamond, Package, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { EmptyState, Select, StatCard, TASK_CHIP_CLASS } from "@/components/ds";
+import { EmptyState, Select, StatCard, TASK_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
@@ -230,6 +230,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                         onClick={() => openTask(task)}
                         className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2`}
                         data-fill={BADGE_FILL[tone]}
+                        style={chipContrastStyle(BADGE_FILL[tone])}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-sm truncate">{task.title}</span>
@@ -271,12 +272,13 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                       onClick={() => openTask(task)}
                       className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2 hover:brightness-95`}
                       data-fill={taskColorStyle(task.color).fill}
+                      style={chipContrastStyle(taskColorStyle(task.color).fill)}
                     >
                       <div className="flex items-center gap-2">
-                        {task.isMilestone && <Diamond className="h-3.5 w-3.5 text-accent" />}
+                        {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}
                         <span className="font-medium text-sm truncate">{task.title}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 truncate">
+                      <p className="text-xs mt-1 truncate opacity-80">
                         {task.projectName}
                         {dueIso(task) ? ` · ${new Date(dueIso(task)! + "T00:00:00").toLocaleDateString("pt-BR")}` : ""}
                       </p>
@@ -310,10 +312,10 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           ) : (
             <ul className="space-y-2">
               {toBuy.slice(0, 10).map((item) => (
-                <li key={item.id} className={`${TASK_CHIP_CLASS} flex items-center justify-between gap-3 px-3 py-2`} data-fill="white">
+                <li key={item.id} className={`${TASK_CHIP_CLASS} flex items-center justify-between gap-3 px-3 py-2`} data-fill="white" style={chipContrastStyle("white")}>
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}{item.brand ? ` · ${item.brand}` : ""}</p>
-                    <p className="text-xs text-muted-foreground truncate">{item.projectName}</p>
+                    <p className="text-xs truncate opacity-80">{item.projectName}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-sm font-data tabular-nums">{formatBRL(parseFloat(item.totalPrice))}</span>

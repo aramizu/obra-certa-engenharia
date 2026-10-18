@@ -7,6 +7,7 @@ import { z } from "zod";
 import { MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { isInvalidRefError, requireBudgetCategoryOnProject } from "@/lib/owned-refs";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -59,11 +60,13 @@ export async function POST(
     }
     if (isProjectArchived(project)) return archivedWriteResponse();
 
+    const budgetCategoryId = await requireBudgetCategoryOnProject(data.budgetCategoryId, data.projectId);
+
     const [material] = await db
       .insert(materials)
       .values({
         projectId: data.projectId,
-        budgetCategoryId: data.budgetCategoryId || null,
+        budgetCategoryId,
         supplierId,
         name: data.name,
         brand: data.brand || null,
@@ -86,6 +89,9 @@ export async function POST(
         { error: error.errors[0].message },
         { status: 400 }
       );
+    }
+    if (isInvalidRefError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("Error creating material:", error);
     return NextResponse.json(

@@ -19,7 +19,7 @@ export default async function PostItsPage() {
   return (
     <>
       <PageTitle title="Post-its" description="Mural de recados livres, opcionalmente ligados a uma obra" />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
+      <main className="flex-1 overflow-y-auto p-4 pt-8 lg:p-8 lg:pt-10">
         <div className="max-w-6xl mx-auto">
           <PostItsBoard initialNotes={userNotes} projects={userProjects} />
         </div>

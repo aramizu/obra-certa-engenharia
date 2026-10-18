@@ -3,13 +3,12 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Diamond } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, Tabs } from "@/components/ds";
+import { Select, Tabs, chipContrastStyle } from "@/components/ds";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { formatISODate, today } from "@/lib/date";
 import {
-  BADGE_CLASS,
-  BADGE_FILL,
+  badgeChipProps,
   WEEKDAY_LABELS,
   isAssignedToUser,
   monthGrid,
@@ -226,6 +225,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                         onClick={(event) => openTask(task, event)}
                         className={`block w-full truncate px-1.5 py-0.5 text-[11px] leading-tight text-left font-display uppercase tracking-wide ${color.chip}`}
                         data-fill={color.fill}
+                        style={chipContrastStyle(color.fill)}
                         title={`${task.title}${task.isMilestone ? " · Marco" : ""}${task.projectName ? ` · ${task.projectName}` : ""}`}
                       >
                         {task.isMilestone && <Diamond className="inline h-3 w-3 mr-1 -mt-0.5" />}
@@ -317,6 +317,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                           key={task.id}
                           className={`text-[11px] px-1.5 py-0.5 font-display uppercase tracking-wide ${taskColorStyle(task.color).chip}`}
                           data-fill={taskColorStyle(task.color).fill}
+                          style={chipContrastStyle(taskColorStyle(task.color).fill)}
                         >
                           {task.title}
                         </span>
@@ -351,6 +352,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                       onClick={() => openTask(task)}
                       className={`w-full text-left px-3 py-2 ${color.chip}`}
                       data-fill={color.fill}
+                      style={chipContrastStyle(color.fill)}
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}
@@ -367,12 +369,15 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
       </div>
 
       <div className="hidden md:flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.high}`} data-fill={BADGE_FILL.high}>Alta</span>
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.medium}`} data-fill={BADGE_FILL.medium}>Média</span>
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.low}`} data-fill={BADGE_FILL.low}>Baixa</span>
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.milestone}`} data-fill={BADGE_FILL.milestone}>Marco</span>
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.overdue}`} data-fill={BADGE_FILL.overdue}>Atrasada</span>
-        <span className={`px-2 py-0.5 ${BADGE_CLASS.done}`} data-fill={BADGE_FILL.done}>Concluída</span>
+        {(["high", "medium", "low", "milestone", "overdue", "done"] as const).map((tone) => {
+          const chip = badgeChipProps(tone);
+          const labels = { high: "Alta", medium: "Média", low: "Baixa", milestone: "Marco", overdue: "Atrasada", done: "Concluída" };
+          return (
+            <span key={tone} className={`px-2 py-0.5 ${chip.className}`} data-fill={chip["data-fill"]} style={chip.style}>
+              {labels[tone]}
+            </span>
+          );
+        })}
       </div>
 
       <TaskDialog
