@@ -13,7 +13,7 @@ export { StatCard } from "./stat-card";
 export { EmptyState } from "./empty-state";
 export { HelmetMark, TapeMark, PlanMark } from "./illustrations";
 export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./dialog";
-export { Tabs } from "./tabs";
+export { Tabs, TABS_GROUP_CLASS, TABS_TAB_CLASS } from "./tabs";
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./table";
 export { Sheet } from "./sheet";
 export { PageHeader } from "./page-header";

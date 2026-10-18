@@ -6,6 +6,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { isTaskColorId, parseTaskColorInput } from "@/lib/task-color";
 
 function emptyToNull(value: unknown) {
   if (typeof value !== "string") return null;
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
-    const { title, description, taskType, dueDate, startDate, assignee, columnId, isMilestone } = await request.json();
+    const { title, description, taskType, dueDate, startDate, assignee, columnId, isMilestone, color } = await request.json();
     if (!title || typeof title !== "string") {
       return NextResponse.json({ error: "Título obrigatório" }, { status: 400 });
     }
@@ -46,6 +47,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           : eq(tasks.projectId, projectId)
       );
 
+    const parsedColor = parseTaskColorInput(color, "create");
+    if (color != null && color !== "" && !isTaskColorId(color)) {
+      return NextResponse.json({ error: "Cor inválida" }, { status: 400 });
+    }
+
     const [task] = await db.insert(tasks).values({
       projectId,
       title: title.trim(),
@@ -55,6 +61,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       startDate: emptyToNull(startDate),
       assignee: emptyToNull(assignee),
       isMilestone: Boolean(isMilestone),
+      color: parsedColor ?? null,
       statusColumnId,
       orderInColumn: (maxOrder[0]?.max ?? -1) + 1,
     }).returning();

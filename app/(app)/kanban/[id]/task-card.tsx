@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Diamond, Flag, User } from "lucide-react";
 import { TaskDialog } from "./task-dialog";
 import type { Task } from "@/lib/db/schema";
+import { taskColorStyle } from "@/lib/task-color";
+import { cn } from "@/components/ds";
 
 interface TaskCardProps {
   task: Task;
@@ -64,11 +66,16 @@ export function TaskCard({ task, projectId, isDragging, onPointerDown, shouldIgn
           if (shouldIgnoreClick(task.id)) return;
           setShowDialog(true);
         }}
-        className={`cursor-grab hover:border-primary select-none ${
+        className={cn(
+          "relative cursor-grab hover:border-primary select-none",
           isDragging ? "opacity-40 cursor-grabbing" : ""
-        }`}
+        )}
         style={{ touchAction: "none" }}
       >
+        <span
+          aria-hidden
+          className={cn("absolute left-0 top-0 bottom-0 w-1.5", taskColorStyle(task.color).accent)}
+        />
         <TaskCardBody task={task} />
       </Card>
 

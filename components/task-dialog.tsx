@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, Textarea } from "@/components/ds";
 import type { Task } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
+import { TaskColorPicker } from "@/components/task-color-picker";
+import { DEFAULT_TASK_COLOR, resolveTaskColorId, type TaskColorId } from "@/lib/task-color";
 
 interface TaskDialogProps {
   open: boolean;
@@ -33,6 +35,12 @@ export function TaskDialog({
 }: TaskDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [color, setColor] = useState<TaskColorId>(DEFAULT_TASK_COLOR);
+
+  useEffect(() => {
+    if (!open) return;
+    setColor(resolveTaskColorId(task?.color));
+  }, [open, task]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,6 +57,7 @@ export function TaskDialog({
       dueDate: formData.get("dueDate") as string || null,
       isMilestone: formData.get("isMilestone") === "on",
       columnId: columnId || task?.statusColumnId || null,
+      color,
     };
 
     if (!selectedProjectId) {
@@ -129,6 +138,11 @@ export function TaskDialog({
             <div className="space-y-2">
               <Label htmlFor="assignee">Responsável</Label>
               <Input id="assignee" name="assignee" defaultValue={task?.assignee || ""} placeholder="Opcional" className="bg-white" />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
             </div>
 
             <div className="space-y-2">

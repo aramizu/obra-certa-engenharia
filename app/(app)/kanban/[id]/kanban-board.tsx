@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/components/ds";
+import { taskColorStyle } from "@/lib/task-color";
 import { KanbanColumn } from "./kanban-column";
 import { ColumnDialog } from "./column-dialog";
 import { TaskCardBody } from "./task-card";
@@ -69,7 +71,11 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
               transform: "rotate(2deg)",
             }}
           >
-            <Card className="bg-white ds-shadow border-primary opacity-95">
+            <Card className="relative bg-white ds-shadow border-primary opacity-95">
+              <span
+                aria-hidden
+                className={cn("absolute left-0 top-0 bottom-0 w-1.5", taskColorStyle(draggedTask.color).accent)}
+              />
               <TaskCardBody task={draggedTask} />
             </Card>
           </div>,

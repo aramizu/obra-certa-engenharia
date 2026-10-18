@@ -9,14 +9,13 @@ import type { Task } from "@/lib/db/schema";
 import { formatISODate, today } from "@/lib/date";
 import {
   BADGE_CLASS,
-  DOT_CLASS,
   WEEKDAY_LABELS,
   isAssignedToUser,
   monthGrid,
-  taskBadgeTone,
   taskOccursOn,
   weekGrid,
 } from "@/lib/calendar";
+import { resolveTaskColorId, taskColorStyle } from "@/lib/task-color";
 
 export type CalendarTask = Task & { projectName: string; columnName: string | null };
 
@@ -43,7 +42,6 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
   const [defaultDate, setDefaultDate] = useState<string | undefined>(undefined);
 
   const todayDate = useMemo(() => today(), []);
-  const todayIso = formatISODate(todayDate);
 
   const filtered = useMemo(() => {
     return tasks.filter((task) => {
@@ -219,13 +217,13 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                 </div>
                 <div className="space-y-1">
                   {visible.map((task) => {
-                    const tone = taskBadgeTone(task, task.columnName, todayIso);
+                    const color = taskColorStyle(task.color);
                     return (
                       <button
                         key={task.id}
                         type="button"
                         onClick={(event) => openTask(task, event)}
-                        className={`block w-full truncate border px-1.5 py-0.5 text-[11px] leading-tight text-left font-display uppercase tracking-wide ${BADGE_CLASS[tone]}`}
+                        className={`block w-full truncate border px-1.5 py-0.5 text-[11px] leading-tight text-left font-display uppercase tracking-wide ${color.chip}`}
                         title={`${task.title}${task.isMilestone ? " · Marco" : ""}${task.projectName ? ` · ${task.projectName}` : ""}`}
                       >
                         {task.isMilestone && <Diamond className="inline h-3 w-3 mr-1 -mt-0.5" />}
@@ -260,7 +258,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                 const isToday = sameDay(day, todayDate);
                 const isSelected = sameDay(day, selected);
                 const muted = !inCurrentMonth(day);
-                const tones = [...new Set(dayTasks.map((task) => taskBadgeTone(task, task.columnName, todayIso)))].slice(0, 3);
+                const dots = [...new Set(dayTasks.map((task) => resolveTaskColorId(task.color)))].slice(0, 3);
 
                 return (
                   <button
@@ -280,8 +278,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                       {day.getDate()}
                     </span>
                     <span className="flex gap-0.5 h-1.5">
-                      {tones.map((tone) => (
-                        <span key={tone} className={`h-1.5 w-1.5 rounded-full ${DOT_CLASS[tone]}`} />
+                      {dots.map((id) => (
+                        <span key={id} className={`h-1.5 w-1.5 rounded-full ${taskColorStyle(id).dot}`} />
                       ))}
                     </span>
                   </button>
@@ -313,7 +311,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {dayTasks.slice(0, 4).map((task) => (
-                        <span key={task.id} className={`text-[11px] border px-1.5 py-0.5 font-display uppercase tracking-wide ${BADGE_CLASS[taskBadgeTone(task, task.columnName, todayIso)]}`}>
+                        <span key={task.id} className={`text-[11px] border px-1.5 py-0.5 font-display uppercase tracking-wide ${taskColorStyle(task.color).chip}`}>
                           {task.title}
                         </span>
                       ))}
@@ -339,13 +337,13 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
           ) : (
             <ul className="space-y-2">
               {selectedTasks.map((task) => {
-                const tone = taskBadgeTone(task, task.columnName, todayIso);
+                const color = taskColorStyle(task.color);
                 return (
                   <li key={task.id}>
                     <button
                       type="button"
                       onClick={() => openTask(task)}
-                      className={`w-full text-left border px-3 py-2 ${BADGE_CLASS[tone]}`}
+                      className={`w-full text-left border px-3 py-2 ${color.chip}`}
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}

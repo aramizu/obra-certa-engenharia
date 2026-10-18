@@ -50,6 +50,13 @@
       "when": 1792285000001,
       "tag": "0006_knowledge_base_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792290000000,
+      "tag": "0007_task_color",
+      "breakpoints": true
     }
   ]
 }

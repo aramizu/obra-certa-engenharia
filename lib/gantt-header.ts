@@ -20,8 +20,8 @@ function monthName(date: Date, style: "long" | "short") {
 
 export function ganttMinColumnPx(zoom: GanttZoom) {
   if (zoom === "month") return 56;
-  if (zoom === "week") return 48;
-  return 36;
+  if (zoom === "week") return 56;
+  return 40;
 }
 
 export function ganttColumns(zoom: GanttZoom, cursor: Date): GanttColumn[] {
@@ -35,11 +35,21 @@ export function ganttColumns(zoom: GanttZoom, cursor: Date): GanttColumn[] {
     const start = startOfWeekSunday(day);
     return eachDay(start, addDays(start, 6)).map((date) => ({ key: formatISODate(date), date }));
   }
-  return Array.from({ length: 24 }, (_, hour) => ({
-    key: `${formatISODate(day)}-${pad2(hour)}`,
-    date: day,
-    hour,
-  }));
+  return Array.from({ length: 24 }, (_, index) => {
+    const hour = index + 1;
+    return {
+      key: `${formatISODate(day)}-${pad2(hour)}`,
+      date: day,
+      hour,
+    };
+  });
+}
+
+/** Relógio JS 0–23 → coluna 1h–24h (0h vira 24h). */
+export function ganttClockHourToColumn(jsHour: number) {
+  if (jsHour <= 0) return 24;
+  if (jsHour >= 24) return 24;
+  return jsHour;
 }
 
 export function formatGanttHeaderTop(zoom: GanttZoom, start: Date, end: Date = start): string {
@@ -60,10 +70,11 @@ export function formatGanttHeaderTop(zoom: GanttZoom, start: Date, end: Date = s
   return `${pad2(start.getDate())}/${pad2(start.getMonth() + 1)}/${start.getFullYear()}`;
 }
 
-export function formatGanttHeaderBottom(zoom: GanttZoom, date: Date, hour = 0): string {
-  if (zoom === "month") return `${pad2(date.getDate())}-${WEEKDAY_LABELS[date.getDay()]}`;
-  if (zoom === "week") return pad2(date.getDate());
-  return pad2(hour);
+export function formatGanttHeaderBottom(zoom: GanttZoom, date: Date, hour = 1): string {
+  if (zoom === "month" || zoom === "week") {
+    return `${pad2(date.getDate())}-${WEEKDAY_LABELS[date.getDay()]}`;
+  }
+  return `${hour}h`;
 }
 
 export function ganttBarColumnSpan(
