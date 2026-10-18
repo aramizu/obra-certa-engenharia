@@ -1,20 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ProjectDialog } from "./project-dialog";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function CreateProjectButton() {
-  const [open, setOpen] = useState(false);
-
   return (
-    <>
-      <Button onClick={() => setOpen(true)} className="gap-2">
-        <Plus className="h-4 w-4" />
-        Nova Obra
-      </Button>
-      <ProjectDialog open={open} onOpenChange={setOpen} />
-    </>
+    <Link href="/obras/nova" className={cn(buttonVariants(), "gap-2")}>
+      <Plus className="h-4 w-4" />
+      Nova Obra
+    </Link>
   );
 }

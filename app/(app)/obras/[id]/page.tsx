@@ -1,14 +1,17 @@
+import Link from "next/link";
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
-import { projects, budgetCategories, materials, tasks } from "@/lib/db/schema";
+import { projects, budgetCategories, materials, tasks, projectSuggestedItems } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { ProjectActions } from "./project-actions";
 import { BudgetCategoriesList } from "./budget-categories-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ds";
 import { CreateCategoryButton } from "./create-category-button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -36,6 +39,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     .select({ n: sql<number>`count(*)` })
     .from(materials)
     .where(eq(materials.projectId, project.id));
+  const [listCount] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(projectSuggestedItems)
+    .where(eq(projectSuggestedItems.projectId, project.id));
 
   const categories = await db
     .select({
@@ -78,11 +85,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   </p>
                 )}
               </div>
-              <ProjectActions
-                project={project}
-                taskCount={Number(taskCount?.n ?? 0)}
-                materialCount={Number(materialCount?.n ?? 0)}
-              />
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/obras/${project.id}/lista`}
+                  className={cn(buttonVariants({ variant: "outline" }), "whitespace-nowrap")}
+                >
+                  {Number(listCount?.n ?? 0) > 0 ? "Lista de materiais" : "Gerar lista de materiais"}
+                </Link>
+                <ProjectActions
+                  project={project}
+                  taskCount={Number(taskCount?.n ?? 0)}
+                  materialCount={Number(materialCount?.n ?? 0)}
+                />
+              </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">

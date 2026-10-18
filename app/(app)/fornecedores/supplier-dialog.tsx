@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Supplier } from "@/lib/db/schema";
+import { KB_CATEGORIES } from "@/lib/kb-catalog";
+import { Select } from "@/components/ui/select";
 
 interface SupplierDialogProps {
   open: boolean;
@@ -31,6 +33,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       phone: formData.get("phone") as string || null,
       email: formData.get("email") as string || null,
       notes: formData.get("notes") as string || null,
+      category: (formData.get("category") as string) || null,
     };
 
     try {
@@ -84,6 +87,18 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
                 placeholder="Ex: Depósito São Paulo"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select id="category" name="category" defaultValue={supplier?.category || ""}>
+                <option value="">Sem categoria</option>
+                {KB_CATEGORIES.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
             </div>
 
             <div className="space-y-2">

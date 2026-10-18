@@ -5,10 +5,23 @@ export const OBRA_CASCADE_TABLES = [
   "task_columns",
   "tasks",
   "task_dependencies",
+  "project_rooms",
+  "project_room_modules",
+  "project_suggested_items",
 ] as const;
 
-/** Cadastro geral: ao excluir obra, só o vínculo (materials.supplier_id) zera. */
-export const OBRA_PRESERVE_ON_DELETE = ["suppliers"] as const;
+/** Base SINAPI global: sobrevive à exclusão da obra e ao reset de domínio. */
+export const KB_GLOBAL_TABLES = [
+  "kb_supplier_categories",
+  "kb_materials",
+  "kb_modules",
+  "kb_compositions",
+  "kb_packages",
+  "kb_package_modules",
+] as const;
+
+/** Cadastro geral + base de conhecimento: ao excluir obra, não apaga. */
+export const OBRA_PRESERVE_ON_DELETE = ["suppliers", ...KB_GLOBAL_TABLES] as const;
 
 export const SUPPLIER_FK_ON_OBRA_DELETE = "set null";
 

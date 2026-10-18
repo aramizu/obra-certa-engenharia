@@ -8,8 +8,10 @@ export function revalidateDomainPages(projectId?: string, supplierId?: string) {
   revalidatePath("/gantt");
   revalidatePath("/calendario");
   revalidatePath("/fornecedores");
+  revalidatePath("/admin/base");
   if (projectId) {
     revalidatePath(`/obras/${projectId}`);
+    revalidatePath(`/obras/${projectId}/lista`);
     revalidatePath(`/kanban/${projectId}`);
     revalidatePath(`/gantt/${projectId}`);
   }

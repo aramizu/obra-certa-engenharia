@@ -11,6 +11,7 @@ const supplierSchema = z.object({
   phone: z.string().nullable().optional(),
   email: z.string().email("Email inválido").nullable().optional().or(z.literal("")),
   notes: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
         phone: data.phone || null,
         email: data.email || null,
         notes: data.notes || null,
+        category: data.category || null,
       })
       .returning();
 

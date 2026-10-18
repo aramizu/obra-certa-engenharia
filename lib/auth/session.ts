@@ -13,6 +13,7 @@ export interface SessionUser {
   name: string;
   email: string;
   emailVerified: boolean;
+  isAdmin: boolean;
 }
 
 /**
@@ -122,11 +123,17 @@ export const validateSession = cache(async (): Promise<SessionUser | null> => {
     }
   }
 
+  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(/[,;]/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
   return {
     id: user.id,
     name: user.name,
     email: user.email,
     emailVerified: user.emailVerified,
+    isAdmin: Boolean(user.isAdmin) || adminEmails.includes(user.email.toLowerCase()),
   };
 });
 

@@ -10,5 +10,5 @@ export default async function AuthenticatedLayout({
   const user = await validateSession();
   if (!user) redirect("/entrar");
 
-  return <AppLayout userName={user.name}>{children}</AppLayout>;
+  return <AppLayout userName={user.name} isAdmin={user.isAdmin}>{children}</AppLayout>;
 }
