@@ -149,6 +149,21 @@ export const tasks = pgTable("tasks", {
   dueDateIdx: index("tasks_due_date_idx").on(table.dueDate),
 }));
 
+export const notes = pgTable("notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  title: text("title"),
+  content: text("content").notNull().default(""),
+  color: text("color").notNull().default("yellow"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("notes_user_id_idx").on(table.userId),
+  projectIdIdx: index("notes_project_id_idx").on(table.projectId),
+}));
+
 export const taskDependencies = pgTable("task_dependencies", {
   id: uuid("id").defaultRandom().primaryKey(),
   taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
@@ -177,6 +192,8 @@ export type TaskColumn = typeof taskColumns.$inferSelect;
 export type NewTaskColumn = typeof taskColumns.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
+export type Note = typeof notes.$inferSelect;
+export type NewNote = typeof notes.$inferInsert;
 export type TaskDependency = typeof taskDependencies.$inferSelect;
 export type NewTaskDependency = typeof taskDependencies.$inferInsert;
 

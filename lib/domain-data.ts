@@ -8,6 +8,7 @@ export const OBRA_CASCADE_TABLES = [
   "project_rooms",
   "project_room_modules",
   "project_suggested_items",
+  "notes",
 ] as const;
 
 /** Base SINAPI global: sobrevive à exclusão da obra e ao reset de domínio. */

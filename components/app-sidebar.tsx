@@ -11,6 +11,7 @@ import {
   KanbanSquare,
   GanttChart,
   Calendar,
+  StickyNote,
   LogOut,
   X,
   Ruler,
@@ -35,6 +36,7 @@ const navigation = [
   { name: "Kanban", href: "/kanban", icon: KanbanSquare },
   { name: "Gantt", href: "/gantt", icon: GanttChart },
   { name: "Calendário", href: "/calendario", icon: Calendar },
+  { name: "Post-its", href: "/post-its", icon: StickyNote },
   { name: "Sistema", href: "/design-system", icon: Ruler },
 ];
 

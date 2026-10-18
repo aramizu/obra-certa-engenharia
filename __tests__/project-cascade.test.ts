@@ -20,6 +20,7 @@ describe("exclusão de obra (cascade)", () => {
       "project_rooms",
       "project_room_modules",
       "project_suggested_items",
+      "notes",
     ]);
     expect(OBRA_PRESERVE_ON_DELETE).toEqual([
       "suppliers",

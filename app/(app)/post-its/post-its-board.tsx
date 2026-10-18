@@ -1,0 +1,414 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ds";
+import { EmptyState } from "@/components/ds";
+import { afterMutation } from "@/lib/after-mutation";
+import {
+  DEFAULT_NOTE_COLOR,
+  NOTE_COLORS,
+  applyNoteMove,
+  dropIndexFromPoint,
+  notePaperClass,
+  noteRotationDeg,
+  resolveNoteColorId,
+  type NoteColorId,
+} from "@/lib/notes";
+import { shouldActivateDrag } from "@/lib/kanban-dnd";
+import type { Note } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
+
+type BoardNote = Note;
+
+export function PostItsBoard({
+  initialNotes,
+  projects,
+}: {
+  initialNotes: BoardNote[];
+  projects: { id: string; name: string }[];
+}) {
+  const router = useRouter();
+  const [notes, setNotes] = useState(initialNotes);
+  const [filter, setFilter] = useState("all");
+  const [deleting, setDeleting] = useState<BoardNote | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [drag, setDrag] = useState<{
+    id: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    offsetX: number;
+    offsetY: number;
+    index: number;
+  } | null>(null);
+
+  useEffect(() => setNotes(initialNotes), [initialNotes]);
+
+  const visible = useMemo(() => {
+    const list = [...notes].sort((a, b) => a.position - b.position);
+    if (filter === "all") return list;
+    if (filter === "none") return list.filter((note) => !note.projectId);
+    return list.filter((note) => note.projectId === filter);
+  }, [filter, notes]);
+
+  const persistOrderRef = useRef<(next: BoardNote[]) => void>(() => {});
+  persistOrderRef.current = (next) => {
+    void (async () => {
+      await fetch("/api/post-its", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: next.sort((a, b) => a.position - b.position).map((note) => note.id) }),
+      });
+      await afterMutation(() => router.refresh());
+    })();
+  };
+
+  const sessionRef = useRef<{
+    pointerId: number;
+    id: string;
+    originX: number;
+    originY: number;
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const dragRef = useRef(drag);
+  dragRef.current = drag;
+  const notesRef = useRef(notes);
+  notesRef.current = notes;
+  const suppressClickRef = useRef<string | null>(null);
+
+  const onPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>, id: string) => {
+    if (event.button !== 0) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, a, input, textarea, select")) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    sessionRef.current = {
+      pointerId: event.pointerId,
+      id,
+      originX: event.clientX,
+      originY: event.clientY,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  }, []);
+
+  useEffect(() => {
+    const hitIndex = (x: number, y: number, draggedId: string) => {
+      const rects = Array.from(document.querySelectorAll<HTMLElement>("[data-note-id]")).map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { id: node.dataset.noteId!, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+      });
+      return dropIndexFromPoint(rects, x, y, draggedId);
+    };
+
+    const onMove = (event: PointerEvent) => {
+      const session = sessionRef.current;
+      if (!session || event.pointerId !== session.pointerId) return;
+      const active = dragRef.current;
+      if (!active) {
+        if (!shouldActivateDrag(session.originX, session.originY, event.clientX, event.clientY)) return;
+        event.preventDefault();
+        const next = {
+          id: session.id,
+          x: event.clientX,
+          y: event.clientY,
+          width: session.width,
+          height: session.height,
+          offsetX: session.offsetX,
+          offsetY: session.offsetY,
+          index: hitIndex(event.clientX, event.clientY, session.id),
+        };
+        dragRef.current = next;
+        setDrag(next);
+        return;
+      }
+      event.preventDefault();
+      const next = { ...active, x: event.clientX, y: event.clientY, index: hitIndex(event.clientX, event.clientY, session.id) };
+      dragRef.current = next;
+      setDrag(next);
+    };
+
+    const onUp = (event: PointerEvent) => {
+      const session = sessionRef.current;
+      if (!session || event.pointerId !== session.pointerId) return;
+      sessionRef.current = null;
+      const active = dragRef.current;
+      if (!active) return;
+      event.preventDefault();
+      suppressClickRef.current = session.id;
+      dragRef.current = null;
+      setDrag(null);
+      const snapshot = notesRef.current;
+      const next = applyNoteMove(snapshot, session.id, active.index);
+      notesRef.current = next;
+      setNotes(next);
+      persistOrderRef.current(next);
+    };
+
+    window.addEventListener("pointermove", onMove, { capture: true, passive: false });
+    window.addEventListener("pointerup", onUp, { capture: true });
+    window.addEventListener("pointercancel", onUp, { capture: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerup", onUp, true);
+      window.removeEventListener("pointercancel", onUp, true);
+    };
+  }, []);
+
+  const createNote = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/post-its", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          color: DEFAULT_NOTE_COLOR,
+          projectId: filter !== "all" && filter !== "none" ? filter : null,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Erro ao criar");
+      setNotes((current) => [...current, result.note]);
+      await afterMutation(() => router.refresh());
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Erro ao criar post-it");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveNote = async (id: string, patch: Partial<BoardNote>) => {
+    const response = await fetch(`/api/post-its/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Erro ao salvar");
+    setNotes((current) => current.map((note) => (note.id === id ? result.note : note)));
+    await afterMutation(() => router.refresh(), { projectId: result.note.projectId });
+  };
+
+  const removeNote = async () => {
+    if (!deleting) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/post-its/${deleting.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Erro ao excluir");
+      setNotes((current) => current.filter((note) => note.id !== deleting.id));
+      setDeleting(null);
+      await afterMutation(() => router.refresh(), { projectId: deleting.projectId });
+    } catch {
+      alert("Erro ao excluir post-it");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dragged = drag ? notes.find((note) => note.id === drag.id) : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filter} onChange={(event) => setFilter(event.target.value)} className="w-auto min-w-44 bg-white">
+            <option value="all">Todas as notas</option>
+            <option value="none">Sem obra</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <Button onClick={() => void createNote()} disabled={loading}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo post-it
+        </Button>
+      </div>
+
+      {visible.length === 0 ? (
+        <EmptyState
+          illustration="tape"
+          title="Mural vazio"
+          description="Pregue um post-it com lembretes da obra. Dá para arrastar, recortar a cor e vincular a um apartamento."
+          action={
+            <Button onClick={() => void createNote()} disabled={loading}>
+              Adicionar post-it
+            </Button>
+          }
+        />
+      ) : (
+        <div className={`grid gap-6 sm:grid-cols-2 xl:grid-cols-3 ${drag ? "select-none cursor-grabbing" : ""}`}>
+          {visible.map((note) => (
+            <PostItCard
+              key={note.id}
+              note={note}
+              projects={projects}
+              dimmed={drag?.id === note.id}
+              onPointerDown={onPointerDown}
+              onSave={saveNote}
+              onDelete={() => setDeleting(note)}
+            />
+          ))}
+        </div>
+      )}
+
+      {drag &&
+        dragged &&
+        createPortal(
+          <div
+            aria-hidden
+            className="fixed z-50 pointer-events-none p-2"
+            style={{
+              left: drag.x - drag.offsetX - 8,
+              top: drag.y - drag.offsetY - 8,
+              width: drag.width + 16,
+              transform: `rotate(${noteRotationDeg(dragged.id)}deg)`,
+            }}
+          >
+            <PostItFace note={dragged} />
+          </div>,
+          document.body
+        )}
+
+      {deleting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setDeleting(null)} />
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
+            <h3 className="text-lg font-semibold mb-2">Excluir post-it</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Apagar {deleting.title?.trim() ? <strong>{deleting.title}</strong> : "esta nota"}? Isso não pode ser desfeito.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setDeleting(null)} disabled={loading}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={() => void removeNote()} disabled={loading}>
+                {loading ? "Excluindo..." : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PostItFace({ note, children }: { note: BoardNote; children?: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "relative rounded-lg border-2 border-graphite ds-shadow p-4 pt-6 min-h-[12rem] text-foreground",
+        notePaperClass(note.color)
+      )}
+    >
+      <span aria-hidden className="ds-sticky-tape absolute left-1/2 top-1.5 h-3.5 w-[42%] -translate-x-1/2 -rotate-2" />
+      {children}
+    </div>
+  );
+}
+
+function PostItCard({
+  note,
+  projects,
+  dimmed,
+  onPointerDown,
+  onSave,
+  onDelete,
+}: {
+  note: BoardNote;
+  projects: { id: string; name: string }[];
+  dimmed: boolean;
+  onPointerDown: (event: ReactPointerEvent<HTMLElement>, id: string) => void;
+  onSave: (id: string, patch: Partial<BoardNote>) => Promise<void>;
+  onDelete: () => void;
+}) {
+  const [title, setTitle] = useState(note.title ?? "");
+  const [content, setContent] = useState(note.content);
+  const color = resolveNoteColorId(note.color) as NoteColorId;
+
+  useEffect(() => {
+    setTitle(note.title ?? "");
+    setContent(note.content);
+  }, [note.content, note.title]);
+
+  return (
+    <article
+      data-note-id={note.id}
+      onPointerDown={(event) => onPointerDown(event, note.id)}
+      className={cn("cursor-grab", dimmed && "opacity-40")}
+      style={{ transform: `rotate(${noteRotationDeg(note.id)}deg)`, touchAction: "none" }}
+    >
+      <PostItFace note={note}>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <input
+            value={title}
+            placeholder="Título (opcional)"
+            className="flex-1 bg-transparent text-sm font-semibold placeholder:text-foreground/50 focus:outline-none"
+            onChange={(event) => setTitle(event.target.value)}
+            onBlur={() => {
+              if ((note.title ?? "") !== title.trim()) void onSave(note.id, { title: title.trim() || null });
+            }}
+          />
+          <button type="button" className="p-1 hover:bg-black/5 rounded-md" aria-label="Excluir post-it" onClick={onDelete}>
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        <textarea
+          value={content}
+          placeholder="Escreva o recado…"
+          rows={5}
+          className="w-full resize-none bg-transparent text-sm leading-relaxed placeholder:text-foreground/45 focus:outline-none"
+          onChange={(event) => setContent(event.target.value)}
+          onBlur={() => {
+            if (content !== note.content) void onSave(note.id, { content });
+          }}
+        />
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Cor do post-it">
+            {NOTE_COLORS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="radio"
+                aria-checked={item.id === color}
+                aria-label={item.label}
+                title={item.label}
+                className={cn(
+                  "h-5 w-5 rounded-full border-2 border-graphite",
+                  item.paper,
+                  item.id === color ? "ring-2 ring-graphite ring-offset-1" : ""
+                )}
+                onClick={() => {
+                  if (item.id !== color) void onSave(note.id, { color: item.id });
+                }}
+              />
+            ))}
+          </div>
+          <select
+            className="max-w-[10rem] bg-transparent text-xs border-2 border-graphite/40 rounded-md px-1 py-0.5"
+            value={note.projectId ?? ""}
+            onChange={(event) => void onSave(note.id, { projectId: event.target.value || null })}
+          >
+            <option value="">Sem obra</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </PostItFace>
+    </article>
+  );
+}

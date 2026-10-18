@@ -57,6 +57,13 @@
       "when": 1792290000000,
       "tag": "0007_task_color",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792295000000,
+      "tag": "0008_notes",
+      "breakpoints": true
     }
   ]
 }

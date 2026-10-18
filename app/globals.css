@@ -194,6 +194,7 @@ body {
   box-shadow: 4px 4px 0 0 var(--graphite);
 }
 
+<<<<<<< HEAD
 /*
  * Chip / badge / tag / balão com fundo colorido.
  * Borda e texto na mesma família, contrastando pela luminância do fill:
@@ -242,3 +243,8 @@ body {
 .ds-chip-surface[data-fill="delay"] { --ds-chip-fill: var(--delay); }
 .ds-chip-surface[data-fill="delay-wash"] { --ds-chip-fill: var(--delay-wash); }
 
+.ds-sticky-tape {
+  background: linear-gradient(180deg, rgba(255, 255, 240, 0.78), rgba(230, 210, 140, 0.42));
+  border: 1px solid rgba(40, 35, 32, 0.18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+}
