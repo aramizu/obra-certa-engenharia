@@ -52,11 +52,13 @@ describe("post-its", () => {
     expect(dropIndexFromPoint(rects, 180, 10, "a")).toBe(1);
   });
 
-  it("não tem seletor de obra no mural nem no card", () => {
+  it("filtra e vincula post-its com Nota livre, não Sem obra", () => {
     const board = readFileSync(new URL("../app/(app)/post-its/post-its-board.tsx", import.meta.url), "utf8");
-    expect(board).not.toContain("<Select");
-    expect(board).not.toMatch(/import \{[^}]*\bSelect\b/);
-    expect(board).not.toContain("<option");
-    expect(board).toContain("projectId: defaultProjectId ?? null");
+    expect(board).toContain("<Select");
+    expect(board).toContain("Todas as notas");
+    expect(board).toContain("Notas livres");
+    expect(board).toContain("Nota livre");
+    expect(board).not.toContain("Sem obra");
+    expect(board).toContain("projectId: filter !== FILTER_ALL && filter !== FILTER_FREE ? filter : null");
   });
 });
