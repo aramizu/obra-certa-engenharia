@@ -399,8 +399,8 @@ function PostItCard({
               />
             ))}
           </div>
-          <select
-            className="max-w-[10rem] bg-transparent text-xs border-2 border-graphite/40 rounded-md px-1 py-0.5"
+          <Select
+            className="max-w-[10rem] h-7 text-xs"
             value={note.projectId ?? ""}
             onChange={(event) => void onSave(note.id, { projectId: event.target.value || null })}
           >
@@ -410,7 +410,7 @@ function PostItCard({
                 {project.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </PostItFace>
     </article>
