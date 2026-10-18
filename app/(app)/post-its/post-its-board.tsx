@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, TASK_CHIP_RADIUS_CLASS, chipSurfaceProps } from "@/components/ds";
+import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, Select, TASK_CHIP_RADIUS_CLASS, chipSurfaceProps } from "@/components/ds";
 import { afterMutation } from "@/lib/after-mutation";
 import {
   DEFAULT_NOTE_COLOR,
@@ -25,15 +25,21 @@ import { cn } from "@/lib/utils";
 
 type BoardNote = Note;
 
+const FILTER_ALL = "all";
+const FILTER_FREE = "none";
+
 export function PostItsBoard({
   initialNotes,
+  projects,
   defaultProjectId = null,
 }: {
   initialNotes: BoardNote[];
+  projects: { id: string; name: string }[];
   defaultProjectId?: string | null;
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState(initialNotes);
+  const [filter, setFilter] = useState(defaultProjectId ?? FILTER_ALL);
   const [deleting, setDeleting] = useState<BoardNote | null>(null);
   const [loading, setLoading] = useState(false);
   const [drag, setDrag] = useState<{
@@ -49,10 +55,12 @@ export function PostItsBoard({
 
   useEffect(() => setNotes(initialNotes), [initialNotes]);
 
-  const visible = useMemo(
-    () => [...notes].sort((a, b) => a.position - b.position),
-    [notes]
-  );
+  const visible = useMemo(() => {
+    const list = [...notes].sort((a, b) => a.position - b.position);
+    if (filter === FILTER_ALL) return list;
+    if (filter === FILTER_FREE) return list.filter((note) => !note.projectId);
+    return list.filter((note) => note.projectId === filter);
+  }, [filter, notes]);
 
   const persistOrderRef = useRef<(next: BoardNote[]) => void>(() => {});
   persistOrderRef.current = (next) => {
@@ -85,7 +93,7 @@ export function PostItsBoard({
   const onPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>, id: string) => {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement;
-    if (target.closest("button, a, input, textarea, select")) return;
+    if (target.closest("button, a, input, textarea, select, [role='combobox']")) return;
     const rect = event.currentTarget.getBoundingClientRect();
     sessionRef.current = {
       pointerId: event.pointerId,
@@ -170,7 +178,7 @@ export function PostItsBoard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           color: DEFAULT_NOTE_COLOR,
-          projectId: defaultProjectId ?? null,
+          projectId: filter !== FILTER_ALL && filter !== FILTER_FREE ? filter : null,
         }),
       });
       const result = await response.json();
@@ -216,7 +224,24 @@ export function PostItsBoard({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <label className="text-sm flex items-center gap-2">
+          <span className="text-label">Notas</span>
+          <Select
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            className="w-auto min-w-44 bg-white"
+            label="Notas"
+          >
+            <option value={FILTER_ALL}>Todas as notas</option>
+            <option value={FILTER_FREE}>Notas livres</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </Select>
+        </label>
         <Button onClick={() => void createNote()} disabled={loading}>
           <Plus className="h-4 w-4 mr-2" />
           Novo post-it
@@ -227,7 +252,7 @@ export function PostItsBoard({
         <EmptyState
           illustration="tape"
           title="Mural vazio"
-          description="Pregue um post-it com lembretes. Dá para arrastar e recortar a cor."
+          description="Pregue um post-it com lembretes. Dá para arrastar, recortar a cor e ligar a uma obra ou deixar como nota livre."
           action={
             <Button onClick={() => void createNote()} disabled={loading}>
               Adicionar post-it
@@ -240,6 +265,7 @@ export function PostItsBoard({
             <PostItCard
               key={note.id}
               note={note}
+              projects={projects}
               dimmed={drag?.id === note.id}
               onPointerDown={onPointerDown}
               onSave={saveNote}
@@ -308,12 +334,14 @@ function PostItFace({ note, children }: { note: BoardNote; children?: ReactNode 
 
 function PostItCard({
   note,
+  projects,
   dimmed,
   onPointerDown,
   onSave,
   onDelete,
 }: {
   note: BoardNote;
+  projects: { id: string; name: string }[];
   dimmed: boolean;
   onPointerDown: (event: ReactPointerEvent<HTMLElement>, id: string) => void;
   onSave: (id: string, patch: Partial<BoardNote>) => Promise<void>;
@@ -360,7 +388,7 @@ function PostItCard({
             if (content !== note.content) void onSave(note.id, { content });
           }}
         />
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Cor do post-it">
             {NOTE_COLORS.map((item) => (
               <button
@@ -382,6 +410,19 @@ function PostItCard({
               />
             ))}
           </div>
+          <Select
+            className="max-w-[10rem] h-7 text-xs"
+            value={note.projectId ?? ""}
+            onChange={(event) => void onSave(note.id, { projectId: event.target.value || null })}
+            label="Obra"
+          >
+            <option value="">Nota livre</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </Select>
         </div>
       </PostItFace>
     </article>
