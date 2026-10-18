@@ -1,6 +1,6 @@
 export function DashboardSkeleton() {
   return (
-    <div className="flex-1 overflow-y-auto p-4 lg:p-8" aria-busy="true" aria-label="Carregando">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8" aria-busy="true" aria-label="Carregando">
       <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -18,7 +18,7 @@ export function DashboardSkeleton() {
 
 export function ListSkeleton() {
   return (
-    <div className="flex-1 overflow-y-auto p-8" aria-busy="true" aria-label="Carregando">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-8" aria-busy="true" aria-label="Carregando">
       <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
         <div className="h-8 w-48 rounded bg-muted" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -33,7 +33,7 @@ export function ListSkeleton() {
 
 export function DetailSkeleton() {
   return (
-    <div className="flex-1 overflow-y-auto p-8" aria-busy="true" aria-label="Carregando">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-8" aria-busy="true" aria-label="Carregando">
       <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
         <div className="grid gap-6 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -80,7 +80,7 @@ export function TimelineSkeleton() {
 
 export function CalendarSkeleton() {
   return (
-    <div className="flex-1 overflow-y-auto p-4 lg:p-6" aria-busy="true" aria-label="Carregando">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6" aria-busy="true" aria-label="Carregando">
       <div className="space-y-4 animate-pulse">
         <div className="h-16 rounded-lg border bg-white" />
         <div className="h-[28rem] rounded-lg border bg-white" />

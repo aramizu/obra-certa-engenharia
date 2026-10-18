@@ -111,11 +111,11 @@ export function KanbanColumn({
     <>
       <div
         data-column-id={column.id}
-        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-lg bg-white border-2 border-graphite p-3 ${
+        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-lg bg-white border-2 border-graphite ${
           isOver ? "ring-2 ring-primary bg-signal-wash" : ""
         }`}
       >
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center justify-between px-3 pt-3 pb-2">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="font-semibold text-sm uppercase tracking-wide truncate">{column.name}</h3>
             <span className="text-[10px] font-mono text-foreground bg-concrete border-2 border-graphite rounded-full px-2 py-0.5 shrink-0">
@@ -169,13 +169,18 @@ export function KanbanColumn({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-[12rem]">
-          {cards}
+        {/* Padding no scroller (não no wrapper) para a sombra 4px dos cards não ser cortada. */}
+        <div className="flex-1 min-h-[12rem] min-w-0 overflow-y-auto overflow-x-hidden">
+          <div className="space-y-2 px-3 py-1.5">
+            {cards}
+          </div>
         </div>
 
-        <Button variant="ghost" size="sm" className="mt-2 w-full justify-start text-muted-foreground" onClick={() => setShowTaskDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />Nova Tarefa
-        </Button>
+        <div className="px-3 pb-3 pt-1">
+          <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground" onClick={() => setShowTaskDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />Nova Tarefa
+          </Button>
+        </div>
       </div>
 
       <TaskDialog open={showTaskDialog} onOpenChange={setShowTaskDialog} projectId={projectId} columnId={column.id} />

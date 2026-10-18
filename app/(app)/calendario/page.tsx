@@ -34,7 +34,7 @@ export default async function CalendarioPage() {
   return (
     <>
       <PageTitle title="Calendário" description="Agenda mensal e semanal das tarefas com data" />
-      <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6">
         <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
         <CalendarView
           tasks={calendarTasks}

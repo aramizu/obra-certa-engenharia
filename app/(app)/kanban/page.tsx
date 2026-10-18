@@ -27,7 +27,7 @@ export default async function KanbanPage({
   return (
     <>
       <PageTitle title="Kanban" description="Gerencie tarefas por obra estilo Trello" />
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
             <MissingEntityBanner aviso={aviso} />

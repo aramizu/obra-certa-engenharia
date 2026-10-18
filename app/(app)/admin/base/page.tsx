@@ -14,7 +14,7 @@ export default async function AdminBasePage() {
   return (
     <>
       <PageTitle title="Base SINAPI" description="Materiais, consumos, perda e categorias de fornecedor" />
-      <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
         <div className="max-w-5xl mx-auto">
           <AdminBaseView initialCatalog={catalog} />
         </div>

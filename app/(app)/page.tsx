@@ -83,7 +83,7 @@ export default async function HomePage() {
         title={`Olá, ${firstName}`}
         description="Painel de orçamento, pendências e compras da obra"
       />
-      <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
         <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
         <DashboardView
           userName={user.name}
