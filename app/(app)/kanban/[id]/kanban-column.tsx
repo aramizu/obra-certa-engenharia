@@ -115,7 +115,7 @@ export function KanbanColumn({
     <>
       <div
         data-column-id={column.id}
-        className={`flex-shrink-0 w-80 flex flex-col max-h-full rounded-lg bg-white border-2 border-graphite ${
+        className={`flex h-full max-h-full min-h-0 w-80 shrink-0 flex-col overflow-visible rounded-lg border-2 border-graphite bg-white ${
           isOver ? "ring-2 ring-primary bg-signal-wash" : ""
         }`}
       >
@@ -174,13 +174,13 @@ export function KanbanColumn({
         </div>
 
         {/* Padding no scroller (não no wrapper) para a sombra 4px dos cards não ser cortada. */}
-        <div className="flex-1 min-h-[12rem] min-w-0 overflow-y-auto overflow-x-hidden">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
           <div className="space-y-2 px-3 py-1.5">
             {cards}
           </div>
         </div>
 
-        <div className="px-3 pb-3 pt-1">
+        <div className="shrink-0 px-3 pb-3 pt-1">
           <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground" onClick={() => setShowTaskDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />Nova Tarefa
           </Button>
