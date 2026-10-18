@@ -14,6 +14,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArchivedObraBanner } from "@/components/archived-obra-banner";
 import { isProjectArchived } from "@/lib/project-archive";
+import { materialSpendOnCategoryProject } from "@/lib/owned-refs";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -55,7 +56,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       spent: sql<string>`COALESCE(SUM(CASE WHEN ${materials.status} = 'purchased' THEN ${materials.totalPrice} ELSE 0 END), 0)`,
     })
     .from(budgetCategories)
-    .leftJoin(materials, eq(budgetCategories.id, materials.budgetCategoryId))
+    .leftJoin(materials, materialSpendOnCategoryProject())
     .where(eq(budgetCategories.projectId, project.id))
     .groupBy(budgetCategories.id, budgetCategories.name, budgetCategories.budgetedAmount, budgetCategories.order)
     .orderBy(budgetCategories.order);

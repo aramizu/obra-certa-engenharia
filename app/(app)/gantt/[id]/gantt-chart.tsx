@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, Diamond, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs } from "@/components/ds";
+import { TaskChip, Tabs, cn } from "@/components/ds";
 import { GanttTaskDialog } from "./gantt-task-dialog";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
@@ -403,13 +403,17 @@ export function GanttChart({
                         })}
                         {span ? (
                           <>
-                            <div
+                            <TaskChip
+                              as="div"
+                              fill={color.fill}
                               role="button"
                               tabIndex={0}
-                              className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 overflow-hidden text-xs flex items-center font-display uppercase tracking-wide ${
-                                color.bar
-                              } ${conflict ? "ring-2 ring-delay" : ""} ${allowDrag ? "cursor-grab" : "cursor-pointer"}`}
-                              data-fill={color.fill}
+                              className={cn(
+                                "absolute top-1/2 -translate-y-1/2 z-[3] h-9 text-xs flex items-center font-display uppercase tracking-wide",
+                                isMilestoneTask(task) && "font-semibold",
+                                conflict && "ring-2 ring-delay",
+                                allowDrag ? "cursor-grab" : "cursor-pointer"
+                              )}
                               style={{
                                 left: `${(span.startIndex / colCount) * 100}%`,
                                 width: `${(spanCount / colCount) * 100}%`,
@@ -447,7 +451,7 @@ export function GanttChart({
                                   {task.title}
                                 </span>
                               )}
-                            </div>
+                            </TaskChip>
                             {!labelInside && (
                               <span
                                 className="absolute top-1/2 -translate-y-1/2 z-[3] text-xs font-medium text-foreground pointer-events-none truncate max-w-[10rem]"

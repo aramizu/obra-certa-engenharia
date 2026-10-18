@@ -66,7 +66,11 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     if (isProjectArchived(project)) return archivedWriteResponse();
 
-    await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId)));
+    const [deleted] = await db
+      .delete(tasks)
+      .where(and(eq(tasks.id, id), eq(tasks.projectId, projectId)))
+      .returning();
+    if (!deleted) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
     revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {

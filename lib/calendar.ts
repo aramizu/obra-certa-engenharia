@@ -1,4 +1,4 @@
-import { PILL_CHIP_CLASS, TASK_CHIP_CLASS, type ChipFillToken } from "@/components/ds/chip";
+import { PILL_CHIP_CLASS, TASK_CHIP_CLASS, chipContrastStyle, type ChipFillToken } from "@/components/ds/chip";
 import { addDays, eachDay, formatISODate, startOfDay } from "./date";
 import type { Task } from "./db/schema";
 
@@ -103,7 +103,7 @@ export const DOT_CLASS: Record<BadgeTone, string> = {
   done: "bg-done",
 };
 
-/** Same palette as calendar badges, as opaque Gantt bars (raio de tarefa, não pílula). */
+/** Barras do Gantt: mesmo chip das tarefas do painel (não pílula, sem borda fixa). */
 export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
   high: TASK_CHIP_CLASS,
   medium: TASK_CHIP_CLASS,
@@ -115,22 +115,14 @@ export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
 };
 
 export function badgeChipProps(tone: BadgeTone) {
-  return { className: BADGE_CLASS[tone], "data-fill": BADGE_FILL[tone] };
+  const fill = BADGE_FILL[tone];
+  return { className: BADGE_CLASS[tone], "data-fill": fill, style: chipContrastStyle(fill) };
 }
 
 export function ganttBarChipProps(tone: BadgeTone) {
-  return { className: GANTT_BAR_CLASS[tone], "data-fill": BADGE_FILL[tone] };
+  const fill = BADGE_FILL[tone];
+  return { className: GANTT_BAR_CLASS[tone], "data-fill": fill, style: chipContrastStyle(fill) };
 }
-
-export const GANTT_MILESTONE_CLASS: Record<BadgeTone, string> = {
-  high: "bg-delay border-graphite",
-  medium: "bg-signal border-graphite",
-  low: "bg-blueprint border-graphite",
-  normal: "bg-graphite-2 border-graphite",
-  milestone: "bg-primary border-graphite",
-  overdue: "bg-delay border-graphite",
-  done: "bg-done border-graphite",
-};
 
 export const GANTT_MIN_INNER_LABEL_PX = 80;
 

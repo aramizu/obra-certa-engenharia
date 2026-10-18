@@ -32,19 +32,46 @@ export const CHIP_FILL_TOKENS = [
 
 export type ChipFillToken = (typeof CHIP_FILL_TOKENS)[number];
 
+/** Tokens escuros: borda/texto misturam com branco (~30% mais claros). */
+export const DARK_CHIP_FILLS = ["graphite", "graphite-2", "primary", "blueprint", "done", "delay"] as const;
+
 export function isChipFillToken(value: unknown): value is ChipFillToken {
   return typeof value === "string" && (CHIP_FILL_TOKENS as readonly string[]).includes(value);
 }
 
+export function chipInkMix(fill: ChipFillToken | string | null | undefined): "#fff" | "#1c1612" {
+  if (!fill) return "#1c1612";
+  if (isChipFillToken(fill)) {
+    return (DARK_CHIP_FILLS as readonly string[]).includes(fill) ? "#fff" : "#1c1612";
+  }
+  const hsl = fill.match(/hsla?\(\s*[\d.]+[\s,]+[\d.]+%?[\s,]+([\d.]+)%/i);
+  if (hsl) return Number(hsl[1]) > 50 ? "#1c1612" : "#fff";
+  const oklch = fill.match(/oklch\(\s*([\d.]+)/i);
+  if (oklch) return Number(oklch[1]) > 0.5 ? "#1c1612" : "#fff";
+  return "#1c1612";
+}
+
+/** color-mix no inline style — o PostCSS do Tailwind v4 não reescreve. */
+export function chipContrastStyle(fill?: ChipFillToken | string | null): CSSProperties {
+  const ink = chipInkMix(fill);
+  const source = isChipFillToken(fill) || !fill ? "var(--ds-chip-fill)" : fill;
+  return {
+    "--ds-chip-ink": ink,
+    "--ds-chip-border": `color-mix(in oklch, ${source} 68%, ${ink})`,
+    "--ds-chip-text": `color-mix(in oklch, ${source} 38%, ${ink})`,
+  } as CSSProperties;
+}
+
 /** Qualquer cor (token DS ou CSS). Tokens usam data-fill; o resto vai em --ds-chip-fill. */
 export function chipSurfaceProps(fill: ChipFillToken | string | null | undefined) {
-  if (!fill) return { className: CHIP_SURFACE_CLASS };
+  const contrast = chipContrastStyle(fill);
+  if (!fill) return { className: CHIP_SURFACE_CLASS, style: contrast };
   if (isChipFillToken(fill)) {
-    return { className: CHIP_SURFACE_CLASS, "data-fill": fill };
+    return { className: CHIP_SURFACE_CLASS, "data-fill": fill, style: contrast };
   }
   return {
     className: CHIP_SURFACE_CLASS,
-    style: { "--ds-chip-fill": fill } as CSSProperties,
+    style: { "--ds-chip-fill": fill, ...contrast } as CSSProperties,
   };
 }
 
@@ -59,14 +86,13 @@ export function pillChipProps(fill: ChipFillToken | string | null | undefined) {
 }
 
 /**
- * Luminância do fundo → L de borda/texto na mesma matiz.
- * L > 0.5 escurece; senão clareia. Espelha o `oklch(from …)` em globals.css.
+ * Luminância do fundo → L de borda/texto (color-mix ~32% / ~62% rumo ao ink).
+ * L > 0.5 misture com preto; senão com branco.
  */
 export function contrastLuminance(fillL: number, role: "border" | "text"): number {
-  const k = role === "border" ? 1.2 : 1.5;
-  const lo = role === "border" ? 0.18 : 0.12;
-  const hi = role === "border" ? 0.88 : 0.98;
-  return Math.min(hi, Math.max(lo, 0.5 + (0.5 - fillL) * k));
+  const ink = fillL > 0.5 ? 0 : 1;
+  const amount = role === "border" ? 0.32 : 0.62;
+  return fillL * (1 - amount) + ink * amount;
 }
 
 type ChipShape = "chip" | "pill";

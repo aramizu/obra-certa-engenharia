@@ -137,9 +137,9 @@ export function DesignSystemCatalog() {
         <h2 className="text-title">Chips · contraste</h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
           Qualquer chip, badge, tag ou balão com fundo colorido usa <code className="font-mono text-xs">.ds-chip-surface</code>.
-          Se o fill é claro (L &gt; 0.5), borda e texto escurecem na mesma matiz; se o fill é escuro, clareiam.
-          Cores de tarefa (e qualquer CSS em <code className="font-mono text-xs">--ds-chip-fill</code>) passam pelo mesmo cálculo.
-          Balões de tarefa usam o raio de <strong>Minhas tarefas</strong> (não pílula).
+          Borda ≥2px na mesma matiz via <code className="font-mono text-xs">color-mix(in oklch, fill 68%, black/white)</code>
+          (~32% mais escura em fundo claro, mais clara em fundo escuro). Texto mistura ~62% rumo ao ink.
+          Gantt, calendário, post-its e selos passam pelo mesmo cálculo. Balões de tarefa usam o raio de <strong>Minhas tarefas</strong> (não pílula).
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-2">

@@ -6,6 +6,7 @@ import { getOwnedProject } from "@/lib/owned-project";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { addCustomSuggestedItem } from "@/lib/project-lista";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { isInvalidRefError } from "@/lib/owned-refs";
 
 const itemSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -33,6 +34,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+    }
+    if (isInvalidRefError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("Error adding suggested item:", error);
     return NextResponse.json({ error: "Erro ao adicionar item" }, { status: 500 });

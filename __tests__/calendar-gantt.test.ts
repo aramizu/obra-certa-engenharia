@@ -3,13 +3,13 @@ import {
   BADGE_CLASS,
   BADGE_FILL,
   GANTT_BAR_CLASS,
-  GANTT_MILESTONE_CLASS,
   WEEKDAY_LABELS,
   formatGanttDateRange,
   ganttLabelFitsInside,
   isWeekend,
   taskBadgeTone,
 } from "@/lib/calendar";
+import { TASK_CHIP_CLASS } from "@/components/ds/chip";
 
 describe("Gantt calendar helpers", () => {
   it("reusa os rótulos de weekday do calendário", () => {
@@ -35,15 +35,14 @@ describe("Gantt calendar helpers", () => {
 
   it("usa as mesmas cores de badge do calendário (identidade Obra Certa)", () => {
     for (const tone of Object.keys(GANTT_BAR_CLASS) as Array<keyof typeof GANTT_BAR_CLASS>) {
-      expect(GANTT_BAR_CLASS[tone]).toBeTruthy();
-      expect(GANTT_MILESTONE_CLASS[tone]).toBeTruthy();
+      expect(GANTT_BAR_CLASS[tone]).toContain("ds-chip-surface");
+      expect(GANTT_BAR_CLASS[tone]).toContain("ds-chip");
+      expect(GANTT_BAR_CLASS[tone]).not.toContain("ds-chip-pill");
+      expect(GANTT_BAR_CLASS[tone]).not.toContain("border-graphite");
+      expect(GANTT_BAR_CLASS[tone]).not.toContain("rounded-full");
     }
-    expect(GANTT_BAR_CLASS.high).toContain("ds-chip-surface");
-    expect(GANTT_BAR_CLASS.high).toContain("ds-chip");
-    expect(GANTT_BAR_CLASS.high).not.toContain("ds-chip-pill");
-    expect(GANTT_BAR_CLASS.milestone).toContain("ds-chip");
-    expect(GANTT_BAR_CLASS.overdue).toContain("ds-chip-surface");
-    expect(GANTT_BAR_CLASS.done).toContain("ds-chip");
+    expect(GANTT_BAR_CLASS.high).toBe(TASK_CHIP_CLASS);
+    expect(GANTT_BAR_CLASS.milestone).toContain(TASK_CHIP_CLASS);
     expect(BADGE_CLASS.high).toContain("ds-chip-pill");
     expect(BADGE_FILL.high).toBe("delay-wash");
     expect(BADGE_FILL.milestone).toBe("primary");

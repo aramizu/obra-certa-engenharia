@@ -196,25 +196,25 @@ body {
 
 /*
  * Chip / badge / tag / balão com fundo colorido.
- * Borda e texto na mesma família, contrastando pela luminância do fill:
- * L > 0.5 → tom mais escuro; senão → tom mais claro (OKLCH).
- * Raio de tarefa (.ds-chip) = cards / item "Minhas tarefas" (rounded-lg).
- * Pílulas (.ds-chip-pill) só para selos compactos.
+ * Fora de @layer para ganhar de utilities Tailwind (border-*, text-*).
+ *
+ * NÃO use color-mix() aqui: o PostCSS do Tailwind v4 reescreve
+ * `color-mix(in oklch, var(--ds-chip-fill) 68%, ink)` como
+ * `border-color: var(--ds-chip-fill)` + @supports — fallback = fill,
+ * borda invisível em produção. O mix vai em --ds-chip-border / --ds-chip-text
+ * via style inline (chipSurfaceProps), que o Tailwind não toca.
  */
 .ds-chip-surface {
   --ds-chip-fill: #fff;
+  --ds-chip-ink: #1c1612;
+  box-sizing: border-box;
   background-color: var(--ds-chip-fill);
   border-width: 2px;
   border-style: solid;
-  border-color: color-mix(in oklab, var(--ds-chip-fill) 55%, #1c1612);
-  color: color-mix(in oklab, var(--ds-chip-fill) 22%, #1c1612);
-}
-
-@supports (color: oklch(from red l c h)) {
-  .ds-chip-surface {
-    border-color: oklch(from var(--ds-chip-fill) clamp(0.18, calc(0.5 + (0.5 - l) * 1.2), 0.88) max(c, 0.03) h);
-    color: oklch(from var(--ds-chip-fill) clamp(0.12, calc(0.5 + (0.5 - l) * 1.5), 0.98) calc(c * 0.38) h);
-  }
+  border-color: var(--ds-chip-ink);
+  border-color: var(--ds-chip-border, var(--ds-chip-ink));
+  color: var(--ds-chip-ink);
+  color: var(--ds-chip-text, var(--ds-chip-ink));
 }
 
 .ds-chip {
@@ -225,25 +225,62 @@ body {
   border-radius: 9999px;
 }
 
-.ds-chip-surface[data-fill="white"] { --ds-chip-fill: #fff; }
-.ds-chip-surface[data-fill="paper"] { --ds-chip-fill: var(--paper); }
-.ds-chip-surface[data-fill="concrete"] { --ds-chip-fill: var(--concrete); }
-.ds-chip-surface[data-fill="background"] { --ds-chip-fill: var(--background); }
-.ds-chip-surface[data-fill="graphite"] { --ds-chip-fill: var(--graphite); }
-.ds-chip-surface[data-fill="graphite-2"] { --ds-chip-fill: var(--graphite-2); }
-.ds-chip-surface[data-fill="primary"] { --ds-chip-fill: var(--primary); }
-.ds-chip-surface[data-fill="primary-wash"] { --ds-chip-fill: color-mix(in srgb, var(--primary) 18%, white); }
-.ds-chip-surface[data-fill="signal"] { --ds-chip-fill: var(--signal); }
-.ds-chip-surface[data-fill="signal-wash"] { --ds-chip-fill: var(--signal-wash); }
-.ds-chip-surface[data-fill="blueprint"] { --ds-chip-fill: var(--blueprint); }
-.ds-chip-surface[data-fill="blueprint-wash"] { --ds-chip-fill: var(--blueprint-wash); }
-.ds-chip-surface[data-fill="done"] { --ds-chip-fill: var(--done); }
-.ds-chip-surface[data-fill="done-wash"] { --ds-chip-fill: var(--done-wash); }
-.ds-chip-surface[data-fill="delay"] { --ds-chip-fill: var(--delay); }
-.ds-chip-surface[data-fill="delay-wash"] { --ds-chip-fill: var(--delay-wash); }
+.ds-chip-surface[data-fill="white"] { --ds-chip-fill: #fff; --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="paper"] { --ds-chip-fill: var(--paper); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="concrete"] { --ds-chip-fill: var(--concrete); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="background"] { --ds-chip-fill: var(--background); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="graphite"] { --ds-chip-fill: var(--graphite); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="graphite-2"] { --ds-chip-fill: var(--graphite-2); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="primary"] { --ds-chip-fill: var(--primary); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="primary-wash"] { --ds-chip-fill: hsl(22 55% 88%); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="signal"] { --ds-chip-fill: var(--signal); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="signal-wash"] { --ds-chip-fill: var(--signal-wash); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="blueprint"] { --ds-chip-fill: var(--blueprint); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="blueprint-wash"] { --ds-chip-fill: var(--blueprint-wash); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="done"] { --ds-chip-fill: var(--done); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="done-wash"] { --ds-chip-fill: var(--done-wash); --ds-chip-ink: #1c1612; }
+.ds-chip-surface[data-fill="delay"] { --ds-chip-fill: var(--delay); --ds-chip-ink: #fff; }
+.ds-chip-surface[data-fill="delay-wash"] { --ds-chip-fill: var(--delay-wash); --ds-chip-ink: #1c1612; }
 
 .ds-sticky-tape {
-  background: linear-gradient(180deg, rgba(255, 255, 240, 0.78), rgba(230, 210, 140, 0.42));
-  border: 1px solid rgba(40, 35, 32, 0.18);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  position: absolute;
+  left: 50%;
+  top: -13px;
+  z-index: 2;
+  height: 27px;
+  width: 52%;
+  min-width: 96px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background-color: rgba(255, 248, 214, 0.55);
+  background-image:
+    repeating-linear-gradient(
+      -22deg,
+      rgba(255, 255, 255, 0.28) 0 1px,
+      transparent 1px 8px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 245, 0.78), rgba(232, 208, 138, 0.48));
+  box-shadow:
+    0 1px 2px rgba(40, 35, 32, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  clip-path: polygon(
+    0% 0%,
+    8px 12%,
+    0% 24%,
+    8px 36%,
+    0% 48%,
+    8px 60%,
+    0% 72%,
+    8px 84%,
+    0% 100%,
+    100% 100%,
+    calc(100% - 8px) 84%,
+    100% 72%,
+    calc(100% - 8px) 60%,
+    100% 48%,
+    calc(100% - 8px) 36%,
+    100% 24%,
+    calc(100% - 8px) 12%,
+    100% 0%
+  );
 }

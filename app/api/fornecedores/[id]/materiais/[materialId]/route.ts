@@ -8,6 +8,7 @@ import { MISSING_MATERIAL_ERROR, MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } fr
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { getOwnedProject } from "@/lib/owned-project";
+import { isInvalidRefError, requireBudgetCategoryOnProject } from "@/lib/owned-refs";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -75,11 +76,13 @@ export async function PATCH(
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     if (isProjectArchived(project)) return archivedWriteResponse();
 
+    const budgetCategoryId = await requireBudgetCategoryOnProject(data.budgetCategoryId, data.projectId);
+
     const [material] = await db
       .update(materials)
       .set({
         projectId: data.projectId,
-        budgetCategoryId: data.budgetCategoryId || null,
+        budgetCategoryId,
         name: data.name,
         brand: data.brand || null,
         unit: data.unit,
@@ -107,6 +110,9 @@ export async function PATCH(
         { error: error.errors[0].message },
         { status: 400 }
       );
+    }
+    if (isInvalidRefError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("Error updating material:", error);
     return NextResponse.json(

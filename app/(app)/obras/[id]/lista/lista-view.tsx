@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge, EmptyState, PILL_CHIP_CLASS } from "@/components/ds";
+import { Badge, EmptyState, PILL_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 import { modulesForWorkType } from "@/lib/kb-engine";
 import { formatQty } from "@/lib/kb-engine";
@@ -136,6 +136,7 @@ export function ListaView({
                   }}
                   className={`${PILL_CHIP_CLASS} px-3 py-1 text-xs font-display uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50`}
                   data-fill={step === value ? "primary" : "white"}
+                  style={chipContrastStyle(step === value ? "primary" : "white")}
                 >
                   {index + 1}. {value === "rooms" ? "Cômodos" : value === "modules" ? "Módulos" : "Lista"}
                 </button>

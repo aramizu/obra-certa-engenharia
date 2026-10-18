@@ -1,4 +1,5 @@
 import { cn } from "./cn";
+import { PILL_CHIP_CLASS, chipContrastStyle } from "./chip";
 
 export function Stamp({
   children,
@@ -10,9 +11,12 @@ export function Stamp({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border-2 border-graphite bg-white px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground",
+        PILL_CHIP_CLASS,
+        "inline-flex items-center px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
         className
       )}
+      data-fill="white"
+      style={chipContrastStyle("white")}
     >
       {children}
     </span>

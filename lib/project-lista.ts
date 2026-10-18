@@ -10,6 +10,7 @@ import {
   suppliers,
 } from "@/lib/db/schema";
 import { getCachedKnowledgeCatalog } from "@/lib/cached-queries";
+import { requireKbCategory, requireKbMaterial } from "@/lib/owned-refs";
 import {
   consolidateSuggestedList,
   type RoomSelection,
@@ -226,16 +227,18 @@ export async function addCustomSuggestedItem(
     kbMaterialId?: string | null;
   }
 ) {
+  const categoryId = await requireKbCategory(data.categoryId);
+  const kbMaterialId = await requireKbMaterial(data.kbMaterialId);
   const existing = await db.select({ n: sql<number>`count(*)` }).from(projectSuggestedItems).where(eq(projectSuggestedItems.projectId, projectId));
   const [item] = await db
     .insert(projectSuggestedItems)
     .values({
       projectId,
-      kbMaterialId: data.kbMaterialId || null,
+      kbMaterialId,
       name: data.name.trim(),
       unit: data.unit,
       quantity: String(data.quantity),
-      categoryId: data.categoryId || null,
+      categoryId,
       categoryName: data.categoryName,
       source: "custom",
       sortOrder: Number(existing[0]?.n ?? 0) + 1,

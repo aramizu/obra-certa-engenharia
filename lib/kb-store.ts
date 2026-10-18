@@ -9,6 +9,7 @@ import {
   type QtyFrom,
 } from "@/lib/kb-catalog";
 import { db } from "@/lib/db";
+import { InvalidRefError, requireKbCategory } from "@/lib/owned-refs";
 import {
   kbCompositions,
   kbMaterials,
@@ -190,6 +191,10 @@ export async function patchKbMaterial(
   id: string,
   data: Partial<{ name: string; unit: string; categoryId: string; sinapiCode: string | null; notes: string | null }>
 ) {
+  if (data.categoryId !== undefined) {
+    const categoryId = await requireKbCategory(data.categoryId);
+    if (!categoryId) throw new InvalidRefError("Categoria inválida.");
+  }
   const [row] = await db
     .update(kbMaterials)
     .set({ ...data, updatedAt: new Date() })
