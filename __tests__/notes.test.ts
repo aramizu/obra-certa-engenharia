@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_NOTE_COLOR,
@@ -49,5 +50,13 @@ describe("post-its", () => {
     ];
     expect(dropIndexFromPoint(rects, 10, 10, "c")).toBe(0);
     expect(dropIndexFromPoint(rects, 180, 10, "a")).toBe(1);
+  });
+
+  it("não tem seletor de obra no mural nem no card", () => {
+    const board = readFileSync(new URL("../app/(app)/post-its/post-its-board.tsx", import.meta.url), "utf8");
+    expect(board).not.toContain("<Select");
+    expect(board).not.toMatch(/import \{[^}]*\bSelect\b/);
+    expect(board).not.toContain("<option");
+    expect(board).toContain("projectId: defaultProjectId ?? null");
   });
 });

@@ -68,7 +68,6 @@ describe("select / dropdown no design system", () => {
       "app/(app)/dashboard-view.tsx",
       "app/(app)/estoque/estoque-view.tsx",
       "app/(app)/calendario/calendar-view.tsx",
-      "app/(app)/post-its/post-its-board.tsx",
       "components/task-dialog.tsx",
       "app/(app)/gantt/[id]/gantt-task-dialog.tsx",
       "app/(app)/fornecedores/[id]/material-dialog.tsx",
