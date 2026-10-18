@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArchiveRestore, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { afterMutation } from "@/lib/after-mutation";
 import type { Project } from "@/lib/db/schema";
 
@@ -105,27 +106,24 @@ export function ArchivedProjectsSection({ projects }: { projects: Project[] }) {
         </div>
       )}
 
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50" onClick={() => !pendingId && setDeleteTarget(null)} />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
-            <p className="text-sm text-muted-foreground mb-6">
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !pendingId) setDeleteTarget(null);
+        }}
+        title="Confirmar Exclusão"
+        description={
+          deleteTarget ? (
+            <>
               Tem certeza que deseja excluir a obra <strong>{deleteTarget.name}</strong>? Tarefas,
               materiais, categorias, colunas do Kanban, marcos e a lista sugerida desta obra também
               saem. Arquivar não apaga; excluir não pode ser desfeito.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setDeleteTarget(null)} disabled={Boolean(pendingId)}>
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={() => void handleDelete()} disabled={Boolean(pendingId)}>
-                {pendingId === deleteTarget.id ? "Excluindo..." : "Excluir"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          ) : null
+        }
+        loading={Boolean(pendingId)}
+        onConfirm={() => void handleDelete()}
+      />
     </section>
   );
 }

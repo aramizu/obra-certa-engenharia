@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Badge } from "@/components/ds";
 import { Pencil, Trash2 } from "lucide-react";
 import { MaterialDialog } from "./material-dialog";
@@ -209,36 +210,18 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
         />
       )}
 
-      {deletingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => !loading && setDeletingId(null)}
-          />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => setDeletingId(null)}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleDelete(deletingId)}
-                disabled={loading}
-              >
-                {loading ? "Excluindo..." : "Excluir"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={Boolean(deletingId)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingId(null);
+        }}
+        title="Confirmar Exclusão"
+        description="Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita."
+        loading={loading}
+        onConfirm={() => {
+          if (deletingId) void handleDelete(deletingId);
+        }}
+      />
     </>
   );
 }

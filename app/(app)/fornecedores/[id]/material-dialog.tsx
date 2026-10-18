@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,7 +130,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{material ? "Editar Material" : "Novo Material"}</DialogTitle>
@@ -139,12 +139,12 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
+          <DialogBody className="space-y-3 py-3">
             {error && (
               <Alert tone="danger">{error}</Alert>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="projectId">Obra *</Label>
                 <Select
@@ -204,7 +204,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="unit">Unidade *</Label>
                 <Select
@@ -260,7 +260,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="unitPrice">Preço Unitário *</Label>
                 <CurrencyInput
@@ -283,7 +283,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
                 <Select
@@ -321,7 +321,7 @@ export function MaterialDialog({ open, onOpenChange, supplierId, projects, mater
                 placeholder="Informações adicionais sobre o material"
               />
             </div>
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button

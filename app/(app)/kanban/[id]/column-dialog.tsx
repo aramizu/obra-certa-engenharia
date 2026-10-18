@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,12 +43,12 @@ export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: 
           <DialogHeader>
             <DialogTitle>{column ? "Renomear Coluna" : "Nova Coluna"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 px-6 py-4">
-            <div className="space-y-2">
+          <DialogBody className="space-y-3">
+            <div className="space-y-1.5">
               <Label htmlFor="name">Nome *</Label>
               <Input id="name" name="name" defaultValue={column?.name} required className="bg-white" />
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
             <Button type="submit" disabled={loading}>{loading ? "Salvando..." : "Salvar"}</Button>

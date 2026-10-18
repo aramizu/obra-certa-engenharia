@@ -4,6 +4,7 @@ import { useState, type PointerEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { TaskCard } from "./task-card";
 import { TaskDialog } from "./task-dialog";
 import { ColumnDialog } from "./column-dialog";
@@ -187,21 +188,14 @@ export function KanbanColumn({
       <TaskDialog open={showTaskDialog} onOpenChange={setShowTaskDialog} projectId={projectId} columnId={column.id} />
       <ColumnDialog open={showEditDialog} onOpenChange={setShowEditDialog} projectId={projectId} column={column} />
 
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50" onClick={() => !loading && setShowDeleteConfirm(false)} />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-lg bg-white text-foreground border-2 border-graphite ds-shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">Excluir Coluna</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Tem certeza? As tarefas desta raia ficam sem coluna até você movê-las de novo.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)} disabled={loading}>Cancelar</Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={loading}>{loading ? "Excluindo..." : "Excluir"}</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Excluir Coluna"
+        description="Tem certeza? As tarefas desta raia ficam sem coluna até você movê-las de novo."
+        loading={loading}
+        onConfirm={() => void handleDelete()}
+      />
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,7 +71,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
+          <DialogBody className="space-y-3">
             {error && (
               <div className="text-sm text-delay rounded-md border-2 border-delay bg-delay-wash p-3">
                 {error}
@@ -99,7 +99,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Data de Início</Label>
                 <Input
@@ -130,7 +130,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
                 placeholder="R$ 0,00"
               />
             </div>
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button

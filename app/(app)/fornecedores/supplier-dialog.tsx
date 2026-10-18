@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,7 +72,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
+          <DialogBody className="space-y-3">
             {error && (
               <div className="text-sm text-delay rounded-md border-2 border-delay bg-delay-wash p-3">
                 {error}
@@ -112,7 +112,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
                 <Input
@@ -146,7 +146,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
                 className="w-full min-h-[80px] rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
               />
             </div>
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button
