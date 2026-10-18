@@ -7,6 +7,7 @@ import { formatISODate, today } from "@/lib/date";
 import { MISSING_MATERIAL_ERROR } from "@/lib/domain-data";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { ITEM_STATUSES, normalizeItemStatus } from "@/lib/item-status";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     } catch {
       return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
     }
-    const status = typeof body === "object" && body && "status" in body ? (body as { status: unknown }).status : undefined;
-    if (status !== "quoted" && status !== "purchased") {
+    const raw = typeof body === "object" && body && "status" in body ? (body as { status: unknown }).status : undefined;
+    if (typeof raw !== "string") {
       return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     }
+    const allowed = new Set<string>([...ITEM_STATUSES, "quoted", "purchased"]);
+    if (!allowed.has(raw)) {
+      return NextResponse.json({ error: "Status inválido" }, { status: 400 });
+    }
+    const status = normalizeItemStatus(raw);
 
     const [owned] = await db
       .select({ id: materials.id, archivedAt: projects.archivedAt })
@@ -53,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .update(materials)
       .set({
         status,
-        purchaseDate: status === "purchased" ? formatISODate(today()) : null,
+        purchaseDate: status === "comprado" ? formatISODate(today()) : null,
         updatedAt: new Date(),
       })
       .where(eq(materials.id, id))

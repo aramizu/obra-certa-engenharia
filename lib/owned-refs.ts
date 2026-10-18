@@ -1,6 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { budgetCategories, kbMaterials, kbSupplierCategories, materials, taskColumns } from "@/lib/db/schema";
+import { COMPRADO_STATUS_ALIASES } from "@/lib/item-status";
 
 export class InvalidRefError extends Error {
   readonly status = 400;
@@ -94,6 +95,11 @@ export function materialSpendOnCategoryProject() {
     eq(materials.budgetCategoryId, budgetCategories.id),
     eq(materials.projectId, budgetCategories.projectId)
   );
+}
+
+/** Soma de itens comprados (status novo e equivalentes antigos). */
+export function sqlCompradoSpend() {
+  return sql<string>`COALESCE(SUM(CASE WHEN ${inArray(materials.status, [...COMPRADO_STATUS_ALIASES])} THEN COALESCE(${materials.totalPrice}, 0) ELSE 0 END), 0)`;
 }
 
 /** Join de nome de categoria: só se a categoria for da mesma obra do material. */

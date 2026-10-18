@@ -55,9 +55,9 @@ describe("estoque — agrupamento e formatação", () => {
     expect(groups[2]?.key).toBe(SEM_OBRA_STOCK_KEY);
   });
 
-  it("formata quantidade+unidade e aponta para a lista da obra", () => {
+  it("formata quantidade+unidade e aponta para a ficha da obra", () => {
     expect(formatQuantity("12.5", "m²")).toBe("12,5 m²");
-    expect(stockItemHref({ projectId: "obra-1", supplierId: "f1" })).toBe("/obras/obra-1/lista");
+    expect(stockItemHref({ projectId: "obra-1", supplierId: "f1" })).toBe("/obras/obra-1");
     expect(stockItemHref({ projectId: null, supplierId: "f1" })).toBe("/fornecedores/f1");
   });
 });

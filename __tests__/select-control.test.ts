@@ -74,6 +74,8 @@ describe("select / dropdown no design system", () => {
       "app/(app)/fornecedores/[id]/material-dialog.tsx",
       "app/(app)/fornecedores/supplier-dialog.tsx",
       "app/(app)/obras/[id]/lista/lista-view.tsx",
+      "app/(app)/obras/[id]/obra-items-view.tsx",
+      "app/(app)/obras/nova/create-obra-form.tsx",
       "app/(app)/admin/base/admin-base-view.tsx",
       "app/(app)/design-system/catalog.tsx",
     ];

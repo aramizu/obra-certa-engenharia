@@ -62,7 +62,6 @@ describe("demais dialogs usam o corpo rolável", () => {
       "app/(app)/obras/[id]/project-actions.tsx",
       "app/(app)/obras/archived-projects-section.tsx",
       "app/(app)/fornecedores/suppliers-list.tsx",
-      "app/(app)/fornecedores/[id]/materials-list.tsx",
       "app/(app)/obras/[id]/budget-categories-list.tsx",
       "app/(app)/fornecedores/[id]/supplier-actions.tsx",
       "app/(app)/post-its/post-its-board.tsx",

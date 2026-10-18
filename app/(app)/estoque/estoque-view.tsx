@@ -118,8 +118,8 @@ export function EstoqueView({ items, projects }: EstoqueViewProps) {
                     {group.projectId ? (
                       <>
                         {" · "}
-                        <Link prefetch href={`/obras/${group.projectId}/lista`} className="underline-offset-2 hover:underline">
-                          Ver lista
+                        <Link prefetch href={`/obras/${group.projectId}`} className="underline-offset-2 hover:underline">
+                          Ver obra
                         </Link>
                       </>
                     ) : null}

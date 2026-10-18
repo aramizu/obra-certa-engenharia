@@ -1,20 +1,17 @@
-import Link from "next/link";
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
-import { projects, budgetCategories, materials, tasks, projectSuggestedItems } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { projects, budgetCategories, materials, tasks, suppliers } from "@/lib/db/schema";
+import { eq, and, asc, sql } from "drizzle-orm";
 import { ProjectActions } from "./project-actions";
-import { BudgetCategoriesList } from "./budget-categories-list";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ds";
-import { CreateCategoryButton } from "./create-category-button";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { ArchivedObraBanner } from "@/components/archived-obra-banner";
 import { isProjectArchived } from "@/lib/project-archive";
-import { materialSpendOnCategoryProject } from "@/lib/owned-refs";
+import { categoryNameOnMaterialProject } from "@/lib/owned-refs";
+import { isCompradoStatus, parseMoney } from "@/lib/item-status";
+import { ObraItemsView, type ObraItemRow } from "./obra-items-view";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -42,37 +39,67 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     .select({ n: sql<number>`count(*)` })
     .from(materials)
     .where(eq(materials.projectId, project.id));
-  const [listCount] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(projectSuggestedItems)
-    .where(eq(projectSuggestedItems.projectId, project.id));
 
-  const categories = await db
+  const groups = await db
     .select({
       id: budgetCategories.id,
       name: budgetCategories.name,
       budgetedAmount: budgetCategories.budgetedAmount,
       order: budgetCategories.order,
-      spent: sql<string>`COALESCE(SUM(CASE WHEN ${materials.status} = 'purchased' THEN ${materials.totalPrice} ELSE 0 END), 0)`,
     })
     .from(budgetCategories)
-    .leftJoin(materials, materialSpendOnCategoryProject())
     .where(eq(budgetCategories.projectId, project.id))
-    .groupBy(budgetCategories.id, budgetCategories.name, budgetCategories.budgetedAmount, budgetCategories.order)
     .orderBy(budgetCategories.order);
 
-  const totalBudgeted = categories.reduce((sum, cat) => sum + parseFloat(cat.budgetedAmount), 0);
-  const totalSpent = categories.reduce((sum, cat) => sum + parseFloat(cat.spent), 0);
-  const spentPercentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+  const itemRows = await db
+    .select({
+      id: materials.id,
+      name: materials.name,
+      brand: materials.brand,
+      unit: materials.unit,
+      quantity: materials.quantity,
+      unitPrice: materials.unitPrice,
+      totalPrice: materials.totalPrice,
+      status: materials.status,
+      notes: materials.notes,
+      supplierId: materials.supplierId,
+      budgetCategoryId: materials.budgetCategoryId,
+      kbRefId: materials.kbRefId,
+      kbRefCode: materials.kbRefCode,
+      refUnit: materials.refUnit,
+      refUnitPrice: materials.refUnitPrice,
+      groupName: budgetCategories.name,
+      supplierName: suppliers.name,
+    })
+    .from(materials)
+    .leftJoin(budgetCategories, categoryNameOnMaterialProject())
+    .leftJoin(suppliers, eq(materials.supplierId, suppliers.id))
+    .where(eq(materials.projectId, project.id))
+    .orderBy(asc(materials.createdAt));
+
+  const items: ObraItemRow[] = itemRows;
+
+  const userSuppliers = await db
+    .select({ id: suppliers.id, name: suppliers.name })
+    .from(suppliers)
+    .where(eq(suppliers.userId, user.id))
+    .orderBy(asc(suppliers.name));
+
+  const totalOrcado = items.reduce((sum, item) => sum + (parseMoney(item.totalPrice) ?? 0), 0);
+  const totalComprado = items
+    .filter((item) => isCompradoStatus(item.status))
+    .reduce((sum, item) => sum + (parseMoney(item.totalPrice) ?? 0), 0);
+  const budgetBase = parseFloat(project.totalBudget || "0") || totalOrcado;
+  const spentPercentage = budgetBase > 0 ? (totalComprado / budgetBase) * 100 : 0;
   const archived = isProjectArchived(project);
 
   return (
     <>
       <PageTitle title={project.name} description={project.address || undefined} />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
+          <div className="max-w-5xl mx-auto space-y-6">
             {archived && <ArchivedObraBanner projectId={project.id} />}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 {project.startDate && project.targetEndDate && (
                   <p className="text-sm text-muted-foreground">
@@ -90,27 +117,18 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/obras/${project.id}/lista`}
-                  prefetch
-                  className={cn(buttonVariants({ variant: "outline" }), "whitespace-nowrap")}
-                >
-                  {Number(listCount?.n ?? 0) > 0 ? "Lista de materiais" : "Gerar lista de materiais"}
-                </Link>
-                <ProjectActions
-                  project={project}
-                  taskCount={Number(taskCount?.n ?? 0)}
-                  materialCount={Number(materialCount?.n ?? 0)}
-                />
-              </div>
+              <ProjectActions
+                project={project}
+                taskCount={Number(taskCount?.n ?? 0)}
+                materialCount={Number(materialCount?.n ?? 0)}
+              />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3" {...(archived ? { inert: true } : {})}>
-              <Card>
+            <div className="grid gap-4 sm:grid-cols-3" {...(archived ? { inert: true } : {})}>
+              <Card className="bg-white">
                 <CardHeader className="pb-3">
-                  <CardDescription className="font-data">Orçamento Total</CardDescription>
-                  <CardTitle className="text-3xl font-data tabular-nums">
+                  <CardDescription className="font-data">Orçamento</CardDescription>
+                  <CardTitle className="text-2xl font-data tabular-nums">
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
@@ -119,51 +137,45 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 </CardHeader>
               </Card>
 
-              <Card>
+              <Card className="bg-white">
                 <CardHeader className="pb-3">
-                  <CardDescription className="font-data">Orçado por Categoria</CardDescription>
-                  <CardTitle className="text-3xl font-data tabular-nums">
+                  <CardDescription className="font-data">Orçado nos itens</CardDescription>
+                  <CardTitle className="text-2xl font-data tabular-nums">
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
-                    }).format(totalBudgeted)}
+                    }).format(totalOrcado)}
                   </CardTitle>
                 </CardHeader>
               </Card>
 
-              <Card>
+              <Card className="bg-white">
                 <CardHeader className="pb-3">
-                  <CardDescription className="font-data">Executado</CardDescription>
-                  <CardTitle className="text-3xl font-data tabular-nums">
+                  <CardDescription className="font-data">Comprado</CardDescription>
+                  <CardTitle className="text-2xl font-data tabular-nums">
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
-                    }).format(totalSpent)}
+                    }).format(totalComprado)}
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 pt-2">
                     <ProgressBar value={spentPercentage} className="flex-1" />
                     <span className="text-xs font-mono tabular-nums text-muted-foreground">
                       {spentPercentage.toFixed(0)}%
                     </span>
                   </div>
-                </CardContent>
+                </CardHeader>
               </Card>
             </div>
 
-            <div className="space-y-4" {...(archived ? { inert: true } : {})}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">Categorias do Orçamento</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Organize o orçamento por etapas da obra
-                  </p>
-                </div>
-                {!archived && <CreateCategoryButton projectId={project.id} />}
-              </div>
-
-              <BudgetCategoriesList projectId={project.id} categories={categories} />
+            <div {...(archived ? { inert: true } : {})}>
+              <ObraItemsView
+                projectId={project.id}
+                items={items}
+                groups={groups}
+                suppliers={userSuppliers}
+                archived={archived}
+              />
             </div>
           </div>
         </main>

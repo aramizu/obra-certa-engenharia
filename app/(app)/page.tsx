@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
-import { materialSpendOnCategoryProject } from "@/lib/owned-refs";
+import { eq } from "drizzle-orm";
+import { materialSpendOnCategoryProject, sqlCompradoSpend } from "@/lib/owned-refs";
 import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { visibleUserTasksWhere } from "@/lib/user-tasks";
 import { DashboardView, type DashboardCategory, type DashboardMaterial, type DashboardTask } from "./dashboard-view";
@@ -58,7 +58,7 @@ export default async function HomePage() {
       projectId: budgetCategories.projectId,
       name: budgetCategories.name,
       budgeted: budgetCategories.budgetedAmount,
-      spent: sql<string>`COALESCE(SUM(CASE WHEN ${materials.status} = 'purchased' THEN ${materials.totalPrice} ELSE 0 END), 0)`,
+      spent: sqlCompradoSpend(),
     })
     .from(budgetCategories)
     .leftJoin(materials, materialSpendOnCategoryProject())

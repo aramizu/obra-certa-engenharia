@@ -105,6 +105,30 @@ export const suppliers = pgTable("suppliers", {
   userIdIdx: index("suppliers_user_id_idx").on(table.userId),
 }));
 
+/** Base SINAPI global — não pertence a uma obra e não entra no CASCADE. */
+export const kbSupplierCategories = pgTable("kb_supplier_categories", {
+  id: uuid("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const kbMaterials = pgTable("kb_materials", {
+  id: uuid("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  unit: text("unit").notNull(),
+  categoryId: uuid("category_id").notNull().references(() => kbSupplierCategories.id, { onDelete: "restrict" }),
+  sinapiCode: text("sinapi_code"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  categoryIdIdx: index("kb_materials_category_id_idx").on(table.categoryId),
+}));
+
 export const materials = pgTable("materials", {
   id: uuid("id").defaultRandom().primaryKey(),
   projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
@@ -112,20 +136,25 @@ export const materials = pgTable("materials", {
   supplierId: uuid("supplier_id").references(() => suppliers.id, { onDelete: "set null" }),
   name: text("name").notNull(),
   brand: text("brand"),
-  unit: text("unit").notNull(),
+  unit: text("unit"),
   quantityPerUnit: numeric("quantity_per_unit", { precision: 15, scale: 3 }),
-  quantity: numeric("quantity", { precision: 15, scale: 3 }).notNull(),
-  unitPrice: numeric("unit_price", { precision: 15, scale: 2 }).notNull(),
-  totalPrice: numeric("total_price", { precision: 15, scale: 2 }).notNull(),
-  status: text("status").notNull().default("quoted"),
+  quantity: numeric("quantity", { precision: 15, scale: 3 }),
+  unitPrice: numeric("unit_price", { precision: 15, scale: 2 }),
+  totalPrice: numeric("total_price", { precision: 15, scale: 2 }),
+  status: text("status").notNull().default("a_definir"),
   purchaseDate: date("purchase_date"),
   notes: text("notes"),
+  kbRefId: uuid("kb_ref_id").references(() => kbMaterials.id, { onDelete: "set null" }),
+  kbRefCode: text("kb_ref_code"),
+  refUnit: text("ref_unit"),
+  refUnitPrice: numeric("ref_unit_price", { precision: 15, scale: 2 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
   projectIdIdx: index("materials_project_id_idx").on(table.projectId),
   budgetCategoryIdIdx: index("materials_budget_category_id_idx").on(table.budgetCategoryId),
   statusIdx: index("materials_status_idx").on(table.status),
+  kbRefIdIdx: index("materials_kb_ref_id_idx").on(table.kbRefId),
 }));
 
 export const taskColumns = pgTable("task_columns", {
@@ -239,30 +268,6 @@ export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 export type TaskNotification = typeof taskNotifications.$inferSelect;
 export type NewTaskNotification = typeof taskNotifications.$inferInsert;
 
-/** Base SINAPI global — não pertence a uma obra e não entra no CASCADE. */
-export const kbSupplierCategories = pgTable("kb_supplier_categories", {
-  id: uuid("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const kbMaterials = pgTable("kb_materials", {
-  id: uuid("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  unit: text("unit").notNull(),
-  categoryId: uuid("category_id").notNull().references(() => kbSupplierCategories.id, { onDelete: "restrict" }),
-  sinapiCode: text("sinapi_code"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => ({
-  categoryIdIdx: index("kb_materials_category_id_idx").on(table.categoryId),
-}));
-
 export const kbModules = pgTable("kb_modules", {
   id: uuid("id").primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -359,6 +364,39 @@ export const projectSuggestedItems = pgTable("project_suggested_items", {
 }, (table) => ({
   projectIdIdx: index("project_suggested_items_project_id_idx").on(table.projectId),
 }));
+
+export const userTemplates = pgTable("user_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("user_templates_user_id_idx").on(table.userId),
+}));
+
+export const userTemplateItems = pgTable("user_template_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  templateId: uuid("template_id").notNull().references(() => userTemplates.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  quantity: numeric("quantity", { precision: 15, scale: 3 }),
+  unit: text("unit"),
+  unitPrice: numeric("unit_price", { precision: 15, scale: 2 }),
+  notes: text("notes"),
+  groupName: text("group_name"),
+  kbRefId: uuid("kb_ref_id").references(() => kbMaterials.id, { onDelete: "set null" }),
+  kbRefCode: text("kb_ref_code"),
+  refUnit: text("ref_unit"),
+  refUnitPrice: numeric("ref_unit_price", { precision: 15, scale: 2 }),
+  sortOrder: integer("sort_order").notNull().default(0),
+}, (table) => ({
+  templateIdIdx: index("user_template_items_template_id_idx").on(table.templateId),
+}));
+
+export type UserTemplate = typeof userTemplates.$inferSelect;
+export type NewUserTemplate = typeof userTemplates.$inferInsert;
+export type UserTemplateItem = typeof userTemplateItems.$inferSelect;
+export type NewUserTemplateItem = typeof userTemplateItems.$inferInsert;
 
 export type KbSupplierCategory = typeof kbSupplierCategories.$inferSelect;
 export type KbMaterial = typeof kbMaterials.$inferSelect;
