@@ -67,6 +67,31 @@ export function ganttClockHourToColumn(jsHour: number) {
   return jsHour;
 }
 
+function isSameDay(a: Date, b: Date) {
+  return startOfDay(a).getTime() === startOfDay(b).getTime();
+}
+
+/**
+ * Posição da linha do momento atual: índice da coluna + fração dentro dela.
+ * Dia: proporcional ao minuto na coluna da hora. Semana/mês: proporcional à hora do dia.
+ */
+export function ganttNowLineOffset(
+  zoom: GanttZoom,
+  columns: GanttColumn[],
+  now: Date
+): { index: number; progress: number } | null {
+  if (columns.length === 0) return null;
+  if (zoom === "day") {
+    if (!isSameDay(columns[0].date, now)) return null;
+    const index = columns.findIndex((column) => column.hour === ganttClockHourToColumn(now.getHours()));
+    if (index < 0) return null;
+    return { index, progress: now.getMinutes() / 60 };
+  }
+  const index = columns.findIndex((column) => isSameDay(column.date, now));
+  if (index < 0) return null;
+  return { index, progress: (now.getHours() * 60 + now.getMinutes()) / (24 * 60) };
+}
+
 export function formatGanttHeaderTop(zoom: GanttZoom, start: Date, end: Date = start): string {
   if (zoom === "month") {
     return `${monthName(start, "long")} ${start.getFullYear()}`;

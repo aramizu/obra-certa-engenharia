@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   GANTT_BAR_INSET_PX,
   formatGanttHeaderBottom,
@@ -7,6 +8,7 @@ import {
   ganttBarColumnSpan,
   ganttClockHourToColumn,
   ganttColumns,
+  ganttNowLineOffset,
   shiftGanttCursor,
 } from "@/lib/gantt-header";
 
@@ -110,6 +112,22 @@ describe("colunas e barras alinhadas ao cabeçalho", () => {
     expect(shiftGanttCursor(cursor, "day", 1)).toEqual(new Date(2026, 9, 18));
   });
 
+  it("linha do agora: no dia, no minuto da coluna da hora; na semana/mês, na hora do dia", () => {
+    const day = ganttColumns("day", new Date(2026, 9, 17));
+    expect(ganttNowLineOffset("day", day, new Date(2026, 9, 17, 14, 0))).toEqual({ index: 13, progress: 0 });
+    expect(ganttNowLineOffset("day", day, new Date(2026, 9, 17, 14, 30))).toEqual({ index: 13, progress: 0.5 });
+    expect(ganttNowLineOffset("day", day, new Date(2026, 9, 17, 0, 15))).toEqual({ index: 23, progress: 0.25 });
+    expect(ganttNowLineOffset("day", day, new Date(2026, 9, 18, 14, 0))).toBeNull();
+
+    const week = ganttColumns("week", new Date(2026, 9, 17));
+    expect(ganttNowLineOffset("week", week, new Date(2026, 9, 17, 12, 0))).toEqual({ index: 6, progress: 0.5 });
+    expect(ganttNowLineOffset("week", week, new Date(2026, 9, 16, 6, 0))?.index).toBe(5);
+    expect(ganttNowLineOffset("week", week, new Date(2026, 9, 16, 6, 0))?.progress).toBeCloseTo(6 / 24);
+
+    const month = ganttColumns("month", new Date(2026, 9, 1));
+    expect(ganttNowLineOffset("month", month, new Date(2026, 9, 1, 18, 0))).toEqual({ index: 0, progress: 0.75 });
+  });
+
   it("recua a pílula 4px de cada lado, inclusive na primeira, na última e em 1 coluna", () => {
     expect(GANTT_BAR_INSET_PX).toBe(4);
     const first = ganttBarBoxStyle(0, 1, 7);
@@ -122,5 +140,18 @@ describe("colunas e barras alinhadas ao cabeçalho", () => {
       left: "calc(0% + 4px)",
       width: "calc(100% - 8px)",
     });
+  });
+});
+
+describe("regras visuais do Gantt", () => {
+  it("não pinta hoje/fim de semana no corpo, trunca o título na barra e deixa fora da visão vazio", () => {
+    const chart = readFileSync(new URL("../app/(app)/gantt/[id]/gantt-chart.tsx", import.meta.url), "utf8");
+    expect(chart).not.toContain("bg-signal-wash");
+    expect(chart).not.toContain("isWeekend");
+    expect(chart).not.toContain("showOutsideLabel");
+    expect(chart).not.toContain("Fora desta visão");
+    expect(chart).toContain("truncate");
+    expect(chart).toContain("Sem datas — toque para definir");
+    expect(chart).toContain("ganttNowLineOffset");
   });
 });
