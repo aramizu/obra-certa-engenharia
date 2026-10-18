@@ -75,6 +75,7 @@ describe("modelos de obra", () => {
       expect(preset.items.length).toBeGreaterThanOrEqual(5);
       expect(preset.items.length).toBeLessThanOrEqual(8);
       expect(preset.items.every((item) => item.name)).toBe(true);
+      expect(preset.items.every((item) => item.kbRefId == null && item.kbRefCode == null)).toBe(true);
     }
   });
 });
@@ -89,5 +90,12 @@ describe("ficha da obra e redirect da lista", () => {
     expect(obra).not.toContain("Gerar lista de materiais");
     expect(nova).toContain("templateKey");
     expect(nova).not.toContain("Continuar para a lista");
+  });
+
+  it("não mostra autocomplete nem selo SINAPI no cadastro de itens", () => {
+    const view = source("app/(app)/obras/[id]/obra-items-view.tsx");
+    expect(view).not.toContain("/api/kb/search");
+    expect(view).not.toContain("Ref. SINAPI");
+    expect(view).not.toContain("sinapi-search");
   });
 });

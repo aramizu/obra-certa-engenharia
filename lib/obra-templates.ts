@@ -32,7 +32,7 @@ function kb(id: string, groupName: string, extra?: Partial<TemplateItemDraft>): 
       notes: extra?.notes ?? null,
       kbRefId: null,
       kbRefCode: null,
-      refUnit: extra?.unit ?? null,
+      refUnit: null,
       refUnitPrice: null,
     };
   }
@@ -43,10 +43,10 @@ function kb(id: string, groupName: string, extra?: Partial<TemplateItemDraft>): 
     unitPrice: extra?.unitPrice ?? null,
     groupName,
     notes: extra?.notes ?? null,
-    kbRefId: material.id,
-    kbRefCode: material.sinapiCode,
-    refUnit: material.unit,
-    refUnitPrice: extra?.refUnitPrice ?? null,
+    kbRefId: null,
+    kbRefCode: null,
+    refUnit: null,
+    refUnitPrice: null,
   };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import {
@@ -34,7 +34,6 @@ import {
   type ItemStatus,
 } from "@/lib/item-status";
 import { parseItemLine } from "@/lib/parse-item-line";
-import type { SinapiSuggestion } from "@/lib/sinapi-search";
 import { MATERIAL_UNITS } from "@/lib/material-units";
 import { cn } from "@/lib/utils";
 
@@ -85,26 +84,6 @@ function StatusChip({ status }: { status: string }) {
   );
 }
 
-function SinapiSeal({ item }: { item: Pick<ObraItemRow, "kbRefCode" | "refUnit" | "refUnitPrice" | "unitPrice"> }) {
-  if (!item.kbRefCode && !item.refUnit) return null;
-  const refPrice = parseMoney(item.refUnitPrice);
-  const own = parseMoney(item.unitPrice);
-  const unit = item.refUnit ? `/${item.refUnit}` : "";
-  let diff: string | null = null;
-  if (refPrice != null && own != null && refPrice > 0) {
-    const pct = ((own - refPrice) / refPrice) * 100;
-    const sign = pct > 0 ? "+" : "";
-    diff = `${sign}${pct.toFixed(0)}% vs ref.`;
-  }
-  return (
-    <span className="text-[11px] text-muted-foreground">
-      Ref. SINAPI{item.kbRefCode ? ` ${item.kbRefCode}` : ""}
-      {refPrice != null ? ` ${formatBRL(refPrice)}${unit}` : unit ? ` ${unit.replace("/", "")}` : ""}
-      {diff ? ` · ${diff}` : ""}
-    </span>
-  );
-}
-
 export function ObraItemsView({
   projectId,
   items: initialItems,
@@ -123,36 +102,18 @@ export function ObraItemsView({
   const [groups, setGroups] = useState(initialGroups);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [draft, setDraft] = useState("");
-  const [suggestions, setSuggestions] = useState<SinapiSuggestion[]>([]);
-  const [pickedRef, setPickedRef] = useState<SinapiSuggestion | null>(null);
   const [editing, setEditing] = useState<ObraItemRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [newGroup, setNewGroup] = useState("");
   const [templateName, setTemplateName] = useState("");
-  const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setItems(initialItems);
     setGroups(initialGroups);
     setSuppliers(initialSuppliers);
   }, [initialItems, initialGroups, initialSuppliers]);
-
-  useEffect(() => {
-    const q = parseItemLine(draft).name.trim() || draft.trim();
-    if (q.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    const handle = window.setTimeout(() => {
-      void fetch(`/api/kb/search?q=${encodeURIComponent(q)}`)
-        .then((res) => res.json())
-        .then((data) => setSuggestions(data.items || []))
-        .catch(() => setSuggestions([]));
-    }, 180);
-    return () => window.clearTimeout(handle);
-  }, [draft]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, ObraItemRow[]>();
@@ -195,14 +156,6 @@ export function ObraItemsView({
         unitPrice: parsed.unitPrice == null ? null : String(parsed.unitPrice),
         status: "a_definir",
       };
-      if (pickedRef) {
-        body.kbRefId = pickedRef.id;
-        body.kbRefCode = pickedRef.sinapiCode;
-        body.refUnit = pickedRef.refUnit;
-        body.refUnitPrice = pickedRef.refUnitPrice == null ? null : String(pickedRef.refUnitPrice);
-        if (!body.unit) body.unit = pickedRef.unit;
-        if (!body.unitPrice && pickedRef.refUnitPrice != null) body.unitPrice = String(pickedRef.refUnitPrice);
-      }
       const response = await fetch(`/api/obras/${projectId}/itens`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -212,8 +165,6 @@ export function ObraItemsView({
       if (!response.ok) throw new Error(result.error || "Erro ao adicionar");
       setItems((current) => [...current, { ...result.item, groupName: null, supplierName: null }]);
       setDraft("");
-      setPickedRef(null);
-      setSuggestions([]);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao adicionar");
@@ -281,54 +232,16 @@ export function ObraItemsView({
       {error && <Alert tone="danger">{error}</Alert>}
 
       {!archived && (
-        <div ref={boxRef} className="relative">
-          <form onSubmit={(event) => void addQuick(event)}>
-            <Input
-              value={draft}
-              onChange={(event) => {
-                setDraft(event.target.value);
-                setPickedRef(null);
-              }}
-              placeholder="Adicionar: piso vinílico 35 m2 R$ 89"
-              className="h-11 bg-white"
-              disabled={busy}
-              autoComplete="off"
-            />
-          </form>
-          {suggestions.length > 0 && (
-            <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border-2 border-graphite bg-white ds-shadow">
-              {suggestions.map((suggestion) => (
-                <li key={suggestion.id}>
-                  <button
-                    type="button"
-                    className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-concrete"
-                    onClick={() => {
-                      setPickedRef(suggestion);
-                      setSuggestions([]);
-                    }}
-                  >
-                    <span>
-                      <span className="font-medium">{suggestion.name}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {suggestion.unit}
-                        {suggestion.sinapiCode ? ` · SINAPI ${suggestion.sinapiCode}` : ""}
-                      </span>
-                    </span>
-                    {suggestion.refUnitPrice != null && (
-                      <span className="font-mono text-xs">{formatBRL(suggestion.refUnitPrice)}</span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {pickedRef && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Referência SINAPI: {pickedRef.name} ({pickedRef.unit}
-              {pickedRef.sinapiCode ? ` · ${pickedRef.sinapiCode}` : ""}). O nome digitado é mantido.
-            </p>
-          )}
-        </div>
+        <form onSubmit={(event) => void addQuick(event)}>
+          <Input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Adicionar: piso vinílico 35 m2 R$ 89"
+            className="h-11 bg-white"
+            disabled={busy}
+            autoComplete="off"
+          />
+        </form>
       )}
 
       <div className="flex flex-wrap items-end justify-between gap-3 rounded-md border-2 border-graphite bg-white p-3">
@@ -474,7 +387,6 @@ function ItemButton({ item, onOpen }: { item: ObraItemRow; onOpen: () => void })
         <span className="block truncate text-sm font-medium">{item.name}</span>
         <span className="flex flex-wrap items-center gap-2">
           <StatusChip status={item.status} />
-          <SinapiSeal item={item} />
         </span>
       </span>
       <span className="shrink-0 text-right font-mono text-sm tabular-nums">
@@ -515,45 +427,8 @@ function ItemEditor({
   const [supplierId, setSupplierId] = useState(item.supplierId || "");
   const [newSupplier, setNewSupplier] = useState("");
   const [notes, setNotes] = useState(item.notes || "");
-  const [kbRef, setKbRef] = useState<SinapiSuggestion | null>(
-    item.kbRefId
-      ? {
-          id: item.kbRefId,
-          name: item.name,
-          unit: item.refUnit || item.unit || "",
-          sinapiCode: item.kbRefCode,
-          refUnit: item.refUnit || "",
-          refUnitPrice: parseMoney(item.refUnitPrice),
-        }
-      : null
-  );
-  const [suggestions, setSuggestions] = useState<SinapiSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    const q = name.trim();
-    if (q.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    const handle = window.setTimeout(() => {
-      void fetch(`/api/kb/search?q=${encodeURIComponent(q)}`)
-        .then((res) => res.json())
-        .then((data) => setSuggestions(data.items || []))
-        .catch(() => setSuggestions([]));
-    }, 180);
-    return () => window.clearTimeout(handle);
-  }, [name]);
-
-  const applyRef = (suggestion: SinapiSuggestion) => {
-    setKbRef(suggestion);
-    setSuggestions([]);
-    if (!unit) setUnit(suggestion.unit);
-    if (!parseMoney(unitPrice) && suggestion.refUnitPrice != null) {
-      setUnitPrice(String(suggestion.refUnitPrice));
-    }
-  };
 
   const save = async () => {
     if (!name.trim()) return;
@@ -575,10 +450,6 @@ function ItemEditor({
           supplierId: needsSupplierStatus(status) ? (supplierId === "new" ? null : supplierId || null) : item.supplierId,
           newSupplierName: needsSupplierStatus(status) && supplierId === "new" ? newSupplier : null,
           notes: notes || null,
-          kbRefId: kbRef?.id ?? item.kbRefId,
-          kbRefCode: kbRef?.sinapiCode ?? item.kbRefCode,
-          refUnit: kbRef?.refUnit ?? item.refUnit,
-          refUnitPrice: kbRef?.refUnitPrice == null ? item.refUnitPrice : String(kbRef.refUnitPrice),
         }),
       });
       const result = await response.json();
@@ -636,32 +507,6 @@ function ItemEditor({
             <div className="space-y-2">
               <Label htmlFor="item-name">Nome *</Label>
               <Input id="item-name" value={name} onChange={(event) => setName(event.target.value)} required />
-              {suggestions.length > 0 && (
-                <ul className="overflow-hidden rounded-md border-2 border-graphite bg-white">
-                  {suggestions.map((suggestion) => (
-                    <li key={suggestion.id}>
-                      <button
-                        type="button"
-                        className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-concrete"
-                        onClick={() => applyRef(suggestion)}
-                      >
-                        <span>
-                          {suggestion.name}
-                          <span className="block text-xs text-muted-foreground">
-                            {suggestion.unit}
-                            {suggestion.sinapiCode ? ` · ${suggestion.sinapiCode}` : ""}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {kbRef && (
-                <p className="text-xs text-muted-foreground">
-                  Ref. SINAPI {kbRef.sinapiCode || kbRef.name} · {kbRef.unit} (nome digitado permanece)
-                </p>
-              )}
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-2">
