@@ -30,7 +30,7 @@ describe("Gantt calendar helpers", () => {
     const start = new Date(2026, 9, 10);
     const end = new Date(2026, 9, 12);
     expect(formatGanttDateRange(start, end)).toMatch(/10.*12/);
-    expect(formatGanttDateRange(start, end, true)).toBe(start.toLocaleDateString("pt-BR"));
+    expect(formatGanttDateRange(start, start)).toBe(start.toLocaleDateString("pt-BR"));
   });
 
   it("usa as mesmas cores de badge do calendário (identidade Obra Certa)", () => {
@@ -42,14 +42,13 @@ describe("Gantt calendar helpers", () => {
       expect(GANTT_BAR_CLASS[tone]).not.toContain("rounded-full");
     }
     expect(GANTT_BAR_CLASS.high).toBe(TASK_CHIP_CLASS);
-    expect(GANTT_BAR_CLASS.milestone).toContain(TASK_CHIP_CLASS);
     expect(BADGE_CLASS.high).toContain("ds-chip-pill");
     expect(BADGE_FILL.high).toBe("delay-wash");
-    expect(BADGE_FILL.milestone).toBe("primary");
+    expect(Object.keys(GANTT_BAR_CLASS)).not.toContain("milestone");
   });
 
   it("deriva tom de atraso e concluída a partir da coluna", () => {
-    const task = { taskType: "high", isMilestone: false, dueDate: "2020-01-01", endDate: null };
+    const task = { taskType: "high", dueDate: "2020-01-01", endDate: null };
     expect(taskBadgeTone(task, "A Fazer", "2026-10-17")).toBe("overdue");
     expect(taskBadgeTone(task, "Concluído", "2026-10-17")).toBe("done");
     expect(taskBadgeTone({ ...task, dueDate: "2026-12-01" }, "A Fazer", "2026-10-17")).toBe("high");

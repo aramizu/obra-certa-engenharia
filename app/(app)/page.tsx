@@ -6,6 +6,7 @@ import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib
 import { eq, sql } from "drizzle-orm";
 import { materialSpendOnCategoryProject } from "@/lib/owned-refs";
 import { activeProjectsOwnedBy } from "@/lib/project-archive";
+import { obraLabel, visibleUserTasksWhere } from "@/lib/user-tasks";
 import { DashboardView, type DashboardCategory, type DashboardMaterial, type DashboardTask } from "./dashboard-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 import { getCachedUserProjects } from "@/lib/cached-queries";
@@ -25,13 +26,13 @@ export default async function HomePage() {
       columnName: taskColumns.name,
     })
     .from(tasks)
-    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .leftJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
-    .where(activeProjectsOwnedBy(user.id));
+    .where(visibleUserTasksWhere(user.id));
 
   const dashboardTasks: DashboardTask[] = taskRows.map((row) => ({
     ...row.task,
-    projectName: row.projectName,
+    projectName: obraLabel(row.projectName),
     columnName: row.columnName,
   }));
 

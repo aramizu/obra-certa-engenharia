@@ -3,29 +3,32 @@ import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
-import { getOwnedProject } from "@/lib/owned-project";
-import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
+import { MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { isTaskColorId, parseTaskColorInput } from "@/lib/task-color";
+import {
+  assertTaskWritable,
+  emptyToNull,
+  getOwnedTask,
+  projectResolveResponse,
+  resolveWritableProject,
+} from "@/lib/user-tasks";
 
-function emptyToNull(value: unknown) {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ projectId: string; id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await validateSession();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { projectId, id } = await params;
-    const project = await getOwnedProject(projectId, user.id);
-    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
-    if (isProjectArchived(project)) return archivedWriteResponse();
+    const { id } = await params;
+    const existing = await getOwnedTask(id, user.id);
+    if (!existing) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
-    const { title, description, taskType, dueDate, startDate, assignee, isMilestone, color } = await request.json();
+    const writable = await assertTaskWritable(existing, user.id);
+    const writeError = projectResolveResponse(writable);
+    if (writeError) return writeError;
+
+    const body = await request.json();
+    const { title, description, taskType, dueDate, startDate, assignee, color } = body;
     if (!title || typeof title !== "string") {
       return NextResponse.json({ error: "Título obrigatório" }, { status: 400 });
     }
@@ -35,43 +38,53 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     const parsedColor = parseTaskColorInput(color, "patch");
 
+    let nextProjectId = existing.projectId;
+    if ("projectId" in body) {
+      const resolved = await resolveWritableProject(body.projectId, user.id);
+      if (resolved.status !== "ok") return projectResolveResponse(resolved)!;
+      nextProjectId = resolved.projectId;
+    }
+
     const [task] = await db.update(tasks).set({
+      projectId: nextProjectId,
       title: title.trim(),
       description: emptyToNull(description),
       taskType: taskType || "task",
       dueDate: emptyToNull(dueDate),
       startDate: emptyToNull(startDate),
       assignee: emptyToNull(assignee),
-      isMilestone: Boolean(isMilestone),
       ...(parsedColor !== undefined ? { color: parsedColor } : {}),
       updatedAt: new Date(),
-    }).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId))).returning();
+    }).where(and(eq(tasks.id, id), eq(tasks.userId, user.id))).returning();
 
     if (!task) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
-    revalidateDomainPages({ userId: user.id, projectId });
+    revalidateDomainPages({ userId: user.id, projectId: task.projectId ?? existing.projectId });
     return NextResponse.json({ success: true, task });
   } catch {
     return NextResponse.json({ error: "Erro ao salvar tarefa" }, { status: 500 });
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ projectId: string; id: string }> }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await validateSession();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { projectId, id } = await params;
-    const project = await getOwnedProject(projectId, user.id);
-    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
-    if (isProjectArchived(project)) return archivedWriteResponse();
+    const { id } = await params;
+    const existing = await getOwnedTask(id, user.id);
+    if (!existing) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
+
+    const writable = await assertTaskWritable(existing, user.id);
+    const writeError = projectResolveResponse(writable);
+    if (writeError) return writeError;
 
     const [deleted] = await db
       .delete(tasks)
-      .where(and(eq(tasks.id, id), eq(tasks.projectId, projectId)))
+      .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
       .returning();
     if (!deleted) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
-    revalidateDomainPages({ userId: user.id, projectId });
+    revalidateDomainPages({ userId: user.id, projectId: existing.projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao excluir tarefa" }, { status: 500 });

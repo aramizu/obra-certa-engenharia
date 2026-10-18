@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronLeft, ChevronRight, Diamond, Plus } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TaskChip, Tabs, cn } from "@/components/ds";
 import { GanttTaskDialog } from "./gantt-task-dialog";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
 import { today } from "@/lib/date";
-import { dependencyConflict, isMilestoneTask, shiftSchedule, taskSchedule } from "@/lib/gantt";
+import { dependencyConflict, shiftSchedule, taskSchedule } from "@/lib/gantt";
 import { formatGanttDateRange, ganttLabelFitsInside, isWeekend } from "@/lib/calendar";
 import { taskColorStyle } from "@/lib/task-color";
 import {
@@ -22,16 +22,19 @@ import {
   shiftGanttCursor,
   type GanttZoom,
 } from "@/lib/gantt-header";
+import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
 const LABEL_W = 220;
 const ROW_H = 48;
 
-export type GanttTask = Task & { columnName: string | null };
+export type GanttTask = Task & { columnName: string | null; projectName: string | null };
 
 interface GanttChartProps {
-  projectId: string;
-  projectStart: string | null;
-  projectEnd: string | null;
+  defaultProjectId?: string | null;
+  projects?: { id: string; name: string }[];
+  groupByProject?: boolean;
+  projectStart?: string | null;
+  projectEnd?: string | null;
   initialTasks: GanttTask[];
   initialDependencies: TaskDependency[];
 }
@@ -43,21 +46,51 @@ type DragState = {
   colWidth: number;
   start: Date;
   end: Date;
-  milestone: boolean;
 };
+
+type RenderRow =
+  | { kind: "group"; key: string; name: string }
+  | { kind: "task"; task: GanttTask };
 
 function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function barTooltip(task: GanttTask, schedule: { start: Date; end: Date; milestone: boolean }) {
-  const dates = formatGanttDateRange(schedule.start, schedule.end, schedule.milestone);
-  const kind = schedule.milestone ? "Marco" : "Tarefa";
-  return `${task.title} · ${kind} · ${dates}`;
+function barTooltip(task: GanttTask, schedule: { start: Date; end: Date }) {
+  const dates = formatGanttDateRange(schedule.start, schedule.end);
+  return `${task.title} · ${dates}`;
+}
+
+function buildRenderRows(tasks: GanttTask[], groupByProject: boolean): RenderRow[] {
+  if (!groupByProject) return tasks.map((task) => ({ kind: "task" as const, task }));
+  const none: GanttTask[] = [];
+  const byId = new Map<string, { name: string; tasks: GanttTask[] }>();
+  for (const task of tasks) {
+    if (!task.projectId) {
+      none.push(task);
+      continue;
+    }
+    const current = byId.get(task.projectId) ?? { name: task.projectName || SEM_OBRA_LABEL, tasks: [] };
+    current.tasks.push(task);
+    byId.set(task.projectId, current);
+  }
+  const rows: RenderRow[] = [];
+  if (none.length) {
+    rows.push({ kind: "group", key: "none", name: SEM_OBRA_LABEL });
+    for (const task of none) rows.push({ kind: "task", task });
+  }
+  const named = [...byId.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name, "pt-BR"));
+  for (const [id, group] of named) {
+    rows.push({ kind: "group", key: id, name: group.name });
+    for (const task of group.tasks) rows.push({ kind: "task", task });
+  }
+  return rows;
 }
 
 export function GanttChart({
-  projectId,
+  defaultProjectId,
+  projects = [],
+  groupByProject = false,
   initialTasks,
   initialDependencies,
 }: GanttChartProps) {
@@ -71,7 +104,6 @@ export function GanttChart({
   const [drag, setDrag] = useState<DragState | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<GanttTask | null>(null);
-  const [createMilestone, setCreateMilestone] = useState(false);
   const [timelinePx, setTimelinePx] = useState(0);
 
   useEffect(() => setTasks(initialTasks), [initialTasks]);
@@ -103,6 +135,19 @@ export function GanttChart({
       }),
     [tasks]
   );
+
+  const renderRows = useMemo(
+    () => buildRenderRows(orderedTasks, groupByProject),
+    [groupByProject, orderedTasks]
+  );
+
+  const taskRowIndex = useMemo(() => {
+    const map = new Map<string, number>();
+    renderRows.forEach((row, index) => {
+      if (row.kind === "task") map.set(row.task.id, index);
+    });
+    return map;
+  }, [renderRows]);
 
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
@@ -145,7 +190,7 @@ export function GanttChart({
 
     const handleMove = (event: PointerEvent) => {
       const delta = Math.round((event.clientX - drag.originX) / drag.colWidth);
-      const next = shiftSchedule(drag.start, drag.end, delta, drag.mode, drag.milestone);
+      const next = shiftSchedule(drag.start, drag.end, delta, drag.mode);
       setTasks((current) =>
         current.map((task) =>
           task.id === drag.taskId
@@ -157,7 +202,7 @@ export function GanttChart({
 
     const handleUp = async (event: PointerEvent) => {
       const delta = Math.round((event.clientX - drag.originX) / drag.colWidth);
-      const next = shiftSchedule(drag.start, drag.end, delta, drag.mode, drag.milestone);
+      const next = shiftSchedule(drag.start, drag.end, delta, drag.mode);
       setDrag(null);
       if (delta === 0) {
         const task = initialTasks.find((item) => item.id === drag.taskId);
@@ -168,12 +213,12 @@ export function GanttChart({
         setTasks(initialTasks);
         return;
       }
-      await fetch(`/api/gantt/${projectId}/tasks/${drag.taskId}`, {
+      await fetch(`/api/gantt/tasks/${drag.taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startDate: next.startDate, dueDate: next.dueDate }),
       });
-      await afterMutation(() => router.refresh(), { projectId });
+      await afterMutation(() => router.refresh(), { projectId: defaultProjectId });
     };
 
     window.addEventListener("pointermove", handleMove);
@@ -182,11 +227,10 @@ export function GanttChart({
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
     };
-  }, [drag, initialTasks, projectId, router]);
+  }, [defaultProjectId, drag, initialTasks, router]);
 
-  const openCreate = (milestone: boolean) => {
+  const openCreate = () => {
     setEditingTask(null);
-    setCreateMilestone(milestone);
     setDialogOpen(true);
   };
 
@@ -203,11 +247,11 @@ export function GanttChart({
       colWidth: colWidthPx,
       start: schedule.start,
       end: schedule.end,
-      milestone: schedule.milestone,
     });
   };
 
   const allowDrag = canDrag && zoom !== "day";
+  const rowCount = renderRows.length;
 
   return (
     <div className="flex h-full flex-col gap-3 min-h-0">
@@ -250,10 +294,7 @@ export function GanttChart({
           <p className="hidden md:block text-xs text-muted-foreground">
             {allowDrag ? "Arraste a barra para mover; nas bordas, redimensione." : "Edite as datas pelo formulário da tarefa."}
           </p>
-          <Button size="sm" variant="outline" className="bg-white" onClick={() => openCreate(true)}>
-            <Diamond className="h-4 w-4 mr-1 text-primary" />Marco
-          </Button>
-          <Button size="sm" onClick={() => openCreate(false)}>
+          <Button size="sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-1" />Tarefa
           </Button>
         </div>
@@ -306,22 +347,22 @@ export function GanttChart({
 
             {orderedTasks.length === 0 ? (
               <div className="px-6 py-16 text-center text-sm text-muted-foreground">
-                Nenhuma tarefa nesta obra. Crie no Gantt ou no Kanban — elas aparecem nos dois.
+                Nenhuma tarefa. Crie no Gantt ou no Kanban — elas aparecem nos dois, mesmo sem obra.
               </div>
             ) : (
               <>
                 <svg
                   className="absolute top-0 z-[1] pointer-events-none"
-                  style={{ left: LABEL_W, right: 0, height: orderedTasks.length * ROW_H }}
-                  viewBox={`0 0 ${colCount} ${orderedTasks.length * ROW_H}`}
+                  style={{ left: LABEL_W, right: 0, height: rowCount * ROW_H }}
+                  viewBox={`0 0 ${colCount} ${rowCount * ROW_H}`}
                   preserveAspectRatio="none"
                 >
                   {initialDependencies.map((dep) => {
-                    const succIndex = orderedTasks.findIndex((task) => task.id === dep.taskId);
-                    const predIndex = orderedTasks.findIndex((task) => task.id === dep.dependsOnTaskId);
-                    const succ = orderedTasks[succIndex];
-                    const pred = orderedTasks[predIndex];
-                    if (succIndex < 0 || predIndex < 0 || !succ || !pred) return null;
+                    const succIndex = taskRowIndex.get(dep.taskId);
+                    const predIndex = taskRowIndex.get(dep.dependsOnTaskId);
+                    const succ = orderedTasks.find((item) => item.id === dep.taskId);
+                    const pred = orderedTasks.find((item) => item.id === dep.dependsOnTaskId);
+                    if (succIndex == null || predIndex == null || !succ || !pred) return null;
                     const predBar = taskSchedule(pred);
                     const succBar = taskSchedule(succ);
                     if (!predBar || !succBar) return null;
@@ -351,7 +392,22 @@ export function GanttChart({
                   })}
                 </svg>
 
-                {orderedTasks.map((task) => {
+                {renderRows.map((row) => {
+                  if (row.kind === "group") {
+                    return (
+                      <div key={`group-${row.key}`} className="relative flex border-b bg-concrete" style={{ height: ROW_H }}>
+                        <div
+                          className="sticky left-0 z-20 shrink-0 border-r bg-concrete px-3 flex items-center text-left"
+                          style={{ width: LABEL_W, minWidth: LABEL_W }}
+                        >
+                          <span className="truncate text-xs font-semibold uppercase tracking-wide">{row.name}</span>
+                        </div>
+                        <div className="min-w-0 flex-1" />
+                      </div>
+                    );
+                  }
+
+                  const task = row.task;
                   const schedule = taskSchedule(task);
                   const conflict = conflictIds.has(task.id);
                   const color = taskColorStyle(task.color);
@@ -375,7 +431,6 @@ export function GanttChart({
                         }}
                       >
                         {conflict && <AlertTriangle className="h-3.5 w-3.5 text-delay shrink-0" />}
-                        {isMilestoneTask(task) && <Diamond className="h-3.5 w-3.5 text-primary shrink-0" />}
                         <span className="truncate text-sm text-foreground">{task.title}</span>
                       </button>
                       <div
@@ -410,7 +465,6 @@ export function GanttChart({
                               tabIndex={0}
                               className={cn(
                                 "absolute top-1/2 -translate-y-1/2 z-[3] h-9 text-xs flex items-center font-display uppercase tracking-wide",
-                                isMilestoneTask(task) && "font-semibold",
                                 conflict && "ring-2 ring-delay",
                                 allowDrag ? "cursor-grab" : "cursor-pointer"
                               )}
@@ -433,7 +487,7 @@ export function GanttChart({
                                 }
                               }}
                             >
-                              {allowDrag && !isMilestoneTask(task) && (
+                              {allowDrag && (
                                 <>
                                   <span
                                     className="absolute left-0 top-0 h-full w-2 cursor-ew-resize"
@@ -447,7 +501,6 @@ export function GanttChart({
                               )}
                               {labelInside && (
                                 <span className="truncate pointer-events-none px-2 flex items-center gap-1">
-                                  {isMilestoneTask(task) && <Diamond className="h-3 w-3 shrink-0" />}
                                   {task.title}
                                 </span>
                               )}
@@ -483,9 +536,9 @@ export function GanttChart({
       <GanttTaskDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        projectId={projectId}
+        defaultProjectId={defaultProjectId}
+        projects={projects}
         task={editingTask}
-        createMilestone={createMilestone}
         tasks={tasks}
         dependencies={initialDependencies}
       />

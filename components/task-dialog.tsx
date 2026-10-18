@@ -11,11 +11,12 @@ import type { Task } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
 import { TaskColorPicker } from "@/components/task-color-picker";
 import { DEFAULT_TASK_COLOR, resolveTaskColorId, type TaskColorId } from "@/lib/task-color";
+import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
 interface TaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId?: string;
+  projectId?: string | null;
   projects?: { id: string; name: string }[];
   columnId?: string;
   task?: Task;
@@ -27,7 +28,7 @@ export function TaskDialog({
   open,
   onOpenChange,
   projectId,
-  projects,
+  projects = [],
   columnId,
   task,
   defaultStartDate,
@@ -47,7 +48,7 @@ export function TaskDialog({
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const selectedProjectId = task?.projectId || projectId || (formData.get("projectId") as string);
+    const selectedProjectId = (formData.get("projectId") as string | null)?.trim() || null;
     const data = {
       title: formData.get("title") as string,
       description: formData.get("description") as string || null,
@@ -55,21 +56,13 @@ export function TaskDialog({
       taskType: formData.get("taskType") as string || "task",
       startDate: formData.get("startDate") as string || null,
       dueDate: formData.get("dueDate") as string || null,
-      isMilestone: formData.get("isMilestone") === "on",
       columnId: columnId || task?.statusColumnId || null,
+      projectId: selectedProjectId,
       color,
     };
 
-    if (!selectedProjectId) {
-      alert("Selecione uma obra");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const url = task
-        ? `/api/kanban/${selectedProjectId}/tasks/${task.id}`
-        : `/api/kanban/${selectedProjectId}/tasks`;
+      const url = task ? `/api/kanban/tasks/${task.id}` : "/api/kanban/tasks";
       const response = await fetch(url, {
         method: task ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,7 +81,7 @@ export function TaskDialog({
     }
   };
 
-  const needsProject = !task && !projectId && (projects?.length ?? 0) > 0;
+  const defaultObra = task?.projectId || projectId || "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,23 +96,20 @@ export function TaskDialog({
           </DialogHeader>
 
           <DialogBody className="space-y-3 py-3">
-            {needsProject && (
-              <div className="space-y-1.5">
-                <Label htmlFor="projectId">Obra *</Label>
-                <select
-                  id="projectId"
-                  name="projectId"
-                  required
-                  className="w-full rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
-                  defaultValue={projects?.length === 1 ? projects[0].id : ""}
-                >
-                  <option value="" disabled>Selecione</option>
-                  {projects?.map((project) => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="projectId">Obra</Label>
+              <Select
+                id="projectId"
+                name="projectId"
+                defaultValue={defaultObra}
+                className="bg-white"
+              >
+                <option value="">{SEM_OBRA_LABEL}</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </Select>
+            </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="title">Título *</Label>
@@ -161,13 +151,6 @@ export function TaskDialog({
                 <Label>Cor</Label>
                 <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
               </div>
-              <label className="flex items-end gap-2 pb-2 text-sm">
-                <input type="checkbox" name="isMilestone" defaultChecked={task?.isMilestone} />
-                Marco de entrega (sem duração no Gantt)
-              </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="startDate">Início</Label>
                 <Input
@@ -178,6 +161,9 @@ export function TaskDialog({
                   className="bg-white"
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="dueDate">Prazo</Label>
                 <Input

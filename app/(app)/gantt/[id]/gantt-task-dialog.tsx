@@ -6,18 +6,20 @@ import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, Dia
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ds";
 import type { Task, TaskDependency } from "@/lib/db/schema";
-import { dependencyConflict, isMilestoneTask } from "@/lib/gantt";
+import { dependencyConflict } from "@/lib/gantt";
 import { afterMutation } from "@/lib/after-mutation";
 import { TaskColorPicker } from "@/components/task-color-picker";
 import { DEFAULT_TASK_COLOR, resolveTaskColorId, type TaskColorId } from "@/lib/task-color";
+import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
 interface GanttTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId: string;
+  defaultProjectId?: string | null;
+  projects?: { id: string; name: string }[];
   task?: Task | null;
-  createMilestone?: boolean;
   tasks: Task[];
   dependencies: TaskDependency[];
 }
@@ -25,15 +27,14 @@ interface GanttTaskDialogProps {
 export function GanttTaskDialog({
   open,
   onOpenChange,
-  projectId,
+  defaultProjectId,
+  projects = [],
   task,
-  createMilestone = false,
   tasks,
   dependencies,
 }: GanttTaskDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isMilestone, setIsMilestone] = useState(false);
   const [predecessorIds, setPredecessorIds] = useState<string[]>([]);
   const [color, setColor] = useState<TaskColorId>(DEFAULT_TASK_COLOR);
 
@@ -44,10 +45,9 @@ export function GanttTaskDialog({
 
   useEffect(() => {
     if (!open) return;
-    setIsMilestone(task ? isMilestoneTask(task) : createMilestone);
     setPredecessorIds(task ? currentDeps.map((dep) => dep.dependsOnTaskId) : []);
     setColor(resolveTaskColorId(task?.color));
-  }, [open, task, createMilestone, currentDeps]);
+  }, [open, task, currentDeps]);
 
   const otherTasks = tasks.filter((item) => item.id !== task?.id);
 
@@ -55,20 +55,19 @@ export function GanttTaskDialog({
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
+    const selectedProjectId = (formData.get("projectId") as string | null)?.trim() || null;
     const payload = {
       title: formData.get("title") as string,
       description: (formData.get("description") as string) || null,
       assignee: (formData.get("assignee") as string) || null,
-      isMilestone,
       color,
+      projectId: selectedProjectId,
       startDate: (formData.get("startDate") as string) || null,
-      dueDate: isMilestone
-        ? (formData.get("startDate") as string) || (formData.get("dueDate") as string) || null
-        : (formData.get("dueDate") as string) || null,
+      dueDate: (formData.get("dueDate") as string) || null,
     };
 
     try {
-      const url = task ? `/api/gantt/${projectId}/tasks/${task.id}` : `/api/gantt/${projectId}/tasks`;
+      const url = task ? `/api/gantt/tasks/${task.id}` : "/api/gantt/tasks";
       const response = await fetch(url, {
         method: task ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,12 +82,12 @@ export function GanttTaskDialog({
 
       for (const dep of currentDeps) {
         if (!nextPred.has(dep.dependsOnTaskId)) {
-          await fetch(`/api/gantt/${projectId}/dependencies/${dep.id}`, { method: "DELETE" });
+          await fetch(`/api/gantt/dependencies/${dep.id}`, { method: "DELETE" });
         }
       }
       for (const dependsOnTaskId of nextPred) {
         if (!existingPred.has(dependsOnTaskId) || !task) {
-          const depRes = await fetch(`/api/gantt/${projectId}/dependencies`, {
+          const depRes = await fetch("/api/gantt/dependencies", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ taskId: savedId, dependsOnTaskId }),
@@ -101,7 +100,7 @@ export function GanttTaskDialog({
       }
 
       onOpenChange(false);
-      await afterMutation(() => router.refresh(), { projectId });
+      await afterMutation(() => router.refresh(), { projectId: selectedProjectId });
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erro ao salvar tarefa");
     } finally {
@@ -116,8 +115,6 @@ export function GanttTaskDialog({
       startDate: task?.startDate ?? null,
       dueDate: task?.dueDate ?? null,
       endDate: task?.endDate ?? null,
-      isMilestone,
-      taskType: task?.taskType ?? "task",
     };
     if (!dependencyConflict(draft, pred)) return [];
     return [pred.title];
@@ -126,13 +123,28 @@ export function GanttTaskDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <form onSubmit={handleSubmit} key={task?.id ?? (createMilestone ? "milestone" : "task")}>
+        <form onSubmit={handleSubmit} key={task?.id ?? "task"}>
           <DialogHeader>
-            <DialogTitle>{task ? "Editar tarefa" : isMilestone ? "Novo marco" : "Nova tarefa"}</DialogTitle>
-            <DialogDescription>As datas alimentam o Gantt e o Kanban da mesma obra.</DialogDescription>
+            <DialogTitle>{task ? "Editar tarefa" : "Nova tarefa"}</DialogTitle>
+            <DialogDescription>As datas alimentam o Gantt, o Kanban e o calendário.</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-3 py-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="gantt-obra">Obra</Label>
+              <Select
+                id="gantt-obra"
+                name="projectId"
+                defaultValue={task?.projectId || defaultProjectId || ""}
+                className="bg-white"
+              >
+                <option value="">{SEM_OBRA_LABEL}</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </Select>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="gantt-title">Título *</Label>
               <Input id="gantt-title" name="title" defaultValue={task?.title} required className="bg-white" />
@@ -153,33 +165,22 @@ export function GanttTaskDialog({
                 <Label>Cor</Label>
                 <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
               </div>
-              <label className="flex items-end gap-2 pb-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={isMilestone}
-                  onChange={(e) => setIsMilestone(e.target.checked)}
-                />
-                Marco de entrega (sem duração, losango no Gantt)
-              </label>
+              <div className="space-y-1.5">
+                <Label htmlFor="gantt-assignee">Responsável</Label>
+                <Input id="gantt-assignee" name="assignee" defaultValue={task?.assignee || ""} className="bg-white" />
+              </div>
             </div>
 
-            {isMilestone ? (
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="gantt-start">Data do marco</Label>
-                <Input id="gantt-start" name="startDate" type="date" defaultValue={task?.startDate || task?.dueDate || ""} className="bg-white" />
+                <Label htmlFor="gantt-start">Início</Label>
+                <Input id="gantt-start" name="startDate" type="date" defaultValue={task?.startDate || ""} className="bg-white" />
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="gantt-start">Início</Label>
-                  <Input id="gantt-start" name="startDate" type="date" defaultValue={task?.startDate || ""} className="bg-white" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="gantt-due">Prazo</Label>
-                  <Input id="gantt-due" name="dueDate" type="date" defaultValue={task?.dueDate || ""} className="bg-white" />
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="gantt-due">Prazo</Label>
+                <Input id="gantt-due" name="dueDate" type="date" defaultValue={task?.dueDate || ""} className="bg-white" />
               </div>
-            )}
+            </div>
 
             <div className="space-y-1.5">
               <Label>Predecessores (término → início)</Label>

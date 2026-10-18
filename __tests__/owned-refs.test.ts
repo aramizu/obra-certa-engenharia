@@ -45,20 +45,21 @@ describe("rotas recusam IDs de outra obra", () => {
     expect(route).toContain("isInvalidRefError");
   });
 
-  it("kanban só aceita columnId da mesma obra; DELETE de tarefa inexistente é 404", () => {
-    const create = source("app/api/kanban/[projectId]/tasks/route.ts");
-    const move = source("app/api/kanban/[projectId]/tasks/[id]/move/route.ts");
-    const task = source("app/api/kanban/[projectId]/tasks/[id]/route.ts");
-    expect(create).toContain("getColumnOnProject");
-    expect(move).toContain("getColumnOnProject");
+  it("kanban só aceita columnId do usuário; DELETE de tarefa inexistente é 404", () => {
+    const create = source("app/api/kanban/tasks/route.ts");
+    const move = source("app/api/kanban/tasks/[id]/move/route.ts");
+    const task = source("app/api/kanban/tasks/[id]/route.ts");
+    expect(create).toContain("getColumnOnUser");
+    expect(move).toContain("getColumnOnUser");
+    expect(task).toContain("getOwnedTask");
     expect(task).toContain(".returning()");
     expect(task).toContain("MISSING_TASK_ERROR");
     expect(task).toMatch(/if \(!deleted\) return NextResponse\.json\(\{ error: MISSING_TASK_ERROR \}, \{ status: 404 \}\)/);
   });
 
-  it("gantt só liga dependência se as duas tarefas forem da mesma obra", () => {
-    const deps = source("app/api/gantt/[projectId]/dependencies/route.ts");
-    expect(deps).toContain("eq(tasks.projectId, projectId)");
+  it("gantt só liga dependência se as duas tarefas forem do mesmo usuário", () => {
+    const deps = source("app/api/gantt/dependencies/route.ts");
+    expect(deps).toContain("eq(tasks.userId, user.id)");
     expect(deps).toContain("inArray(tasks.id, [taskId, dependsOnTaskId])");
     expect(deps).toContain("related.length !== 2");
   });

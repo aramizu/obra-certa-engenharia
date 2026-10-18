@@ -7,6 +7,7 @@ import { eq, and, inArray, asc } from "drizzle-orm";
 import { GanttChart, type GanttTask } from "./gantt-chart";
 import { ArchivedObraBanner } from "@/components/archived-obra-banner";
 import { isProjectArchived } from "@/lib/project-archive";
+import { getCachedUserProjects } from "@/lib/cached-queries";
 
 export default async function GanttProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -22,20 +23,24 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
 
   if (!project) redirect("/gantt?aviso=obra-inexistente");
   const archived = isProjectArchived(project);
+  const userProjects = await getCachedUserProjects(user.id);
 
   const rows = await db
     .select({
       task: tasks,
       columnName: taskColumns.name,
+      projectName: projects.name,
     })
     .from(tasks)
+    .leftJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
-    .where(eq(tasks.projectId, project.id))
+    .where(and(eq(tasks.userId, user.id), eq(tasks.projectId, project.id)))
     .orderBy(asc(tasks.startDate), asc(tasks.dueDate), tasks.title);
 
   const projectTasks: GanttTask[] = rows.map((row) => ({
     ...row.task,
     columnName: row.columnName,
+    projectName: row.projectName,
   }));
 
   const taskIds = projectTasks.map((task) => task.id);
@@ -47,13 +52,14 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
     <>
       <PageTitle
         title={`Gantt - ${project.name}`}
-        description="Linha do tempo, dependências e marcos da obra"
+        description="Linha do tempo e dependências desta obra"
       />
       <main className="flex-1 overflow-hidden p-4 lg:p-6 space-y-4">
         {archived && <ArchivedObraBanner projectId={project.id} />}
         <div {...(archived ? { inert: true } : {})} className="h-full min-h-0">
           <GanttChart
-            projectId={project.id}
+            defaultProjectId={project.id}
+            projects={userProjects}
             projectStart={project.startDate}
             projectEnd={project.targetEndDate}
             initialTasks={projectTasks}

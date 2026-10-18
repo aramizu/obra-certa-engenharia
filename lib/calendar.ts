@@ -48,7 +48,7 @@ export function isDoneColumn(columnName: string | null | undefined) {
 }
 
 export function isOverdueTask(
-  task: Pick<Task, "dueDate" | "endDate" | "isMilestone">,
+  task: Pick<Task, "dueDate" | "endDate">,
   columnName: string | null | undefined,
   todayIso: string
 ) {
@@ -57,16 +57,15 @@ export function isOverdueTask(
   return Boolean(due && due < todayIso);
 }
 
-export type BadgeTone = "high" | "medium" | "low" | "normal" | "milestone" | "overdue" | "done";
+export type BadgeTone = "high" | "medium" | "low" | "normal" | "overdue" | "done";
 
 export function taskBadgeTone(
-  task: Pick<Task, "taskType" | "isMilestone" | "dueDate" | "endDate">,
+  task: Pick<Task, "taskType" | "dueDate" | "endDate">,
   columnName: string | null | undefined,
   todayIso: string
 ): BadgeTone {
   if (isOverdueTask(task, columnName, todayIso)) return "overdue";
   if (isDoneColumn(columnName)) return "done";
-  if (task.isMilestone) return "milestone";
   if (task.taskType === "high") return "high";
   if (task.taskType === "medium") return "medium";
   if (task.taskType === "low") return "low";
@@ -78,7 +77,6 @@ export const BADGE_FILL: Record<BadgeTone, ChipFillToken> = {
   medium: "signal-wash",
   low: "blueprint-wash",
   normal: "white",
-  milestone: "primary",
   overdue: "delay",
   done: "done-wash",
 };
@@ -88,7 +86,6 @@ export const BADGE_CLASS: Record<BadgeTone, string> = {
   medium: PILL_CHIP_CLASS,
   low: PILL_CHIP_CLASS,
   normal: PILL_CHIP_CLASS,
-  milestone: `${PILL_CHIP_CLASS} font-semibold`,
   overdue: PILL_CHIP_CLASS,
   done: `${PILL_CHIP_CLASS} line-through`,
 };
@@ -98,7 +95,6 @@ export const DOT_CLASS: Record<BadgeTone, string> = {
   medium: "bg-signal",
   low: "bg-blueprint",
   normal: "bg-graphite-2",
-  milestone: "bg-primary",
   overdue: "bg-delay",
   done: "bg-done",
 };
@@ -109,7 +105,6 @@ export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
   medium: TASK_CHIP_CLASS,
   low: TASK_CHIP_CLASS,
   normal: TASK_CHIP_CLASS,
-  milestone: `${TASK_CHIP_CLASS} font-semibold`,
   overdue: TASK_CHIP_CLASS,
   done: TASK_CHIP_CLASS,
 };
@@ -135,8 +130,8 @@ export function ganttLabelFitsInside(widthPx: number) {
   return widthPx >= GANTT_MIN_INNER_LABEL_PX;
 }
 
-export function formatGanttDateRange(start: Date, end: Date, milestone?: boolean) {
+export function formatGanttDateRange(start: Date, end: Date) {
   const startLabel = start.toLocaleDateString("pt-BR");
-  if (milestone || start.getTime() === end.getTime()) return startLabel;
+  if (start.getTime() === end.getTime()) return startLabel;
   return `${startLabel} – ${end.toLocaleDateString("pt-BR")}`;
 }

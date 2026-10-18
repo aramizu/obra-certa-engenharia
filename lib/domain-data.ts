@@ -2,7 +2,6 @@
 export const OBRA_CASCADE_TABLES = [
   "budget_categories",
   "materials",
-  "task_columns",
   "tasks",
   "task_dependencies",
   "project_rooms",
@@ -22,7 +21,7 @@ export const KB_GLOBAL_TABLES = [
 ] as const;
 
 /** Cadastro geral + base de conhecimento: ao excluir obra, não apaga. */
-export const OBRA_PRESERVE_ON_DELETE = ["suppliers", ...KB_GLOBAL_TABLES] as const;
+export const OBRA_PRESERVE_ON_DELETE = ["suppliers", "task_columns", ...KB_GLOBAL_TABLES] as const;
 
 export const SUPPLIER_FK_ON_OBRA_DELETE = "set null";
 

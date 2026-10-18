@@ -2,15 +2,18 @@
 
 import { useState, type PointerEvent } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Diamond, Flag, User } from "lucide-react";
+import { Calendar, Flag, User } from "lucide-react";
 import { TaskDialog } from "./task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { taskColorStyle } from "@/lib/task-color";
-import { cn } from "@/components/ds";
+import { chipContrastStyle, cn } from "@/components/ds";
+import { obraLabel } from "@/lib/user-tasks";
+
+export type TaskWithObra = Task & { projectName: string | null };
 
 interface TaskCardProps {
-  task: Task;
-  projectId: string;
+  task: TaskWithObra;
+  projects: { id: string; name: string }[];
   isDragging: boolean;
   onPointerDown: (event: PointerEvent<HTMLElement>, taskId: string) => void;
   shouldIgnoreClick: (taskId: string) => boolean;
@@ -22,13 +25,19 @@ const priorityColors: Record<string, string> = {
   low: "text-blueprint",
 };
 
-export function TaskCardBody({ task }: { task: Task }) {
+export function TaskCardBody({ task }: { task: TaskWithObra }) {
   return (
     <CardContent className="p-3 space-y-2">
       <h4 className="font-medium text-sm flex items-center gap-1.5">
-        {task.isMilestone && <Diamond className="h-3 w-3 text-primary shrink-0" />}
         {task.title}
       </h4>
+      <span
+        className="ds-chip-surface ds-chip-pill inline-flex text-[10px] font-display uppercase tracking-wide px-2 py-0.5"
+        data-fill="concrete"
+        style={chipContrastStyle("concrete")}
+      >
+        {obraLabel(task.projectName)}
+      </span>
       {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {task.assignee && (
@@ -45,7 +54,7 @@ export function TaskCardBody({ task }: { task: Task }) {
             {task.dueDate && new Date(task.dueDate + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
           </div>
         )}
-        {!task.isMilestone && task.taskType && task.taskType !== "task" && (
+        {task.taskType && task.taskType !== "task" && (
           <Flag className={`h-3 w-3 ${priorityColors[task.taskType] || ""}`} />
         )}
       </div>
@@ -53,7 +62,7 @@ export function TaskCardBody({ task }: { task: Task }) {
   );
 }
 
-export function TaskCard({ task, projectId, isDragging, onPointerDown, shouldIgnoreClick }: TaskCardProps) {
+export function TaskCard({ task, projects, isDragging, onPointerDown, shouldIgnoreClick }: TaskCardProps) {
   const [showDialog, setShowDialog] = useState(false);
 
   return (
@@ -79,7 +88,7 @@ export function TaskCard({ task, projectId, isDragging, onPointerDown, shouldIgn
         <TaskCardBody task={task} />
       </Card>
 
-      <TaskDialog open={showDialog} onOpenChange={setShowDialog} projectId={projectId} task={task} />
+      <TaskDialog open={showDialog} onOpenChange={setShowDialog} projects={projects} task={task} />
     </>
   );
 }

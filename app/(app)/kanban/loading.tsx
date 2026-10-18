@@ -1,5 +1,5 @@
-import { ListSkeleton } from "@/components/page-skeleton";
+import { BoardSkeleton } from "@/components/page-skeleton";
 
 export default function Loading() {
-  return <ListSkeleton />;
+  return <BoardSkeleton />;
 }

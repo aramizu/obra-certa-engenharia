@@ -24,10 +24,10 @@ export function titleFromPath(pathname: string): PageHeaderState {
     return { title: "Fornecedores", description: "Gerencie seus fornecedores e materiais" };
   }
   if (pathname.startsWith("/kanban")) {
-    return { title: "Kanban", description: "Gerencie tarefas por obra estilo Trello" };
+    return { title: "Kanban", description: "Quadro único de todas as tarefas, com ou sem obra" };
   }
   if (pathname.startsWith("/gantt")) {
-    return { title: "Gantt", description: "Planeje o tempo das tarefas por obra" };
+    return { title: "Gantt", description: "Cronograma de todas as tarefas, com ou sem obra" };
   }
   if (pathname.startsWith("/calendario")) {
     return { title: "Calendário", description: "Agenda mensal e semanal das tarefas com data" };

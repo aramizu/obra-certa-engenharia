@@ -1,30 +1,25 @@
 import { addDays, formatISODate, parseISODate } from "./date";
 import type { Task, TaskDependency } from "./db/schema";
 
-export function isMilestoneTask(task: Pick<Task, "isMilestone" | "taskType">) {
-  return task.isMilestone || task.taskType === "milestone";
-}
-
-export function taskSchedule(task: Pick<Task, "startDate" | "dueDate" | "endDate" | "isMilestone" | "taskType">) {
-  const milestone = isMilestoneTask(task);
+export function taskSchedule(task: Pick<Task, "startDate" | "dueDate" | "endDate">) {
   const startIso = task.startDate || task.dueDate || task.endDate;
   const endIso = task.dueDate || task.endDate || task.startDate;
   if (!startIso && !endIso) return null;
   const start = parseISODate(startIso || endIso!);
   const end = parseISODate(endIso || startIso!);
-  if (milestone || end < start) {
-    return { start, end: start, milestone: true };
+  if (end < start) {
+    return { start, end: start };
   }
-  return { start, end, milestone };
+  return { start, end };
 }
 
-export function shiftSchedule(start: Date, end: Date, dayDelta: number, mode: "move" | "resize-start" | "resize-end", milestone: boolean) {
-  if (milestone || mode === "move") {
+export function shiftSchedule(start: Date, end: Date, dayDelta: number, mode: "move" | "resize-start" | "resize-end") {
+  if (mode === "move") {
     const nextStart = addDays(start, dayDelta);
     const duration = Math.round((end.getTime() - start.getTime()) / 86_400_000);
     return {
       startDate: formatISODate(nextStart),
-      dueDate: formatISODate(addDays(nextStart, milestone ? 0 : duration)),
+      dueDate: formatISODate(addDays(nextStart, duration)),
     };
   }
   if (mode === "resize-start") {
@@ -38,8 +33,8 @@ export function shiftSchedule(start: Date, end: Date, dayDelta: number, mode: "m
 }
 
 export function dependencyConflict(
-  successor: Pick<Task, "startDate" | "dueDate" | "endDate" | "isMilestone" | "taskType">,
-  predecessor: Pick<Task, "startDate" | "dueDate" | "endDate" | "isMilestone" | "taskType">
+  successor: Pick<Task, "startDate" | "dueDate" | "endDate">,
+  predecessor: Pick<Task, "startDate" | "dueDate" | "endDate">
 ) {
   const succ = taskSchedule(successor);
   const pred = taskSchedule(predecessor);

@@ -14,7 +14,6 @@ describe("exclusão de obra (cascade)", () => {
     expect(OBRA_CASCADE_TABLES).toEqual([
       "budget_categories",
       "materials",
-      "task_columns",
       "tasks",
       "task_dependencies",
       "project_rooms",
@@ -24,6 +23,7 @@ describe("exclusão de obra (cascade)", () => {
     ]);
     expect(OBRA_PRESERVE_ON_DELETE).toEqual([
       "suppliers",
+      "task_columns",
       "kb_supplier_categories",
       "kb_materials",
       "kb_modules",

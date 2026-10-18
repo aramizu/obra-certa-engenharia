@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import type { TaskColumn } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
 
-export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: boolean; onOpenChange: (open: boolean) => void; projectId: string; column?: TaskColumn }) {
+export function ColumnDialog({ open, onOpenChange, column }: { open: boolean; onOpenChange: (open: boolean) => void; column?: TaskColumn }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -21,14 +21,14 @@ export function ColumnDialog({ open, onOpenChange, projectId, column }: { open: 
     const data = { name: formData.get("name") as string };
 
     try {
-      const url = column ? `/api/kanban/${projectId}/columns/${column.id}` : `/api/kanban/${projectId}/columns`;
+      const url = column ? `/api/kanban/columns/${column.id}` : "/api/kanban/columns";
       await fetch(url, {
         method: column ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       onOpenChange(false);
-      await afterMutation(() => router.refresh(), { projectId });
+      await afterMutation(() => router.refresh());
     } catch {
       alert("Erro ao salvar coluna");
     } finally {
