@@ -3,6 +3,8 @@ import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { z } from "zod";
+import { applyObraTemplateKey } from "@/lib/obra-items";
+import { isInvalidRefError } from "@/lib/owned-refs";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const projectSchema = z.object({
@@ -12,6 +14,7 @@ const projectSchema = z.object({
   targetEndDate: z.string().nullable().optional(),
   totalBudget: z.string().optional(),
   workType: z.enum(["reforma", "na_planta"]).optional(),
+  templateKey: z.string().nullable().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -37,6 +40,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    await applyObraTemplateKey(project.id, user.id, data.templateKey);
     revalidateDomainPages({ userId: user.id, projectId: project.id });
     return NextResponse.json({ success: true, project });
   } catch (error) {
@@ -45,6 +49,9 @@ export async function POST(request: NextRequest) {
         { error: error.errors[0].message },
         { status: 400 }
       );
+    }
+    if (isInvalidRefError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("Error creating project:", error);
     return NextResponse.json(

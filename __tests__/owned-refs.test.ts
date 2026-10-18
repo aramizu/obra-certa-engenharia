@@ -85,13 +85,30 @@ describe("rotas recusam IDs de outra obra", () => {
 });
 
 describe("defesa em profundidade das somas e nomes", () => {
-  it("gasto da obra e do painel só soma material da mesma projectId da categoria", () => {
-    const obra = source("app/(app)/obras/[id]/page.tsx");
+  it("gasto do painel só soma material da mesma projectId da categoria", () => {
     const home = source("app/(app)/page.tsx");
-    expect(obra).toContain("materialSpendOnCategoryProject");
     expect(home).toContain("materialSpendOnCategoryProject");
-    expect(obra).not.toMatch(/leftJoin\(materials,\s*eq\(materials\.budgetCategoryId/);
+    expect(home).toContain("sqlCompradoSpend");
     expect(home).not.toMatch(/leftJoin\(materials,\s*eq\(materials\.budgetCategoryId/);
+  });
+
+  it("itens da obra juntam grupo só da mesma obra", () => {
+    const obra = source("app/(app)/obras/[id]/page.tsx");
+    expect(obra).toContain("categoryNameOnMaterialProject");
+    expect(obra).toContain("ObraItemsView");
+    expect(obra).not.toMatch(/leftJoin\(budgetCategories,\s*eq\(budgetCategories\.id/);
+  });
+
+  it("rotas de itens/grupos/modelo checam dono da obra", () => {
+    const create = source("app/api/obras/[id]/itens/route.ts");
+    const patch = source("app/api/obras/[id]/itens/[itemId]/route.ts");
+    const grupos = source("app/api/obras/[id]/grupos/route.ts");
+    const modelo = source("app/api/obras/[id]/modelo/route.ts");
+    expect(create).toContain("getOwnedProject");
+    expect(patch).toContain("getOwnedProject");
+    expect(patch).toContain("getOwnedMaterial");
+    expect(grupos).toContain("getOwnedProject");
+    expect(modelo).toContain("getOwnedProject");
   });
 
   it("nome da categoria no fornecedor só junta se for da mesma obra do material", () => {

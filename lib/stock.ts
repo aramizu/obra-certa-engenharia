@@ -1,13 +1,7 @@
+import { COMPRADO_STATUS_ALIASES, isCompradoStatus } from "@/lib/item-status";
 import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
-export const STOCK_MATERIAL_STATUSES = [
-  "purchased",
-  "delivered",
-  "received",
-  "comprado",
-  "entregue",
-  "recebido",
-] as const;
+export const STOCK_MATERIAL_STATUSES = COMPRADO_STATUS_ALIASES;
 
 export const SEM_OBRA_STOCK_KEY = "none";
 
@@ -17,9 +11,9 @@ export type StockItem = {
   id: string;
   name: string;
   brand: string | null;
-  quantity: string;
-  unit: string;
-  totalPrice: string;
+  quantity: string | null;
+  unit: string | null;
+  totalPrice: string | null;
   purchaseDate: string | null;
   status: string;
   projectId: string | null;
@@ -37,22 +31,24 @@ export type StockGroup = {
 };
 
 export function isStockMaterialStatus(status: string | null | undefined): status is StockMaterialStatus {
-  if (!status) return false;
-  return (STOCK_MATERIAL_STATUSES as readonly string[]).includes(status.trim().toLowerCase());
+  return isCompradoStatus(status);
 }
 
 export function stockItemHref(item: Pick<StockItem, "projectId" | "supplierId">) {
-  if (item.projectId) return `/obras/${item.projectId}/lista`;
+  if (item.projectId) return `/obras/${item.projectId}`;
   if (item.supplierId) return `/fornecedores/${item.supplierId}`;
   return "/fornecedores";
 }
 
-export function formatQuantity(quantity: string, unit: string) {
+export function formatQuantity(quantity: string | null | undefined, unit: string | null | undefined) {
+  if (quantity == null || quantity === "") {
+    return unit?.trim() || "—";
+  }
   const n = Number(quantity);
   const qty = Number.isFinite(n)
     ? n.toLocaleString("pt-BR", { maximumFractionDigits: 3 })
     : quantity;
-  const suffix = unit.trim();
+  const suffix = (unit || "").trim();
   return suffix ? `${qty} ${suffix}` : qty;
 }
 

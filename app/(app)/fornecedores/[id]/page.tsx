@@ -4,13 +4,12 @@ import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { suppliers, materials, projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
-import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { categoryNameOnMaterialProject } from "@/lib/owned-refs";
 import { SupplierActions } from "./supplier-actions";
 import { MaterialsList } from "./materials-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreateMaterialButton } from "./create-material-button";
 import { Phone, Mail, User } from "lucide-react";
+import { isCompradoStatus, normalizeItemStatus, parseMoney } from "@/lib/item-status";
 
 export default async function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -55,25 +54,17 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
     .where(and(eq(materials.supplierId, supplier.id), eq(projects.userId, user.id)))
     .orderBy(sql`${materials.createdAt} DESC`);
 
-  const userProjects = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-    })
-    .from(projects)
-    .where(activeProjectsOwnedBy(user.id));
-
   const totalQuoted = supplierMaterials
-    .filter(m => m.status === "quoted")
-    .reduce((sum, m) => sum + parseFloat(m.totalPrice), 0);
+    .filter((m) => normalizeItemStatus(m.status) === "cotando")
+    .reduce((sum, m) => sum + (parseMoney(m.totalPrice) ?? 0), 0);
 
   const totalPurchased = supplierMaterials
-    .filter(m => m.status === "purchased")
-    .reduce((sum, m) => sum + parseFloat(m.totalPrice), 0);
+    .filter((m) => isCompradoStatus(m.status))
+    .reduce((sum, m) => sum + (parseMoney(m.totalPrice) ?? 0), 0);
 
   return (
     <>
-      <PageTitle title={supplier.name} description="Materiais e cotações" />
+      <PageTitle title={supplier.name} description="Itens cotados e comprados" />
       <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-start justify-between">
@@ -108,7 +99,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
             <div className="grid gap-6 md:grid-cols-3">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription className="font-data">Total Cotado</CardDescription>
+                  <CardDescription className="font-data">Cotando</CardDescription>
                   <CardTitle className="text-3xl font-data tabular-nums">
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
@@ -118,7 +109,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground">
-                    {supplierMaterials.filter(m => m.status === "quoted").length} itens cotados
+                    {supplierMaterials.filter((m) => normalizeItemStatus(m.status) === "cotando").length} itens em cotação
                   </p>
                 </CardContent>
               </Card>
@@ -135,7 +126,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground">
-                    {supplierMaterials.filter(m => m.status === "purchased").length} itens comprados
+                    {supplierMaterials.filter((m) => isCompradoStatus(m.status)).length} itens comprados
                   </p>
                 </CardContent>
               </Card>
@@ -161,19 +152,14 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">Materiais</h2>
+                  <h2 className="text-xl font-semibold">Itens vinculados</h2>
                   <p className="text-sm text-muted-foreground">
-                    Cotações e compras deste fornecedor
+                    Cadastro acontece na obra; aqui só a leitura
                   </p>
                 </div>
-                <CreateMaterialButton supplierId={supplier.id} projects={userProjects} />
               </div>
 
-              <MaterialsList 
-                materials={supplierMaterials} 
-                supplierId={supplier.id}
-                projects={userProjects}
-              />
+              <MaterialsList materials={supplierMaterials} />
             </div>
           </div>
         </main>

@@ -16,6 +16,7 @@ import { addDays, endOfWeekSunday, formatISODate, todayInTimeZone } from "@/lib/
 import { isDoneColumn, isOverdueTask, isWeekOrOverdueTask, relativeDueChip, taskDueIso } from "@/lib/calendar";
 import { BudgetChart, type BudgetChartRow } from "./budget-chart";
 import { afterMutation } from "@/lib/after-mutation";
+import { isCompradoStatus, isToBuyStatus } from "@/lib/item-status";
 import { SEM_OBRA_LABEL, obraChipLabel } from "@/lib/user-tasks";
 
 export type DashboardTask = Task & { projectName: string | null; columnName: string | null };
@@ -24,7 +25,7 @@ export type DashboardMaterial = {
   id: string;
   name: string;
   brand: string | null;
-  totalPrice: string;
+  totalPrice: string | null;
   status: string;
   projectId: string;
   projectName: string;
@@ -94,7 +95,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
   const totalBudget = filteredProjects.reduce((sum, project) => sum + parseFloat(project.totalBudget || "0"), 0);
   const planned = filteredCategories.reduce((sum, row) => sum + row.budgeted, 0);
   const spent = filteredMaterials
-    .filter((item) => item.status === "purchased")
+    .filter((item) => isCompradoStatus(item.status))
     .reduce((sum, item) => sum + parseFloat(item.totalPrice || "0"), 0);
   const budgetBase = totalBudget > 0 ? totalBudget : planned;
   const remaining = budgetBase - spent;
@@ -114,7 +115,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
       return dueA.localeCompare(dueB) || a.title.localeCompare(b.title, "pt-BR");
     });
   const unlinkedTasks = filteredTasks.filter((task) => !task.projectId).length;
-  const toBuy = filteredMaterials.filter((item) => item.status !== "purchased");
+  const toBuy = filteredMaterials.filter((item) => isToBuyStatus(item.status));
   const toBuyTotal = toBuy.reduce((sum, item) => sum + parseFloat(item.totalPrice || "0"), 0);
 
   const chartRows = useMemo(() => {
@@ -136,7 +137,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
   const toggleMaterial = async (item: DashboardMaterial) => {
     setTogglingId(item.id);
     try {
-      const next = item.status === "purchased" ? "quoted" : "purchased";
+      const next = isCompradoStatus(item.status) ? "cotando" : "comprado";
       const response = await fetch(`/api/materiais/${item.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -178,8 +179,8 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
           <Link prefetch href="/kanban" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
             <Plus className="h-4 w-4 mr-1" />Tarefa
           </Link>
-          <Link prefetch href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-            <Plus className="h-4 w-4 mr-1" />Material
+          <Link prefetch href={selectedProjectId ? `/obras/${selectedProjectId}` : "/obras"} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+            <Plus className="h-4 w-4 mr-1" />Item
           </Link>
         </div>
       </div>
@@ -298,7 +299,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
           <div className="flex items-start justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2"><Package className="h-4 w-4" />Para comprar</CardTitle>
-              <CardDescription>Materiais ainda não comprados</CardDescription>
+              <CardDescription>Itens a definir ou em cotação</CardDescription>
             </div>
             <p className="text-sm font-data tabular-nums font-semibold">{formatBRL(toBuyTotal)}</p>
           </div>
@@ -307,8 +308,8 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
           {toBuy.length === 0 ? (
             <div className="text-sm text-muted-foreground space-y-2">
               <p>Nada pendente de compra neste recorte.</p>
-              <Link prefetch href="/fornecedores" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
-                Cadastrar material
+              <Link prefetch href={selectedProjectId ? `/obras/${selectedProjectId}` : "/obras"} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "bg-white")}>
+                Ver itens da obra
               </Link>
             </div>
           ) : (
@@ -320,7 +321,7 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
                     <p className="text-xs truncate opacity-80">{item.projectName}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-sm font-data tabular-nums">{formatBRL(parseFloat(item.totalPrice))}</span>
+                    <span className="text-sm font-data tabular-nums">{formatBRL(parseFloat(item.totalPrice || "0"))}</span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -340,12 +341,12 @@ export function DashboardView({ projects, tasks, materials, categories }: Dashbo
 
       <Card className="bg-white">
         <CardHeader>
-          <CardTitle>Orçamento por categoria</CardTitle>
-          <CardDescription>Previsto versus gasto (materiais comprados)</CardDescription>
+          <CardTitle>Orçamento por grupo</CardTitle>
+          <CardDescription>Previsto versus gasto (itens comprados)</CardDescription>
         </CardHeader>
         <CardContent>
           {chartRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Cadastre categorias na obra para ver o gráfico.</p>
+            <p className="text-sm text-muted-foreground">Cadastre grupos na obra para ver o gráfico.</p>
           ) : (
             <BudgetChart rows={chartRows} />
           )}

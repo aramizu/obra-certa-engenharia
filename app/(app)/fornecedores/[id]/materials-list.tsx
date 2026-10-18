@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/confirm-dialog";
-import { Badge } from "@/components/ds";
-import { Pencil, Trash2 } from "lucide-react";
-import { MaterialDialog } from "./material-dialog";
+import { Badge, PILL_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
+import { formatBRL } from "@/lib/format";
 import { getUnitLabel } from "@/lib/material-units";
-import { afterMutation } from "@/lib/after-mutation";
+import {
+  ITEM_STATUS_FILL,
+  ITEM_STATUS_LABEL,
+  normalizeItemStatus,
+  parseMoney,
+} from "@/lib/item-status";
 
 interface MaterialData {
   id: string;
@@ -17,11 +18,11 @@ interface MaterialData {
   budgetCategoryId: string | null;
   name: string;
   brand: string | null;
-  unit: string;
+  unit: string | null;
   quantityPerUnit: string | null;
-  quantity: string;
-  unitPrice: string;
-  totalPrice: string;
+  quantity: string | null;
+  unitPrice: string | null;
+  totalPrice: string | null;
   status: string;
   purchaseDate: string | null;
   notes: string | null;
@@ -32,63 +33,15 @@ interface MaterialData {
 
 interface MaterialsListProps {
   materials: MaterialData[];
-  supplierId: string;
-  projects: Array<{ id: string; name: string }>;
 }
 
-export function MaterialsList({ materials, supplierId, projects }: MaterialsListProps) {
-  const router = useRouter();
-  const [editingMaterial, setEditingMaterial] = useState<MaterialData | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
-
-  const toggleStatus = async (material: MaterialData) => {
-    setTogglingId(material.id);
-    try {
-      const response = await fetch(`/api/materiais/${material.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: material.status === "purchased" ? "quoted" : "purchased",
-        }),
-      });
-      if (!response.ok) throw new Error();
-      await afterMutation(() => router.refresh(), { projectId: material.projectId, supplierId });
-    } catch {
-      alert("Erro ao atualizar status da compra");
-    } finally {
-      setTogglingId(null);
-    }
-  };
-
-  const handleDelete = async (materialId: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/fornecedores/${supplierId}/materiais/${materialId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao excluir material");
-      }
-
-      setDeletingId(null);
-      await afterMutation(() => router.refresh(), { supplierId });
-    } catch (error) {
-      console.error("Error deleting material:", error);
-      alert("Erro ao excluir material");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export function MaterialsList({ materials }: MaterialsListProps) {
   if (materials.length === 0) {
     return (
       <Card className="bg-white">
         <CardContent className="flex flex-col items-center justify-center h-32 text-center">
           <p className="text-sm text-muted-foreground">
-            Nenhum material cadastrado. Clique em <strong>Novo Material</strong> para começar.
+            Nenhum item vinculado. Cadastre itens na obra e escolha este fornecedor ao cotar ou comprar.
           </p>
         </CardContent>
       </Card>
@@ -96,132 +49,88 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
   }
 
   return (
-    <>
-      <div className="space-y-3">
-        {materials.map((material) => {
-          const qty = parseFloat(material.quantity);
-          const qtyPerUnit = material.quantityPerUnit ? parseFloat(material.quantityPerUnit) : null;
-          const unitLabel = getUnitLabel(material.unit);
+    <div className="space-y-3">
+      {materials.map((material) => {
+        const status = normalizeItemStatus(material.status);
+        const fill = ITEM_STATUS_FILL[status];
+        const qty = parseMoney(material.quantity);
+        const unitLabel = material.unit ? getUnitLabel(material.unit) : "";
+        const unitPrice = parseMoney(material.unitPrice);
+        const total = parseMoney(material.totalPrice);
 
-          return (
-            <Card key={material.id} className="bg-white">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-base font-semibold">
+        return (
+          <Card key={material.id} className="bg-white">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base font-semibold">
+                    <Link prefetch href={`/obras/${material.projectId}`} className="hover:underline">
                       {material.name}
-                      {material.brand && (
-                        <span className="text-sm font-normal text-muted-foreground ml-2">
-                          ({material.brand})
-                        </span>
-                      )}
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge>{material.projectName}</Badge>
-                      {material.categoryName && (
-                        <Badge tone="blueprint">{material.categoryName}</Badge>
-                      )}
-                      <Badge tone={material.status === "purchased" ? "purchased" : "quoted"}>
-                        {material.status === "purchased" ? "Comprado" : "Cotado"}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white"
-                      disabled={togglingId === material.id}
-                      onClick={() => toggleStatus(material)}
+                    </Link>
+                    {material.brand && (
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                        ({material.brand})
+                      </span>
+                    )}
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge>
+                      <Link prefetch href={`/obras/${material.projectId}`} className="hover:underline">
+                        {material.projectName}
+                      </Link>
+                    </Badge>
+                    {material.categoryName && (
+                      <Badge tone="blueprint">{material.categoryName}</Badge>
+                    )}
+                    <span
+                      className={`${PILL_CHIP_CLASS} px-2 py-0.5 text-[10px] font-display uppercase tracking-widest`}
+                      data-fill={fill}
+                      style={chipContrastStyle(fill)}
                     >
-                      {material.status === "purchased" ? "Desfazer compra" : "Marcar comprado"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingMaterial(material)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeletingId(material.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                      {ITEM_STATUS_LABEL[status]}
+                    </span>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground text-xs">Quantidade</p>
-                    <p className="font-data tabular-nums font-medium">
-                      {qty} {unitLabel}
-                      {qtyPerUnit && ` × ${qtyPerUnit}`}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs">Preço Unit.</p>
-                    <p className="font-data tabular-nums font-medium">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(parseFloat(material.unitPrice))}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs">Total</p>
-                    <p className="font-data tabular-nums font-semibold text-accent">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(parseFloat(material.totalPrice))}
-                    </p>
-                  </div>
-                  {material.purchaseDate && (
-                    <div>
-                      <p className="text-muted-foreground text-xs">Data Compra</p>
-                      <p className="font-medium">
-                        {new Date(material.purchaseDate + "T00:00:00").toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                {material.notes && (
-                  <p className="text-xs text-muted-foreground mt-3 border-t pt-2">
-                    {material.notes}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground text-xs">Quantidade</p>
+                  <p className="font-data tabular-nums font-medium">
+                    {qty == null ? "—" : `${qty} ${unitLabel}`.trim()}
                   </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Preço un.</p>
+                  <p className="font-data tabular-nums font-medium">
+                    {unitPrice == null ? "—" : formatBRL(unitPrice)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Total</p>
+                  <p className="font-data tabular-nums font-semibold">
+                    {total == null ? "—" : formatBRL(total)}
+                  </p>
+                </div>
+                {material.purchaseDate && (
+                  <div>
+                    <p className="text-muted-foreground text-xs">Data compra</p>
+                    <p className="font-medium">
+                      {new Date(material.purchaseDate + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {editingMaterial && (
-        <MaterialDialog
-          open={true}
-          onOpenChange={(open) => !open && setEditingMaterial(null)}
-          supplierId={supplierId}
-          projects={projects}
-          material={editingMaterial}
-        />
-      )}
-
-      <ConfirmDialog
-        open={Boolean(deletingId)}
-        onOpenChange={(open) => {
-          if (!open) setDeletingId(null);
-        }}
-        title="Confirmar Exclusão"
-        description="Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita."
-        loading={loading}
-        onConfirm={() => {
-          if (deletingId) void handleDelete(deletingId);
-        }}
-      />
-    </>
+              </div>
+              {material.notes && (
+                <p className="text-xs text-muted-foreground mt-3 border-t pt-2">
+                  {material.notes}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 }

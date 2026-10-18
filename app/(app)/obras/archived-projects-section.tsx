@@ -116,7 +116,7 @@ export function ArchivedProjectsSection({ projects }: { projects: Project[] }) {
           deleteTarget ? (
             <>
               Tem certeza que deseja excluir a obra <strong>{deleteTarget.name}</strong>? Tarefas,
-              materiais, categorias, colunas do Kanban, marcos e a lista sugerida desta obra também
+              itens, grupos, colunas do Kanban e post-its desta obra também
               saem. Arquivar não apaga; excluir não pode ser desfeito.
             </>
           ) : null

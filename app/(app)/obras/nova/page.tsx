@@ -9,7 +9,7 @@ export default async function NovaObraPage() {
 
   return (
     <>
-      <PageTitle title="Nova obra" description="Cadastro e onboarding da lista de materiais" />
+      <PageTitle title="Nova obra" description="Cadastro da obra e dos itens" />
       <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <CreateObraForm />

@@ -8,6 +8,7 @@ import { MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
 import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { isInvalidRefError, requireBudgetCategoryOnProject } from "@/lib/owned-refs";
+import { normalizeItemStatus } from "@/lib/item-status";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -19,7 +20,7 @@ const materialSchema = z.object({
   quantity: z.string().min(1, "Quantidade é obrigatória"),
   unitPrice: z.string().min(1, "Preço unitário é obrigatório"),
   totalPrice: z.string().min(1, "Preço total é obrigatório"),
-  status: z.enum(["quoted", "purchased"]),
+  status: z.enum(["a_definir", "cotando", "comprado", "quoted", "purchased"]),
   purchaseDate: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -75,7 +76,7 @@ export async function POST(
         quantity: data.quantity,
         unitPrice: data.unitPrice,
         totalPrice: data.totalPrice,
-        status: data.status,
+        status: normalizeItemStatus(data.status),
         purchaseDate: data.purchaseDate || null,
         notes: data.notes || null,
       })
