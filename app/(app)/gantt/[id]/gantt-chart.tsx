@@ -6,6 +6,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Diamond, Plus } from "lucide-
 import { Button } from "@/components/ui/button";
 import { GanttTaskDialog } from "./gantt-task-dialog";
 import type { Task, TaskDependency } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 import { formatISODate, today } from "@/lib/date";
 import { dependencyConflict, isMilestoneTask, shiftSchedule, taskSchedule } from "@/lib/gantt";
 import { GANTT_BAR_CLASS, formatGanttDateRange, ganttLabelFitsInside, isWeekend, taskBadgeTone } from "@/lib/calendar";
@@ -168,7 +169,7 @@ export function GanttChart({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ startDate: next.startDate, dueDate: next.dueDate }),
       });
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     };
 
     window.addEventListener("pointermove", handleMove);

@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao atualizar coluna" }, { status: 500 });
@@ -63,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     await db.delete(taskColumns).where(and(eq(taskColumns.id, id), eq(taskColumns.projectId, projectId)));
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao excluir coluna" }, { status: 500 });

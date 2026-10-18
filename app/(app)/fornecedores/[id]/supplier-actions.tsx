@@ -6,6 +6,7 @@ import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SupplierDialog } from "../supplier-dialog";
 import type { Supplier } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface SupplierActionsProps {
   supplier: Supplier;
@@ -29,6 +30,7 @@ export function SupplierActions({ supplier }: SupplierActionsProps) {
         throw new Error("Erro ao excluir fornecedor");
       }
 
+      await afterMutation(() => router.refresh(), { supplierId: supplier.id });
       router.push("/fornecedores");
     } catch (error) {
       console.error("Error deleting supplier:", error);

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -54,7 +55,7 @@ export function CategoryDialog({ open, onOpenChange, projectId, category }: Cate
       }
 
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar categoria");
     } finally {

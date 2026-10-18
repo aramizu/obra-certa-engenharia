@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export function CreateProjectButton() {
   return (
-    <Link href="/obras/nova" className={cn(buttonVariants(), "gap-2")}>
+    <Link href="/obras/nova" prefetch className={cn(buttonVariants(), "gap-2")}>
       <Plus className="h-4 w-4" />
       Nova Obra
     </Link>

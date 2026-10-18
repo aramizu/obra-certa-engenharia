@@ -48,7 +48,7 @@ export async function PATCH(
       return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(undefined, id);
+    revalidateDomainPages({ userId: user.id, supplierId: id });
     return NextResponse.json({ success: true, supplier });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -86,7 +86,7 @@ export async function DELETE(
       return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(undefined, id);
+    revalidateDomainPages({ userId: user.id, supplierId: id });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting supplier:", error);

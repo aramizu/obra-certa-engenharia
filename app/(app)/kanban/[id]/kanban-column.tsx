@@ -9,6 +9,7 @@ import { TaskDialog } from "./task-dialog";
 import { ColumnDialog } from "./column-dialog";
 import type { TaskColumn, Task } from "@/lib/db/schema";
 import type { DropTarget } from "@/lib/kanban-dnd";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface KanbanColumnProps {
   column: TaskColumn;
@@ -68,7 +69,7 @@ export function KanbanColumn({
         throw new Error(body.error || "Erro ao excluir coluna");
       }
       setShowDeleteConfirm(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId });
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erro ao excluir coluna");
     } finally {
@@ -83,7 +84,7 @@ export function KanbanColumn({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ direction }),
     });
-    router.refresh();
+    await afterMutation(() => router.refresh(), { projectId });
   };
 
   const cards: ReactNode[] = [];

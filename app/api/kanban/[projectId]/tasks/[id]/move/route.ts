@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }).where(and(eq(tasks.id, ordered[i].id), eq(tasks.projectId, projectId)));
     }
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao mover tarefa" }, { status: 500 });

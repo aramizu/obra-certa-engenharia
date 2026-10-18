@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import type { Project } from "@/lib/db/schema";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface ProjectDialogProps {
   open: boolean;
@@ -51,7 +52,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       }
 
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: project?.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar obra");
     } finally {

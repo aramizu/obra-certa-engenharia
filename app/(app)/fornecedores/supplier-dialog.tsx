@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import type { Supplier } from "@/lib/db/schema";
 import { KB_CATEGORIES } from "@/lib/kb-catalog";
 import { Select } from "@/components/ui/select";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface SupplierDialogProps {
   open: boolean;
@@ -52,7 +53,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       }
 
       onOpenChange(false);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { supplierId: supplier?.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar fornecedor");
     } finally {

@@ -52,7 +52,7 @@ export async function POST(
       })
       .returning();
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, category });
   } catch (error) {
     if (error instanceof z.ZodError) {

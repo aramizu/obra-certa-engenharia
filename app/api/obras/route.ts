@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    revalidateDomainPages(project.id);
+    revalidateDomainPages({ userId: user.id, projectId: project.id });
     return NextResponse.json({ success: true, project });
   } catch (error) {
     if (error instanceof z.ZodError) {

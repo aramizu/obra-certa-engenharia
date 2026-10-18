@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { DashboardView, type DashboardCategory, type DashboardMaterial, type DashboardTask } from "./dashboard-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
+import { getCachedUserProjects } from "@/lib/cached-queries";
 
 export default async function HomePage() {
   const user = await validateSession();
@@ -13,15 +14,7 @@ export default async function HomePage() {
 
   const firstName = user.name.split(" ")[0];
 
-  const userProjects = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      totalBudget: projects.totalBudget,
-    })
-    .from(projects)
-    .where(eq(projects.userId, user.id))
-    .orderBy(desc(projects.createdAt));
+  const userProjects = await getCachedUserProjects(user.id);
 
   const taskRows = await db
     .select({

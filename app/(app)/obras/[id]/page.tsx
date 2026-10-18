@@ -88,6 +88,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <div className="flex items-center gap-2">
                 <Link
                   href={`/obras/${project.id}/lista`}
+                  prefetch
                   className={cn(buttonVariants({ variant: "outline" }), "whitespace-nowrap")}
                 >
                   {Number(listCount?.n ?? 0) > 0 ? "Lista de materiais" : "Gerar lista de materiais"}

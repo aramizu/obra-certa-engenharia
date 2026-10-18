@@ -61,7 +61,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Categoria não encontrada" }, { status: 404 });
     }
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, category });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -109,7 +109,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Categoria não encontrada" }, { status: 404 });
     }
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting category:", error);

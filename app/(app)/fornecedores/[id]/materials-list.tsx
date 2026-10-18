@@ -8,6 +8,7 @@ import { Badge } from "@/components/ds";
 import { Pencil, Trash2 } from "lucide-react";
 import { MaterialDialog } from "./material-dialog";
 import { getUnitLabel } from "@/lib/material-units";
+import { afterMutation } from "@/lib/after-mutation";
 
 interface MaterialData {
   id: string;
@@ -52,7 +53,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
         }),
       });
       if (!response.ok) throw new Error();
-      router.refresh();
+      await afterMutation(() => router.refresh(), { projectId: material.projectId, supplierId });
     } catch {
       alert("Erro ao atualizar status da compra");
     } finally {
@@ -72,7 +73,7 @@ export function MaterialsList({ materials, supplierId, projects }: MaterialsList
       }
 
       setDeletingId(null);
-      router.refresh();
+      await afterMutation(() => router.refresh(), { supplierId });
     } catch (error) {
       console.error("Error deleting material:", error);
       alert("Erro ao excluir material");

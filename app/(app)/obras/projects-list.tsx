@@ -26,7 +26,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => (
-        <Link key={project.id} href={`/obras/${project.id}`}>
+        <Link key={project.id} href={`/obras/${project.id}`} prefetch>
           <Card className="h-full hover:border-accent transition-colors cursor-pointer">
             <CardHeader>
               <CardTitle className="text-base">{project.name}</CardTitle>

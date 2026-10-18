@@ -9,7 +9,7 @@ import {
   projects,
   suppliers,
 } from "@/lib/db/schema";
-import { loadKnowledgeCatalog } from "@/lib/kb-store";
+import { getCachedKnowledgeCatalog } from "@/lib/cached-queries";
 import {
   consolidateSuggestedList,
   type RoomSelection,
@@ -35,7 +35,7 @@ function n(value: string | number | null | undefined): number {
 }
 
 export async function loadProjectLista(projectId: string) {
-  const catalog = await loadKnowledgeCatalog();
+  const catalog = await getCachedKnowledgeCatalog();
   const rooms = await db.select().from(projectRooms).where(eq(projectRooms.projectId, projectId));
   const roomIds = rooms.map((room) => room.id);
   const moduleRows =
@@ -91,7 +91,7 @@ export async function loadProjectLista(projectId: string) {
 }
 
 export async function saveProjectLista(projectId: string, workType: WorkType, rooms: RoomPayload[]) {
-  const catalog = await loadKnowledgeCatalog();
+  const catalog = await getCachedKnowledgeCatalog();
 
   await db.update(projects).set({ workType, updatedAt: new Date() }).where(eq(projects.id, projectId));
 

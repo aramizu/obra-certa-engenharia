@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (!task) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, task });
   } catch {
     return NextResponse.json({ error: "Erro ao salvar tarefa" }, { status: 500 });
@@ -57,7 +57,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
 
     await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId)));
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao excluir tarefa" }, { status: 500 });

@@ -48,7 +48,7 @@ export async function PATCH(
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true, project });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -86,7 +86,7 @@ export async function DELETE(
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
 
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting project:", error);

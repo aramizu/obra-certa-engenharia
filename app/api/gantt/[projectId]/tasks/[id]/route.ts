@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const [task] = await db.update(tasks).set(updates).where(and(eq(tasks.id, id), eq(tasks.projectId, projectId))).returning();
     if (!task) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, task });
   } catch {
     return NextResponse.json({ error: "Erro ao salvar tarefa" }, { status: 500 });

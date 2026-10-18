@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       orderInColumn: (maxOrder[0]?.max ?? -1) + 1,
     }).returning();
 
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true, task });
   } catch {
     return NextResponse.json({ error: "Erro ao criar tarefa" }, { status: 500 });

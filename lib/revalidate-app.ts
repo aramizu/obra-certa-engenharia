@@ -1,21 +1,38 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import {
+  DOMAIN_REVALIDATE_PATHS,
+  KB_CACHE_TAG,
+  projectRevalidatePaths,
+  userDomainTag,
+} from "@/lib/nav-cache";
 
-/** Após excluir ou alterar obra/tarefa/material/fornecedor, invalida as superfícies que leem esses dados. */
-export function revalidateDomainPages(projectId?: string, supplierId?: string) {
-  revalidatePath("/");
-  revalidatePath("/obras");
-  revalidatePath("/kanban");
-  revalidatePath("/gantt");
-  revalidatePath("/calendario");
-  revalidatePath("/fornecedores");
-  revalidatePath("/admin/base");
+export type RevalidateDomainInput = {
+  userId?: string;
+  projectId?: string | null;
+  supplierId?: string | null;
+  knowledgeBase?: boolean;
+};
+
+/** Após criar/editar/excluir obra, tarefa, material, fornecedor ou lista. */
+export function revalidateDomainPages(input: RevalidateDomainInput = {}) {
+  const { userId, projectId, supplierId, knowledgeBase } = input;
+
+  for (const path of DOMAIN_REVALIDATE_PATHS) {
+    revalidatePath(path);
+  }
   if (projectId) {
-    revalidatePath(`/obras/${projectId}`);
-    revalidatePath(`/obras/${projectId}/lista`);
-    revalidatePath(`/kanban/${projectId}`);
-    revalidatePath(`/gantt/${projectId}`);
+    for (const path of projectRevalidatePaths(projectId)) {
+      revalidatePath(path);
+    }
   }
   if (supplierId) {
     revalidatePath(`/fornecedores/${supplierId}`);
+  }
+  if (userId) {
+    revalidateTag(userDomainTag(userId));
+  }
+  if (knowledgeBase) {
+    revalidateTag(KB_CACHE_TAG);
+    revalidatePath("/admin/base");
   }
 }

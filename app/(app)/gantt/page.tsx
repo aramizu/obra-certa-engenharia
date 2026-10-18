@@ -1,9 +1,7 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
-import { db } from "@/lib/db";
-import { projects, tasks } from "@/lib/db/schema";
-import { eq, sql, desc } from "drizzle-orm";
+import { getCachedUserProjectBoards } from "@/lib/cached-queries";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ds";
@@ -21,18 +19,7 @@ export default async function GanttIndexPage({
 
   const { aviso } = await searchParams;
 
-  const userProjects = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      address: projects.address,
-      taskCount: sql<number>`COUNT(DISTINCT ${tasks.id})`,
-    })
-    .from(projects)
-    .leftJoin(tasks, eq(projects.id, tasks.projectId))
-    .where(eq(projects.userId, user.id))
-    .groupBy(projects.id, projects.name, projects.address, projects.createdAt)
-    .orderBy(desc(projects.createdAt));
+  const userProjects = await getCachedUserProjectBoards(user.id);
 
   return (
     <>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { afterMutation } from "@/lib/after-mutation";
 
 export function CreateObraForm() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export function CreateObraForm() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Erro ao criar obra");
+      await afterMutation(() => router.refresh(), { projectId: result.project.id });
       if (next === "skip") router.push(`/obras/${result.project.id}`);
       else router.push(`/obras/${result.project.id}/lista`);
     } catch (err) {
@@ -129,7 +131,7 @@ export function CreateObraForm() {
       </Card>
 
       <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
-        <Link href="/obras" className="text-sm text-muted-foreground underline-offset-4 hover:underline text-center sm:text-left">
+        <Link href="/obras" prefetch className="text-sm text-muted-foreground underline-offset-4 hover:underline text-center sm:text-left">
           Cancelar
         </Link>
         <div className="flex flex-col sm:flex-row gap-3">

@@ -37,7 +37,7 @@ export async function PATCH(
       .returning();
 
     if (!item) return NextResponse.json({ error: "Item não encontrado." }, { status: 404 });
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true, item });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -66,7 +66,7 @@ export async function DELETE(
       .returning();
 
     if (!item) return NextResponse.json({ error: "Item não encontrado." }, { status: 404 });
-    revalidateDomainPages(id);
+    revalidateDomainPages({ userId: user.id, projectId: id });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting suggested item:", error);

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    revalidateDomainPages(undefined, supplier.id);
+    revalidateDomainPages({ userId: user.id, supplierId: supplier.id });
     return NextResponse.json({ success: true, supplier });
   } catch (error) {
     if (error instanceof z.ZodError) {

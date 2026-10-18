@@ -23,7 +23,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     if (!task) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });
 
     await db.delete(taskDependencies).where(eq(taskDependencies.id, id));
-    revalidateDomainPages(projectId);
+    revalidateDomainPages({ userId: user.id, projectId });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao excluir dependência" }, { status: 500 });
