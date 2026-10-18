@@ -1,13 +1,14 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
-import { getCachedUserProjectBoards } from "@/lib/cached-queries";
-import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ds";
-import { GanttChart } from "lucide-react";
+import { db } from "@/lib/db";
+import { projects, taskColumns, taskDependencies, tasks } from "@/lib/db/schema";
+import { eq, inArray, asc } from "drizzle-orm";
+import { getCachedUserProjects } from "@/lib/cached-queries";
 import { MissingEntityBanner } from "@/components/missing-entity-banner";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
+import { visibleUserTasksWhere } from "@/lib/user-tasks";
+import { GanttChart, type GanttTask } from "./[id]/gantt-chart";
 
 export default async function GanttIndexPage({
   searchParams,
@@ -18,56 +19,43 @@ export default async function GanttIndexPage({
   if (!user) redirect("/entrar");
 
   const { aviso } = await searchParams;
+  const userProjects = await getCachedUserProjects(user.id);
 
-  const userProjects = await getCachedUserProjectBoards(user.id);
+  const rows = await db
+    .select({
+      task: tasks,
+      columnName: taskColumns.name,
+      projectName: projects.name,
+    })
+    .from(tasks)
+    .leftJoin(projects, eq(tasks.projectId, projects.id))
+    .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
+    .where(visibleUserTasksWhere(user.id))
+    .orderBy(asc(tasks.startDate), asc(tasks.dueDate), tasks.title);
+
+  const chartTasks: GanttTask[] = rows.map((row) => ({
+    ...row.task,
+    columnName: row.columnName,
+    projectName: row.projectName,
+  }));
+
+  const taskIds = chartTasks.map((task) => task.id);
+  const dependencies = taskIds.length
+    ? await db.select().from(taskDependencies).where(inArray(taskDependencies.taskId, taskIds))
+    : [];
 
   return (
     <>
-      <PageTitle title="Gantt" description="Planeje o tempo das tarefas por obra" />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-            <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
-            <MissingEntityBanner aviso={aviso} />
-            <div>
-            <h2 className="text-2xl font-semibold mb-2">Selecione uma obra</h2>
-            <p className="text-sm text-muted-foreground">
-              Escolha a obra para ver o cronograma das mesmas tarefas do Kanban
-            </p>
-          </div>
-
-          {userProjects.length === 0 ? (
-            <Card>
-              <EmptyState
-                illustration="plan"
-                title="Nenhuma obra no Gantt"
-                description="Crie uma obra na seção Obras para ver o cronograma."
-              />
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {userProjects.map((project) => (
-                <Link key={project.id} href={`/gantt/${project.id}`} prefetch>
-                  <Card className="h-full bg-white hover:border-accent transition-colors cursor-pointer">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                      <div className="flex-1">
-                        <CardTitle className="text-base mb-1">{project.name}</CardTitle>
-                        {project.address && (
-                          <CardDescription className="text-xs">{project.address}</CardDescription>
-                        )}
-                      </div>
-                      <GanttChart className="h-5 w-5 text-accent" />
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        {Number(project.taskCount)} {Number(project.taskCount) === 1 ? "tarefa" : "tarefas"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+      <PageTitle title="Gantt" description="Cronograma de todas as tarefas, com ou sem obra" />
+      <main className="flex-1 overflow-hidden p-4 lg:p-6 space-y-4">
+        <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+        <MissingEntityBanner aviso={aviso} />
+        <GanttChart
+          projects={userProjects}
+          groupByProject
+          initialTasks={chartTasks}
+          initialDependencies={dependencies}
+        />
       </main>
     </>
   );

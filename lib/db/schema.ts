@@ -126,18 +126,21 @@ export const materials = pgTable("materials", {
 
 export const taskColumns = pgTable("task_columns", {
   id: uuid("id").defaultRandom().primaryKey(),
-  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
+  userIdIdx: index("task_columns_user_id_idx").on(table.userId),
   projectIdIdx: index("task_columns_project_id_idx").on(table.projectId),
 }));
 
 export const tasks = pgTable("tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
-  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
   taskType: text("task_type").notNull().default("task"),
@@ -147,12 +150,12 @@ export const tasks = pgTable("tasks", {
   startDate: date("start_date"),
   endDate: date("end_date"),
   assignee: text("assignee"),
-  isMilestone: boolean("is_milestone").notNull().default(false),
   color: text("color"),
   materialId: uuid("material_id").references(() => materials.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
+  userIdIdx: index("tasks_user_id_idx").on(table.userId),
   projectIdIdx: index("tasks_project_id_idx").on(table.projectId),
   statusColumnIdIdx: index("tasks_status_column_id_idx").on(table.statusColumnId),
   dueDateIdx: index("tasks_due_date_idx").on(table.dueDate),

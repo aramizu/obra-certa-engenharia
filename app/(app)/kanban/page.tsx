@@ -1,81 +1,80 @@
 import { validateSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { PageTitle } from "@/components/page-header";
-import { getCachedUserProjectBoards } from "@/lib/cached-queries";
-import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ds";
-import { KanbanSquare } from "lucide-react";
+import { db } from "@/lib/db";
+import { projects, tasks } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { getCachedUserProjects } from "@/lib/cached-queries";
+import { getOwnedProject } from "@/lib/owned-project";
+import { isProjectArchived } from "@/lib/project-archive";
+import { ArchivedObraBanner } from "@/components/archived-obra-banner";
 import { MissingEntityBanner } from "@/components/missing-entity-banner";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
+import {
+  ensureUserKanbanColumns,
+  parseObraFilter,
+  tasksWhereForObraFilter,
+  OBRA_FILTER_ALL,
+  OBRA_FILTER_NONE,
+} from "@/lib/user-tasks";
+import { KanbanBoard } from "./[id]/kanban-board";
+import { ObraFilterBar } from "@/components/obra-filter-bar";
 
 export default async function KanbanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ aviso?: string }>;
+  searchParams: Promise<{ aviso?: string; obra?: string }>;
 }) {
   const user = await validateSession();
+  if (!user) redirect("/entrar");
 
-  if (!user) {
-    redirect("/entrar");
+  const { aviso, obra } = await searchParams;
+  const filter = parseObraFilter(obra);
+  const userProjects = await getCachedUserProjects(user.id);
+  const columns = await ensureUserKanbanColumns(user.id);
+
+  let archivedProjectId: string | null = null;
+  if (filter !== OBRA_FILTER_ALL && filter !== OBRA_FILTER_NONE) {
+    const project = await getOwnedProject(filter, user.id);
+    if (!project) redirect("/kanban?aviso=obra-inexistente");
+    if (isProjectArchived(project)) archivedProjectId = project.id;
   }
 
-  const { aviso } = await searchParams;
+  const rows = await db
+    .select({
+      task: tasks,
+      projectName: projects.name,
+    })
+    .from(tasks)
+    .leftJoin(projects, eq(tasks.projectId, projects.id))
+    .where(tasksWhereForObraFilter(user.id, filter))
+    .orderBy(tasks.orderInColumn);
 
-  const userProjects = await getCachedUserProjectBoards(user.id);
+  const boardTasks = rows.map((row) => ({
+    ...row.task,
+    projectName: row.projectName,
+  }));
+
+  const defaultProjectId = filter !== OBRA_FILTER_ALL && filter !== OBRA_FILTER_NONE ? filter : null;
+  const locked = Boolean(archivedProjectId);
 
   return (
     <>
-      <PageTitle title="Kanban" description="Gerencie tarefas por obra estilo Trello" />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
-            <MissingEntityBanner aviso={aviso} />
-            <div>
-              <h2 className="text-2xl font-semibold mb-2">
-                Selecione uma obra
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Escolha a obra para visualizar e gerenciar as tarefas
-              </p>
-            </div>
-
-            {userProjects.length === 0 ? (
-              <Card>
-                <EmptyState
-                  illustration="plan"
-                  title="Nenhuma obra no Kanban"
-                  description="Crie uma obra na seção Obras para usar o quadro de tarefas."
-                />
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {userProjects.map((project) => (
-                  <Link key={project.id} href={`/kanban/${project.id}`} prefetch>
-                    <Card className="h-full bg-white hover:border-accent transition-colors cursor-pointer">
-                      <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                        <div className="flex-1">
-                          <CardTitle className="text-base mb-1">{project.name}</CardTitle>
-                          {project.address && (
-                            <CardDescription className="text-xs">
-                              {project.address}
-                            </CardDescription>
-                          )}
-                        </div>
-                        <KanbanSquare className="h-5 w-5 text-accent" />
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          {Number(project.taskCount)} {Number(project.taskCount) === 1 ? "tarefa" : "tarefas"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+      <PageTitle title="Kanban" description="Quadro único de todas as tarefas, com ou sem obra" />
+      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6 space-y-4">
+        <StaleSelectionCleaner validProjectIds={userProjects.map((project) => project.id)} />
+        <MissingEntityBanner aviso={aviso} />
+        {archivedProjectId && <ArchivedObraBanner projectId={archivedProjectId} />}
+        <ObraFilterBar projects={userProjects} value={filter} basePath="/kanban" />
+        <div {...(locked ? { inert: true } : {})} className="h-full min-h-0">
+          <KanbanBoard
+            projects={userProjects}
+            defaultProjectId={defaultProjectId}
+            initialColumns={columns}
+            initialTasks={boardTasks}
+          />
+        </div>
+      </main>
     </>
   );
 }

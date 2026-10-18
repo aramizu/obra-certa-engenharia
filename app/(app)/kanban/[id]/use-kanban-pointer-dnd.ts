@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { Task } from "@/lib/db/schema";
 import { applyTaskMove, hitTestColumn, shouldActivateDrag, type DropTarget } from "@/lib/kanban-dnd";
 import { afterMutation } from "@/lib/after-mutation";
+import type { TaskWithObra } from "./task-card";
 
 export type DragVisual = {
   taskId: string;
@@ -28,7 +28,7 @@ type PointerSession = {
   height: number;
 };
 
-export function useKanbanPointerDnd(projectId: string, initialTasks: Task[]) {
+export function useKanbanPointerDnd(initialTasks: TaskWithObra[]) {
   const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
   const [drag, setDrag] = useState<DragVisual | null>(null);
@@ -70,13 +70,13 @@ export function useKanbanPointerDnd(projectId: string, initialTasks: Task[]) {
 
     void (async () => {
       try {
-        const response = await fetch(`/api/kanban/${projectId}/tasks/${taskId}/move`, {
+        const response = await fetch(`/api/kanban/tasks/${taskId}/move`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ columnId: over.columnId, orderInColumn: index }),
         });
         if (!response.ok) throw new Error("move failed");
-        await afterMutation(() => router.refresh(), { projectId });
+        await afterMutation(() => router.refresh(), { projectId: task.projectId });
       } catch (error) {
         console.error("Error moving task:", error);
         tasksRef.current = snapshot;

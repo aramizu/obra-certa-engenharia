@@ -9,19 +9,25 @@ import { cn } from "@/components/ds";
 import { taskColorStyle } from "@/lib/task-color";
 import { KanbanColumn } from "./kanban-column";
 import { ColumnDialog } from "./column-dialog";
-import { TaskCardBody } from "./task-card";
+import { TaskCardBody, type TaskWithObra } from "./task-card";
 import { useKanbanPointerDnd } from "./use-kanban-pointer-dnd";
-import type { TaskColumn, Task } from "@/lib/db/schema";
+import type { TaskColumn } from "@/lib/db/schema";
 
 interface KanbanBoardProps {
-  projectId: string;
+  projects: { id: string; name: string }[];
+  defaultProjectId?: string | null;
   initialColumns: TaskColumn[];
-  initialTasks: Task[];
+  initialTasks: TaskWithObra[];
 }
 
-export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanBoardProps) {
+export function KanbanBoard({
+  projects,
+  defaultProjectId,
+  initialColumns,
+  initialTasks,
+}: KanbanBoardProps) {
   const [showColumnDialog, setShowColumnDialog] = useState(false);
-  const { tasks, drag, onCardPointerDown, shouldIgnoreClick } = useKanbanPointerDnd(projectId, initialTasks);
+  const { tasks, drag, onCardPointerDown, shouldIgnoreClick } = useKanbanPointerDnd(initialTasks);
   const draggedTask = drag ? tasks.find((task) => task.id === drag.taskId) : null;
 
   return (
@@ -34,7 +40,8 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
             tasks={tasks
               .filter((task) => task.statusColumnId === column.id)
               .sort((a, b) => a.orderInColumn - b.orderInColumn)}
-            projectId={projectId}
+            projects={projects}
+            defaultProjectId={defaultProjectId}
             canDelete={initialColumns.length > 1}
             canMoveLeft={index > 0}
             canMoveRight={index < initialColumns.length - 1}
@@ -85,7 +92,6 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
       <ColumnDialog
         open={showColumnDialog}
         onOpenChange={setShowColumnDialog}
-        projectId={projectId}
       />
     </>
   );

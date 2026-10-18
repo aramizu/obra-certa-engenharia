@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 import { MoreVertical, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { TaskCard } from "./task-card";
+import { TaskCard, type TaskWithObra } from "./task-card";
 import { TaskDialog } from "./task-dialog";
 import { ColumnDialog } from "./column-dialog";
-import type { TaskColumn, Task } from "@/lib/db/schema";
+import type { TaskColumn } from "@/lib/db/schema";
 import type { DropTarget } from "@/lib/kanban-dnd";
 import { afterMutation } from "@/lib/after-mutation";
 import { chipContrastStyle } from "@/components/ds";
 
 interface KanbanColumnProps {
   column: TaskColumn;
-  tasks: Task[];
-  projectId: string;
+  tasks: TaskWithObra[];
+  projects: { id: string; name: string }[];
+  defaultProjectId?: string | null;
   canDelete: boolean;
   canMoveLeft: boolean;
   canMoveRight: boolean;
@@ -40,7 +41,8 @@ function DropPlaceholder({ height }: { height: number }) {
 export function KanbanColumn({
   column,
   tasks,
-  projectId,
+  projects,
+  defaultProjectId,
   canDelete,
   canMoveLeft,
   canMoveRight,
@@ -63,7 +65,7 @@ export function KanbanColumn({
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/kanban/${projectId}/columns/${column.id}`, {
+      const response = await fetch(`/api/kanban/columns/${column.id}`, {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -71,7 +73,7 @@ export function KanbanColumn({
         throw new Error(body.error || "Erro ao excluir coluna");
       }
       setShowDeleteConfirm(false);
-      await afterMutation(() => router.refresh(), { projectId });
+      await afterMutation(() => router.refresh());
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erro ao excluir coluna");
     } finally {
@@ -81,12 +83,12 @@ export function KanbanColumn({
 
   const moveColumn = async (direction: "left" | "right") => {
     setShowMenu(false);
-    await fetch(`/api/kanban/${projectId}/columns/${column.id}`, {
+    await fetch(`/api/kanban/columns/${column.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ direction }),
     });
-    await afterMutation(() => router.refresh(), { projectId });
+    await afterMutation(() => router.refresh());
   };
 
   const cards: ReactNode[] = [];
@@ -98,7 +100,7 @@ export function KanbanColumn({
       <TaskCard
         key={task.id}
         task={task}
-        projectId={projectId}
+        projects={projects}
         isDragging={draggedTaskId === task.id}
         onPointerDown={onCardPointerDown}
         shouldIgnoreClick={shouldIgnoreClick}
@@ -185,8 +187,14 @@ export function KanbanColumn({
         </div>
       </div>
 
-      <TaskDialog open={showTaskDialog} onOpenChange={setShowTaskDialog} projectId={projectId} columnId={column.id} />
-      <ColumnDialog open={showEditDialog} onOpenChange={setShowEditDialog} projectId={projectId} column={column} />
+      <TaskDialog
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        projectId={defaultProjectId}
+        projects={projects}
+        columnId={column.id}
+      />
+      <ColumnDialog open={showEditDialog} onOpenChange={setShowEditDialog} column={column} />
 
       <ConfirmDialog
         open={showDeleteConfirm}

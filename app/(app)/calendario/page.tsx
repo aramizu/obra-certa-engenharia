@@ -4,10 +4,10 @@ import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { CalendarView, type CalendarTask } from "./calendar-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 import { getCachedUserProjects } from "@/lib/cached-queries";
+import { obraLabel, visibleUserTasksWhere } from "@/lib/user-tasks";
 
 export default async function CalendarioPage() {
   const user = await validateSession();
@@ -22,13 +22,13 @@ export default async function CalendarioPage() {
       columnName: taskColumns.name,
     })
     .from(tasks)
-    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .leftJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
-    .where(activeProjectsOwnedBy(user.id));
+    .where(visibleUserTasksWhere(user.id));
 
   const calendarTasks: CalendarTask[] = rows.map((row) => ({
     ...row.task,
-    projectName: row.projectName,
+    projectName: obraLabel(row.projectName),
     columnName: row.columnName,
   }));
 

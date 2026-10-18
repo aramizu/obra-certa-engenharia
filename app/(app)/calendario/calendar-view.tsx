@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Diamond } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, Tabs, chipContrastStyle } from "@/components/ds";
 import { TaskDialog } from "@/components/task-dialog";
@@ -16,6 +16,7 @@ import {
   weekGrid,
 } from "@/lib/calendar";
 import { resolveTaskColorId, taskColorStyle } from "@/lib/task-color";
+import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
 export type CalendarTask = Task & { projectName: string; columnName: string | null };
 
@@ -45,7 +46,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
   const filtered = useMemo(() => {
     return tasks.filter((task) => {
-      if (projectId !== "all" && task.projectId !== projectId) return false;
+      if (projectId === "none" && task.projectId) return false;
+      if (projectId !== "all" && projectId !== "none" && task.projectId !== projectId) return false;
       if (mineOnly && !isAssignedToUser(task, userName)) return false;
       return Boolean(task.startDate || task.dueDate || task.endDate);
     });
@@ -112,7 +114,7 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
 
   const inCurrentMonth = (date: Date) => date.getMonth() === cursor.getMonth();
 
-  const selectedProjectId = projectId === "all" ? undefined : projectId;
+  const selectedProjectId = projectId === "all" || projectId === "none" ? undefined : projectId;
 
   return (
     <div className="max-w-7xl mx-auto space-y-4">
@@ -148,7 +150,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
               onChange={(e) => setProjectId(e.target.value)}
               className="h-9 w-auto min-w-40"
             >
-              <option value="all">Todas as obras</option>
+              <option value="all">Todas</option>
+              <option value="none">{SEM_OBRA_LABEL}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>{project.name}</option>
               ))}
@@ -226,9 +229,8 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                         className={`block w-full truncate px-1.5 py-0.5 text-[11px] leading-tight text-left font-display uppercase tracking-wide ${color.chip}`}
                         data-fill={color.fill}
                         style={chipContrastStyle(color.fill)}
-                        title={`${task.title}${task.isMilestone ? " · Marco" : ""}${task.projectName ? ` · ${task.projectName}` : ""}`}
+                        title={`${task.title}${task.projectName ? ` · ${task.projectName}` : ""}`}
                       >
-                        {task.isMilestone && <Diamond className="inline h-3 w-3 mr-1 -mt-0.5" />}
                         {task.title}
                       </button>
                     );
@@ -355,7 +357,6 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
                       style={chipContrastStyle(color.fill)}
                     >
                       <div className="flex items-center gap-2">
-                        {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}
                         <span className="font-medium text-sm">{task.title}</span>
                       </div>
                       <p className="text-xs mt-1 opacity-80">{task.projectName}{task.columnName ? ` · ${task.columnName}` : ""}</p>
@@ -369,9 +370,9 @@ export function CalendarView({ tasks, projects, userName }: CalendarViewProps) {
       </div>
 
       <div className="hidden md:flex flex-wrap gap-3 text-xs text-muted-foreground">
-        {(["high", "medium", "low", "milestone", "overdue", "done"] as const).map((tone) => {
+        {(["high", "medium", "low", "overdue", "done"] as const).map((tone) => {
           const chip = badgeChipProps(tone);
-          const labels = { high: "Alta", medium: "Média", low: "Baixa", milestone: "Marco", overdue: "Atrasada", done: "Concluída" };
+          const labels = { high: "Alta", medium: "Média", low: "Baixa", overdue: "Atrasada", done: "Concluída" };
           return (
             <span key={tone} className={`px-2 py-0.5 ${chip.className}`} data-fill={chip["data-fill"]} style={chip.style}>
               {labels[tone]}

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CalendarClock, Diamond, Package, Plus } from "lucide-react";
+import { AlertTriangle, CalendarClock, Package, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState, Select, StatCard, TASK_CHIP_CLASS, chipContrastStyle } from "@/components/ds";
@@ -16,6 +16,7 @@ import { BADGE_FILL, isAssignedToUser, isDoneColumn, isOverdueTask, taskBadgeTon
 import { taskColorStyle } from "@/lib/task-color";
 import { BudgetChart, type BudgetChartRow } from "./budget-chart";
 import { afterMutation } from "@/lib/after-mutation";
+import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
 
 export type DashboardTask = Task & { projectName: string; columnName: string | null };
 
@@ -56,7 +57,12 @@ export function DashboardView({ userName, projects, tasks, materials, categories
   const weekIso = formatISODate(addDays(todayDate, 7));
 
   const filteredTasks = useMemo(
-    () => tasks.filter((task) => projectId === "all" || task.projectId === projectId),
+    () =>
+      tasks.filter((task) => {
+        if (projectId === "all") return true;
+        if (projectId === "none") return !task.projectId;
+        return task.projectId === projectId;
+      }),
     [projectId, tasks]
   );
   const filteredMaterials = useMemo(
@@ -87,12 +93,6 @@ export function DashboardView({ userName, projects, tasks, materials, categories
     const due = dueIso(task);
     return Boolean(due && due >= todayIso && due <= weekIso);
   });
-  const nextMilestone = openTasks
-    .filter((task) => task.isMilestone)
-    .map((task) => ({ task, date: dueIso(task) }))
-    .filter((item) => item.date && item.date >= todayIso)
-    .sort((a, b) => (a.date || "").localeCompare(b.date || ""))[0]?.task ?? null;
-
   const pending = [...overdue, ...dueSoon.filter((task) => !overdue.some((item) => item.id === task.id))];
   const myTasks = openTasks.filter((task) => isAssignedToUser(task, userName));
   const toBuy = filteredMaterials.filter((item) => item.status !== "purchased");
@@ -132,7 +132,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
     }
   };
 
-  const selectedProjectId = projectId === "all" ? undefined : projectId;
+  const selectedProjectId = projectId === "all" || projectId === "none" ? undefined : projectId;
   const hasProjects = projects.length > 0;
 
   return (
@@ -145,7 +145,8 @@ export function DashboardView({ userName, projects, tasks, materials, categories
             onChange={(e) => setProjectId(e.target.value)}
             className="h-9 w-auto min-w-40"
           >
-            <option value="all">Todas as obras</option>
+            <option value="all">Todas</option>
+            <option value="none">{SEM_OBRA_LABEL}</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>{project.name}</option>
             ))}
@@ -187,14 +188,10 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           hint={`${usedPct.toFixed(0)}% do orçamento`}
         />
         <StatCard
-          label="Próximo marco"
-          value={nextMilestone ? nextMilestone.title : "—"}
-          stamp="MARCO"
-          hint={
-            nextMilestone
-              ? `${dueIso(nextMilestone) && new Date(dueIso(nextMilestone)! + "T00:00:00").toLocaleDateString("pt-BR")} · ${nextMilestone.projectName}`
-              : "Cadastre um marco no Gantt ou no Kanban"
-          }
+          label="Sem obra"
+          value={filteredTasks.filter((task) => !task.projectId).length}
+          stamp="LIVRE"
+          hint="Tarefas sem obra vinculada"
         />
       </div>
 
@@ -275,7 +272,6 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                       style={chipContrastStyle(taskColorStyle(task.color).fill)}
                     >
                       <div className="flex items-center gap-2">
-                        {task.isMilestone && <Diamond className="h-3.5 w-3.5" />}
                         <span className="font-medium text-sm truncate">{task.title}</span>
                       </div>
                       <p className="text-xs mt-1 truncate opacity-80">

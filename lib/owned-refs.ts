@@ -60,13 +60,32 @@ export async function requireKbMaterial(materialId: string | null | undefined) {
   return row.id;
 }
 
-export async function getColumnOnProject(columnId: string, projectId: string) {
+export async function getColumnOnUser(columnId: string, userId: string) {
   const [row] = await db
     .select({ id: taskColumns.id })
     .from(taskColumns)
-    .where(and(eq(taskColumns.id, columnId), eq(taskColumns.projectId, projectId)))
+    .where(and(eq(taskColumns.id, columnId), eq(taskColumns.userId, userId)))
     .limit(1);
   return row ?? null;
+}
+
+/** @deprecated use getColumnOnUser — colunas do Kanban são por usuário. */
+export async function getColumnOnProject(columnId: string, projectId: string) {
+  const [row] = await db
+    .select({ id: taskColumns.id, userId: taskColumns.userId, projectId: taskColumns.projectId })
+    .from(taskColumns)
+    .where(eq(taskColumns.id, columnId))
+    .limit(1);
+  if (!row) return null;
+  if (row.projectId === projectId) return { id: row.id };
+  const { projects } = await import("@/lib/db/schema");
+  const [project] = await db
+    .select({ userId: projects.userId })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+  if (project && row.userId === project.userId) return { id: row.id };
+  return null;
 }
 
 /** Join de gasto: só materiais da mesma obra da categoria. */
