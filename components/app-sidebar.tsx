@@ -8,6 +8,7 @@ import {
   Building2,
   HardHat,
   Package,
+  Truck,
   KanbanSquare,
   GanttChart,
   Calendar,
@@ -33,7 +34,8 @@ interface AppSidebarProps {
 const navigation = [
   { name: "Painel", href: "/", icon: Home },
   { name: "Obras", href: "/obras", icon: Building2 },
-  { name: "Fornecedores", href: "/fornecedores", icon: Package },
+  { name: "Fornecedores", href: "/fornecedores", icon: Truck },
+  { name: "Estoque", href: "/estoque", icon: Package },
   { name: "Kanban", href: "/kanban", icon: KanbanSquare },
   { name: "Gantt", href: "/gantt", icon: GanttChart },
   { name: "Calendário", href: "/calendario", icon: Calendar },

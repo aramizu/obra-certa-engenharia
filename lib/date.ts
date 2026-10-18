@@ -40,3 +40,33 @@ export function eachDay(from: Date, to: Date): Date[] {
 export function today(): Date {
   return startOfDay(new Date());
 }
+
+export const APP_TIME_ZONE = "America/Sao_Paulo";
+
+/** Data civil no fuso da obra (padrão: São Paulo). */
+export function todayInTimeZone(timeZone = APP_TIME_ZONE): Date {
+  const iso = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  return parseISODate(iso);
+}
+
+/** Segunda-feira da semana que contém `date` (domingo fecha a semana). */
+export function startOfWeekMonday(date: Date): Date {
+  const start = startOfDay(date);
+  const weekday = start.getDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+  start.setDate(start.getDate() + offset);
+  return start;
+}
+
+export function endOfWeekSunday(date: Date): Date {
+  return addDays(startOfWeekMonday(date), 6);
+}
+
+export function formatDatePtBR(iso: string) {
+  return parseISODate(iso).toLocaleDateString("pt-BR");
+}

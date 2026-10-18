@@ -22,6 +22,7 @@ describe("Client Router Cache", () => {
       "/calendario",
       "/post-its",
       "/fornecedores",
+      "/estoque",
       "/perfil",
       "/admin/base",
     ]);

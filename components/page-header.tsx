@@ -23,6 +23,9 @@ export function titleFromPath(pathname: string): PageHeaderState {
   if (pathname.startsWith("/fornecedores")) {
     return { title: "Fornecedores", description: "Gerencie seus fornecedores e materiais" };
   }
+  if (pathname.startsWith("/estoque")) {
+    return { title: "Estoque", description: "Materiais comprados das obras ativas" };
+  }
   if (pathname.startsWith("/kanban")) {
     return { title: "Kanban", description: "Quadro único de todas as tarefas, com ou sem obra" };
   }

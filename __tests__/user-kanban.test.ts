@@ -126,12 +126,13 @@ describe("tag de prioridade", () => {
     expect(priorityChip("medium")?.label).toBe("Média");
   });
 
-  it("Kanban e Minhas tarefas usam a tag de texto, sem ícone Flag", () => {
+  it("Kanban e Tarefas da semana usam a tag de texto, sem ícone Flag", () => {
     const card = source("app/(app)/kanban/[id]/task-card.tsx");
     const dashboard = source("app/(app)/dashboard-view.tsx");
     expect(card).toContain("PriorityTag");
     expect(card).not.toContain("Flag");
     expect(dashboard).toContain("PriorityTag");
-    expect(dashboard).toContain("Minhas tarefas");
+    expect(dashboard).toContain("Tarefas da semana");
+    expect(dashboard).not.toContain("Flag");
   });
 });

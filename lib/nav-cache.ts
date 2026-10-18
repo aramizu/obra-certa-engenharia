@@ -14,6 +14,7 @@ export const DOMAIN_REVALIDATE_PATHS = [
   "/calendario",
   "/post-its",
   "/fornecedores",
+  "/estoque",
   "/perfil",
   "/admin/base",
 ] as const;
