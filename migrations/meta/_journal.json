@@ -92,6 +92,13 @@
       "when": 1792315000000,
       "tag": "0012_drop_milestone",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792320000000,
+      "tag": "0013_push_notifications",
+      "breakpoints": true
     }
   ]
 }

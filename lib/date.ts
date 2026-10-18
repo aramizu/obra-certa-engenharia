@@ -44,14 +44,27 @@ export function today(): Date {
 export const APP_TIME_ZONE = "America/Sao_Paulo";
 
 /** Data civil no fuso da obra (padrão: São Paulo). */
-export function todayInTimeZone(timeZone = APP_TIME_ZONE): Date {
+export function todayInTimeZone(timeZone = APP_TIME_ZONE, now = new Date()): Date {
   const iso = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(now);
   return parseISODate(iso);
+}
+
+/** Hora cheia 0–23 no fuso da obra (padrão: São Paulo). */
+export function hourInTimeZone(timeZone = APP_TIME_ZONE, now = new Date()): number {
+  const value = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    hourCycle: "h23",
+  })
+    .formatToParts(now)
+    .find((part) => part.type === "hour")?.value;
+  const hour = Number(value);
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : 0;
 }
 
 /** Segunda-feira da semana que contém `date` (domingo fecha a semana). */

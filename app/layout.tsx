@@ -25,6 +25,15 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Obra Certa Engenharia",
   description: "Gestão completa de obras e orçamentos",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Obra Certa Engenharia",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/images/construction-bg.jpg",
+  },
 };
 
 export default function RootLayout({
