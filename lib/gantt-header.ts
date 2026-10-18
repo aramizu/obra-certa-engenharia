@@ -18,10 +18,25 @@ function monthName(date: Date, style: "long" | "short") {
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
+/** Folga da pílula em relação às divisórias de dia/hora, sem alterar as datas. */
+export const GANTT_BAR_INSET_PX = 4;
+
 export function ganttMinColumnPx(zoom: GanttZoom) {
   if (zoom === "month") return 56;
   if (zoom === "week") return 56;
   return 40;
+}
+
+export function ganttBarBoxStyle(startIndex: number, spanCount: number, colCount: number) {
+  if (colCount <= 0 || spanCount <= 0) {
+    return { left: "0px", width: "0px" };
+  }
+  const leftPct = (startIndex / colCount) * 100;
+  const widthPct = (spanCount / colCount) * 100;
+  return {
+    left: `calc(${leftPct}% + ${GANTT_BAR_INSET_PX}px)`,
+    width: `calc(${widthPct}% - ${GANTT_BAR_INSET_PX * 2}px)`,
+  };
 }
 
 export function ganttColumns(zoom: GanttZoom, cursor: Date): GanttColumn[] {

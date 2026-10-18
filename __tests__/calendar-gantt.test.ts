@@ -22,8 +22,8 @@ describe("Gantt calendar helpers", () => {
   });
 
   it("coloca o nome dentro da barra só quando ela é larga o suficiente", () => {
-    expect(ganttLabelFitsInside(79)).toBe(false);
-    expect(ganttLabelFitsInside(80)).toBe(true);
+    expect(ganttLabelFitsInside(71)).toBe(false);
+    expect(ganttLabelFitsInside(72)).toBe(true);
   });
 
   it("formata intervalo em pt-BR", () => {

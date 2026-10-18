@@ -13,8 +13,10 @@ import { dependencyConflict, shiftSchedule, taskSchedule } from "@/lib/gantt";
 import { formatGanttDateRange, ganttLabelFitsInside, isWeekend } from "@/lib/calendar";
 import { taskColorStyle } from "@/lib/task-color";
 import {
+  GANTT_BAR_INSET_PX,
   formatGanttHeaderBottom,
   formatGanttHeaderTop,
+  ganttBarBoxStyle,
   ganttBarColumnSpan,
   ganttClockHourToColumn,
   ganttColumns,
@@ -22,7 +24,8 @@ import {
   shiftGanttCursor,
   type GanttZoom,
 } from "@/lib/gantt-header";
-import { SEM_OBRA_LABEL } from "@/lib/user-tasks";
+
+const GANTT_UNLINKED_GROUP_LABEL = "Outras atividades";
 
 const LABEL_W = 220;
 const ROW_H = 48;
@@ -70,13 +73,13 @@ function buildRenderRows(tasks: GanttTask[], groupByProject: boolean): RenderRow
       none.push(task);
       continue;
     }
-    const current = byId.get(task.projectId) ?? { name: task.projectName || SEM_OBRA_LABEL, tasks: [] };
+    const current = byId.get(task.projectId) ?? { name: task.projectName || "Obra", tasks: [] };
     current.tasks.push(task);
     byId.set(task.projectId, current);
   }
   const rows: RenderRow[] = [];
   if (none.length) {
-    rows.push({ kind: "group", key: "none", name: SEM_OBRA_LABEL });
+    rows.push({ kind: "group", key: "none", name: GANTT_UNLINKED_GROUP_LABEL });
     for (const task of none) rows.push({ kind: "task", task });
   }
   const named = [...byId.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name, "pt-BR"));
@@ -415,8 +418,10 @@ export function GanttChart({
                     ? ganttBarColumnSpan(zoom, columns, schedule.start, schedule.end)
                     : null;
                   const spanCount = span ? span.endIndex - span.startIndex + 1 : 0;
-                  const widthPx = spanCount * colWidthPx;
+                  const widthPx = Math.max(0, spanCount * colWidthPx - GANTT_BAR_INSET_PX * 2);
                   const labelInside = ganttLabelFitsInside(widthPx);
+                  const remainingCols = span ? colCount - span.endIndex - 1 : 0;
+                  const showOutsideLabel = Boolean(span) && !labelInside && remainingCols > 0;
                   const tooltip = schedule ? barTooltip(task, schedule) : `${task.title} · sem datas`;
 
                   return (
@@ -434,7 +439,7 @@ export function GanttChart({
                         <span className="truncate text-sm text-foreground">{task.title}</span>
                       </button>
                       <div
-                        className="relative flex min-w-0 flex-1"
+                        className="relative flex min-w-0 flex-1 overflow-hidden"
                         onClick={() => {
                           if (!schedule) {
                             setEditingTask(task);
@@ -464,14 +469,11 @@ export function GanttChart({
                               role="button"
                               tabIndex={0}
                               className={cn(
-                                "absolute top-1/2 -translate-y-1/2 z-[3] h-9 text-xs flex items-center font-display uppercase tracking-wide",
+                                "absolute top-2 bottom-2 z-[3] min-w-0 overflow-hidden px-2 text-xs flex items-center font-display uppercase tracking-wide",
                                 conflict && "ring-2 ring-delay",
                                 allowDrag ? "cursor-grab" : "cursor-pointer"
                               )}
-                              style={{
-                                left: `${(span.startIndex / colCount) * 100}%`,
-                                width: `${(spanCount / colCount) * 100}%`,
-                              }}
+                              style={ganttBarBoxStyle(span.startIndex, spanCount, colCount)}
                               title={tooltip}
                               onPointerDown={(event) => startDrag(event, task, "move")}
                               onClick={() => {
@@ -500,15 +502,18 @@ export function GanttChart({
                                 </>
                               )}
                               {labelInside && (
-                                <span className="truncate pointer-events-none px-2 flex items-center gap-1">
+                                <span className="block min-w-0 w-full truncate whitespace-nowrap pointer-events-none">
                                   {task.title}
                                 </span>
                               )}
                             </TaskChip>
-                            {!labelInside && (
+                            {showOutsideLabel && (
                               <span
-                                className="absolute top-1/2 -translate-y-1/2 z-[3] text-xs font-medium text-foreground pointer-events-none truncate max-w-[10rem]"
-                                style={{ left: `calc(${((span.endIndex + 1) / colCount) * 100}% + 6px)` }}
+                                className="absolute top-2 bottom-2 z-[3] flex items-center text-xs font-medium text-foreground pointer-events-none min-w-0 truncate whitespace-nowrap"
+                                style={{
+                                  left: `calc(${((span.endIndex + 1) / colCount) * 100}% + ${GANTT_BAR_INSET_PX + 4}px)`,
+                                  maxWidth: `calc(${(remainingCols / colCount) * 100}% - ${GANTT_BAR_INSET_PX + 8}px)`,
+                                }}
                               >
                                 {task.title}
                               </span>
