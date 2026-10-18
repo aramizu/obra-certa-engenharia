@@ -9,5 +9,11 @@
       "destination": "https://obra-certa-engenharia.vercel.app/:path*",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/vencimentos",
+      "schedule": "0 * * * *"
+    }
   ]
 }

@@ -62,7 +62,7 @@ describe("reset one-off de domínio", () => {
       "projects",
       "suppliers",
     ]);
-    expect([...DOMAIN_KEEP_TABLES]).toEqual(["users", "sessions", "rate_limits"]);
+    expect([...DOMAIN_KEEP_TABLES]).toEqual(["users", "sessions", "rate_limits", "push_subscriptions"]);
     for (const table of DOMAIN_KEEP_TABLES) {
       expect(DOMAIN_RESET_TABLES).not.toContain(table);
     }

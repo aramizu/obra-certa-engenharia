@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date, customType, uniqueIndex } from "drizzle-orm/pg-core";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -22,6 +22,10 @@ export const users = pgTable("users", {
   lockedUntil: timestamp("locked_until"),
   avatar: bytea("avatar"),
   avatarMime: text("avatar_mime"),
+  notifyHour: integer("notify_hour").notNull().default(8),
+  notifyOnDueDay: boolean("notify_on_due_day").notNull().default(true),
+  notifyDayBefore: boolean("notify_day_before").notNull().default(true),
+  notifyOverdue: boolean("notify_overdue").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
@@ -186,6 +190,28 @@ export const taskDependencies = pgTable("task_dependencies", {
   dependsOnTaskIdIdx: index("task_dependencies_depends_on_task_id_idx").on(table.dependsOnTaskId),
 }));
 
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+}));
+
+export const taskNotifications = pgTable("task_notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  sentOn: date("sent_on").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  taskKindDayIdx: uniqueIndex("task_notifications_task_kind_day").on(table.taskId, table.kind, table.sentOn),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
@@ -208,6 +234,10 @@ export type Note = typeof notes.$inferSelect;
 export type NewNote = typeof notes.$inferInsert;
 export type TaskDependency = typeof taskDependencies.$inferSelect;
 export type NewTaskDependency = typeof taskDependencies.$inferInsert;
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
+export type TaskNotification = typeof taskNotifications.$inferSelect;
+export type NewTaskNotification = typeof taskNotifications.$inferInsert;
 
 /** Base SINAPI global — não pertence a uma obra e não entra no CASCADE. */
 export const kbSupplierCategories = pgTable("kb_supplier_categories", {

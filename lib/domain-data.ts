@@ -39,7 +39,7 @@ export const DOMAIN_RESET_TABLES = [
   "suppliers",
 ] as const;
 
-export const DOMAIN_KEEP_TABLES = ["users", "sessions", "rate_limits"] as const;
+export const DOMAIN_KEEP_TABLES = ["users", "sessions", "rate_limits", "push_subscriptions"] as const;
 
 export const MISSING_OBRA_ERROR = "Obra não encontrada. Ela pode ter sido excluída.";
 export { ARCHIVED_WRITE_ERROR } from "@/lib/project-archive";
