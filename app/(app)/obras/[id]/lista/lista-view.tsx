@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ds";
+import { Badge, EmptyState } from "@/components/ds";
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 import { modulesForWorkType } from "@/lib/kb-engine";
 import { formatQty } from "@/lib/kb-engine";
@@ -18,52 +18,20 @@ import { formatBRL } from "@/lib/format";
 import { MATERIAL_UNITS } from "@/lib/material-units";
 import { afterMutation } from "@/lib/after-mutation";
 import type { Project, ProjectSuggestedItem, Supplier } from "@/lib/db/schema";
-
-type RoomDraft = {
-  key: string;
-  name: string;
-  areaM2: number;
-  widthM: number | null;
-  lengthM: number | null;
-  perimeterM: number | null;
-  ceilingHeightM: number;
-  doors: number;
-  windows: number;
-  moduleIds: string[];
-  packageIds: string[];
-  extras: Record<string, number>;
-};
+import {
+  ROOM_SHORTCUTS,
+  canAdvanceRoomsStep,
+  emptyRoom,
+  hasValidRoom,
+  initialWizardRooms,
+  roomsContinueHint,
+  type RoomDraft,
+} from "@/lib/lista-wizard";
 
 type ListaItem = Pick<
   ProjectSuggestedItem,
   "id" | "name" | "unit" | "quantity" | "categoryId" | "categoryName" | "source" | "linkedMaterialId" | "kbMaterialId" | "sinapiCode"
 >;
-
-const PRESETS: { name: string; areaM2: number; doors: number; windows: number }[] = [
-  { name: "Sala", areaM2: 20, doors: 1, windows: 2 },
-  { name: "Cozinha", areaM2: 10, doors: 1, windows: 1 },
-  { name: "Quarto", areaM2: 12, doors: 1, windows: 1 },
-  { name: "Banheiro", areaM2: 5, doors: 1, windows: 1 },
-  { name: "Sacada", areaM2: 4, doors: 1, windows: 0 },
-  { name: "Lavanderia", areaM2: 4, doors: 1, windows: 1 },
-];
-
-function emptyRoom(name = ""): RoomDraft {
-  return {
-    key: crypto.randomUUID(),
-    name,
-    areaM2: 0,
-    widthM: null,
-    lengthM: null,
-    perimeterM: null,
-    ceilingHeightM: 2.7,
-    doors: 1,
-    windows: 0,
-    moduleIds: [],
-    packageIds: [],
-    extras: {},
-  };
-}
 
 function sortSuppliers(list: Supplier[], categoryName: string) {
   return [...list].sort((a, b) => {
@@ -92,7 +60,8 @@ export function ListaView({
   const [workType, setWorkType] = useState<"reforma" | "na_planta">(
     project.workType === "na_planta" ? "na_planta" : "reforma"
   );
-  const [rooms, setRooms] = useState<RoomDraft[]>(initialRooms.length ? initialRooms : [emptyRoom("Sala")]);
+  const [rooms, setRooms] = useState<RoomDraft[]>(() => initialWizardRooms(initialRooms));
+  const canAdvance = canAdvanceRoomsStep(rooms);
   const [items, setItems] = useState<ListaItem[]>(initialItems);
   const [supplierList, setSupplierList] = useState(suppliers);
   const [loading, setLoading] = useState(false);
@@ -153,18 +122,26 @@ export function ListaView({
             {project.name} · {workType === "na_planta" ? "Na planta" : "Reforma"}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {(["rooms", "modules", "list"] as const).map((value, index) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStep(value)}
-                className={`rounded-full border-2 px-3 py-1 text-xs font-display uppercase tracking-wider ${
-                  step === value ? "border-graphite bg-primary text-primary-foreground" : "border-graphite bg-white"
-                }`}
-              >
-                {index + 1}. {value === "rooms" ? "Cômodos" : value === "modules" ? "Módulos" : "Lista"}
-              </button>
-            ))}
+            {(["rooms", "modules", "list"] as const).map((value, index) => {
+              const blocked = value === "modules" && !canAdvance;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  disabled={blocked}
+                  title={blocked ? roomsContinueHint(rooms) ?? undefined : undefined}
+                  onClick={() => {
+                    if (blocked) return;
+                    setStep(value);
+                  }}
+                  className={`rounded-full border-2 px-3 py-1 text-xs font-display uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50 ${
+                    step === value ? "border-graphite bg-primary text-primary-foreground" : "border-graphite bg-white"
+                  }`}
+                >
+                  {index + 1}. {value === "rooms" ? "Cômodos" : value === "modules" ? "Módulos" : "Lista"}
+                </button>
+              );
+            })}
           </div>
         </div>
         <Link href={`/obras/${project.id}`} prefetch className="text-sm underline-offset-4 hover:underline">
@@ -181,7 +158,10 @@ export function ListaView({
           rooms={rooms}
           setRooms={setRooms}
           updateRoom={updateRoom}
-          onNext={() => setStep("modules")}
+          onNext={() => {
+            if (!canAdvance) return;
+            setStep("modules");
+          }}
         />
       )}
 
@@ -189,9 +169,11 @@ export function ListaView({
         <ModulesStep
           catalog={catalog}
           modules={visibleModules}
-          rooms={rooms}
+          rooms={rooms.filter((room) => room.name.trim())}
           updateRoom={updateRoom}
           loading={loading}
+          canGenerate={hasValidRoom(rooms)}
+          generateHint={roomsContinueHint(rooms)}
           onBack={() => setStep("rooms")}
           onGenerate={generate}
         />
@@ -229,6 +211,10 @@ function RoomsStep({
   updateRoom: (key: string, patch: Partial<RoomDraft>) => void;
   onNext: () => void;
 }) {
+  const addRoom = (name = "") => setRooms([...rooms, emptyRoom(name)]);
+  const continueHint = roomsContinueHint(rooms);
+  const canContinue = canAdvanceRoomsStep(rooms);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -246,119 +232,143 @@ function RoomsStep({
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap gap-2">
-        {PRESETS.map((preset) => (
-          <Button
-            key={preset.name}
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setRooms([...rooms, { ...emptyRoom(preset.name), ...preset }])}
-          >
-            + {preset.name}
-          </Button>
-        ))}
+      <div className="space-y-2">
+        <p className="text-label">Atalhos rápidos</p>
+        <div className="flex flex-wrap gap-2">
+          {ROOM_SHORTCUTS.map((name) => (
+            <Button key={name} type="button" variant="secondary" size="sm" onClick={() => addRoom(name)}>
+              + {name}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {rooms.map((room, index) => (
-        <Card key={room.key}>
-          <CardHeader className="flex-row items-start justify-between gap-3">
-            <div>
-              <CardTitle>Cômodo {index + 1}</CardTitle>
-              <CardDescription>Área em m², perímetro ou largura × comprimento, pé-direito e vãos.</CardDescription>
-            </div>
-            {rooms.length > 1 && (
-              <Button type="button" variant="ghost" size="icon" onClick={() => setRooms(rooms.filter((item) => item.key !== room.key))}>
+      {rooms.length === 0 ? (
+        <Card>
+          <EmptyState
+            illustration="plan"
+            title="Nenhum cômodo ainda"
+            description="Adicione os ambientes do apartamento que serão reformados. Use os atalhos ou crie um cômodo com o nome que quiser."
+            action={
+              <Button type="button" onClick={() => addRoom()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar cômodo
+              </Button>
+            }
+          />
+        </Card>
+      ) : (
+        rooms.map((room, index) => (
+          <Card key={room.key}>
+            <CardHeader className="flex-row items-start justify-between gap-3">
+              <div>
+                <CardTitle>Cômodo {index + 1}</CardTitle>
+                <CardDescription>Área em m², perímetro ou largura × comprimento, pé-direito e vãos.</CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Remover ${room.name.trim() || `cômodo ${index + 1}`}`}
+                onClick={() => setRooms(rooms.filter((item) => item.key !== room.key))}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
-            )}
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Nome</Label>
-              <Input value={room.name} onChange={(event) => updateRoom(room.key, { name: event.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Área (m²)</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={room.areaM2 || ""}
-                onChange={(event) => updateRoom(room.key, { areaM2: Number(event.target.value) || 0 })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Pé-direito (m)</Label>
-              <Input
-                type="number"
-                min={2}
-                step="0.1"
-                value={room.ceilingHeightM}
-                onChange={(event) => updateRoom(room.key, { ceilingHeightM: Number(event.target.value) || 2.7 })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Largura (m)</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={room.widthM ?? ""}
-                onChange={(event) => updateRoom(room.key, { widthM: event.target.value === "" ? null : Number(event.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Comprimento (m)</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={room.lengthM ?? ""}
-                onChange={(event) => updateRoom(room.key, { lengthM: event.target.value === "" ? null : Number(event.target.value) })}
-              />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Perímetro (m) — se não informar dimensões</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={room.perimeterM ?? ""}
-                onChange={(event) => updateRoom(room.key, { perimeterM: event.target.value === "" ? null : Number(event.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Portas</Label>
-              <Input
-                type="number"
-                min={0}
-                value={room.doors}
-                onChange={(event) => updateRoom(room.key, { doors: Number(event.target.value) || 0 })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Janelas</Label>
-              <Input
-                type="number"
-                min={0}
-                value={room.windows}
-                onChange={(event) => updateRoom(room.key, { windows: Number(event.target.value) || 0 })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Nome</Label>
+                <Input
+                  value={room.name}
+                  placeholder="Ex: Sala, Quarto suíte…"
+                  onChange={(event) => updateRoom(room.key, { name: event.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Área (m²)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={room.areaM2 || ""}
+                  onChange={(event) => updateRoom(room.key, { areaM2: Number(event.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Pé-direito (m)</Label>
+                <Input
+                  type="number"
+                  min={2}
+                  step="0.1"
+                  value={room.ceilingHeightM}
+                  onChange={(event) => updateRoom(room.key, { ceilingHeightM: Number(event.target.value) || 2.7 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Largura (m)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={room.widthM ?? ""}
+                  onChange={(event) => updateRoom(room.key, { widthM: event.target.value === "" ? null : Number(event.target.value) })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Comprimento (m)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={room.lengthM ?? ""}
+                  onChange={(event) => updateRoom(room.key, { lengthM: event.target.value === "" ? null : Number(event.target.value) })}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Perímetro (m) — se não informar dimensões</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={room.perimeterM ?? ""}
+                  onChange={(event) => updateRoom(room.key, { perimeterM: event.target.value === "" ? null : Number(event.target.value) })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Portas</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={room.doors || ""}
+                  onChange={(event) => updateRoom(room.key, { doors: Number(event.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Janelas</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={room.windows || ""}
+                  onChange={(event) => updateRoom(room.key, { windows: Number(event.target.value) || 0 })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
 
-      <Button type="button" variant="outline" onClick={() => setRooms([...rooms, emptyRoom()])}>
-        <Plus className="h-4 w-4 mr-2" />
-        Outro cômodo
-      </Button>
+      {rooms.length > 0 && (
+        <Button type="button" variant="outline" onClick={() => addRoom()}>
+          <Plus className="h-4 w-4 mr-2" />
+          Adicionar cômodo
+        </Button>
+      )}
 
-      <div className="flex justify-end">
-        <Button type="button" onClick={onNext}>
+      <div className="flex flex-col items-end gap-1">
+        <Button type="button" onClick={onNext} disabled={!canContinue} title={continueHint ?? undefined}>
           Continuar
         </Button>
+        {continueHint && <p className="text-xs text-muted-foreground">{continueHint}</p>}
       </div>
     </div>
   );
@@ -370,6 +380,8 @@ function ModulesStep({
   rooms,
   updateRoom,
   loading,
+  canGenerate,
+  generateHint,
   onBack,
   onGenerate,
 }: {
@@ -378,6 +390,8 @@ function ModulesStep({
   rooms: RoomDraft[];
   updateRoom: (key: string, patch: Partial<RoomDraft>) => void;
   loading: boolean;
+  canGenerate: boolean;
+  generateHint: string | null;
   onBack: () => void;
   onGenerate: () => void;
 }) {
@@ -483,13 +497,16 @@ function ModulesStep({
         </Card>
       ))}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-end gap-3">
         <Button type="button" variant="outline" onClick={onBack} disabled={loading}>
           Voltar
         </Button>
-        <Button type="button" onClick={onGenerate} disabled={loading}>
-          {loading ? "Gerando..." : "Gerar lista sugerida"}
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button type="button" onClick={onGenerate} disabled={loading || !canGenerate} title={generateHint ?? undefined}>
+            {loading ? "Gerando..." : "Gerar lista sugerida"}
+          </Button>
+          {generateHint && <p className="text-xs text-muted-foreground">{generateHint}</p>}
+        </div>
       </div>
     </div>
   );
@@ -603,7 +620,7 @@ function ItemRow({
 }) {
   const router = useRouter();
   const [qty, setQty] = useState(String(item.quantity));
-  const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? "new");
+  const [supplierId, setSupplierId] = useState("");
   const [newName, setNewName] = useState("");
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("0");
@@ -636,9 +653,13 @@ function ItemRow({
 
   const link = async () => {
     setError(null);
+    const usingNew = supplierId === "new";
+    if (!supplierId) {
+      setError("Selecione um fornecedor ou cadastre um novo.");
+      return;
+    }
     setBusy(true);
     try {
-      const usingNew = supplierId === "new";
       const response = await fetch(`/api/obras/${projectId}/lista/itens/${item.id}/vincular`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -691,6 +712,7 @@ function ItemRow({
       ) : (
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <Select value={supplierId} onChange={(event) => setSupplierId(event.target.value)}>
+            <option value="">Selecione o fornecedor…</option>
             {suppliers.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>
                 {supplier.name}
@@ -705,7 +727,12 @@ function ItemRow({
           <Input placeholder="Marca" value={brand} onChange={(event) => setBrand(event.target.value)} />
           <CurrencyInput value={price} onValueChange={setPrice} placeholder="R$ 0,00" />
           <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
-            <Button type="button" size="sm" onClick={() => void link()} disabled={busy}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void link()}
+              disabled={busy || !supplierId || (supplierId === "new" && !newName.trim())}
+            >
               {busy ? "Vinculando..." : "Vincular ao orçamento"}
             </Button>
             {Number(price) > 0 && (
@@ -734,7 +761,7 @@ function AddItemForm({
   const [name, setName] = useState("");
   const [unit, setUnit] = useState("un");
   const [quantity, setQuantity] = useState("1");
-  const [categoryId, setCategoryId] = useState(catalog.categories[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 

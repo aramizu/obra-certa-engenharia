@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -55,22 +56,25 @@ export function KanbanBoard({ projectId, initialColumns, initialTasks }: KanbanB
         </div>
       </div>
 
-      {drag && draggedTask && (
-        <div
-          aria-hidden
-          className="fixed z-50 pointer-events-none"
-          style={{
-            left: drag.x - drag.offsetX,
-            top: drag.y - drag.offsetY,
-            width: drag.width,
-            transform: "rotate(2deg)",
-          }}
-        >
-          <Card className="bg-white ds-shadow border-primary opacity-95">
-            <TaskCardBody task={draggedTask} />
-          </Card>
-        </div>
-      )}
+      {drag &&
+        draggedTask &&
+        createPortal(
+          <div
+            aria-hidden
+            className="fixed z-50 pointer-events-none p-1.5"
+            style={{
+              left: drag.x - drag.offsetX - 6,
+              top: drag.y - drag.offsetY - 6,
+              width: drag.width + 12,
+              transform: "rotate(2deg)",
+            }}
+          >
+            <Card className="bg-white ds-shadow border-primary opacity-95">
+              <TaskCardBody task={draggedTask} />
+            </Card>
+          </div>,
+          document.body
+        )}
 
       <ColumnDialog
         open={showColumnDialog}
