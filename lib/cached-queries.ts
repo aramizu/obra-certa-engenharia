@@ -3,6 +3,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { projects, tasks } from "@/lib/db/schema";
 import { CLIENT_STALE_TIMES, KB_CACHE_TAG, userDomainTag } from "@/lib/nav-cache";
+import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 import { loadKnowledgeCatalog } from "@/lib/kb-store";
 
@@ -33,7 +34,7 @@ export function getCachedUserProjects(userId: string) {
           targetEndDate: projects.targetEndDate,
         })
         .from(projects)
-        .where(eq(projects.userId, userId))
+        .where(activeProjectsOwnedBy(userId))
         .orderBy(desc(projects.createdAt));
     },
     ["user-projects", userId],
@@ -57,7 +58,7 @@ export function getCachedUserProjectBoards(userId: string) {
         })
         .from(projects)
         .leftJoin(tasks, eq(projects.id, tasks.projectId))
-        .where(eq(projects.userId, userId))
+        .where(activeProjectsOwnedBy(userId))
         .groupBy(
           projects.id,
           projects.name,

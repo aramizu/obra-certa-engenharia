@@ -4,6 +4,7 @@ import { validateSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { notes } from "@/lib/db/schema";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { isNoteColorId } from "@/lib/notes";
 
@@ -33,6 +34,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       if (projectId) {
         const project = await getOwnedProject(projectId, user.id);
         if (!project) return NextResponse.json({ error: "Obra não encontrada" }, { status: 400 });
+        if (isProjectArchived(project)) return archivedWriteResponse();
       }
       updates.projectId = projectId;
     }

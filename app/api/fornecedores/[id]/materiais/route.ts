@@ -5,6 +5,7 @@ import { materials, suppliers, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const materialSchema = z.object({
@@ -56,6 +57,7 @@ export async function POST(
     if (!project) {
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [material] = await db
       .insert(materials)

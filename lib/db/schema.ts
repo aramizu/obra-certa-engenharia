@@ -59,6 +59,7 @@ export const projects = pgTable("projects", {
   targetEndDate: date("target_end_date"),
   totalBudget: numeric("total_budget", { precision: 15, scale: 2 }).notNull().default("0"),
   workType: text("work_type").notNull().default("reforma"),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({

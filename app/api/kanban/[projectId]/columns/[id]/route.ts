@@ -5,6 +5,7 @@ import { taskColumns } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { MISSING_COLUMN_ERROR, MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ projectId: string; id: string }> }) {
@@ -15,6 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { projectId, id } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [column] = await db.select().from(taskColumns).where(and(eq(taskColumns.id, id), eq(taskColumns.projectId, projectId))).limit(1);
     if (!column) return NextResponse.json({ error: MISSING_COLUMN_ERROR }, { status: 404 });
@@ -55,6 +57,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { projectId, id } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const columns = await db.select().from(taskColumns).where(eq(taskColumns.projectId, projectId));
     if (columns.length <= 1) {

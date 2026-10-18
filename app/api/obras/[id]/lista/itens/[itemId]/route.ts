@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { projectSuggestedItems } from "@/lib/db/schema";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const patchSchema = z.object({
@@ -24,6 +25,7 @@ export async function PATCH(
     const { id, itemId } = await params;
     const project = await getOwnedProject(id, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const data = patchSchema.parse(await request.json());
     const [item] = await db
@@ -59,6 +61,7 @@ export async function DELETE(
     const { id, itemId } = await params;
     const project = await getOwnedProject(id, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [item] = await db
       .delete(projectSuggestedItems)

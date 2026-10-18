@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { CalendarView, type CalendarTask } from "./calendar-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 import { getCachedUserProjects } from "@/lib/cached-queries";
@@ -23,7 +24,7 @@ export default async function CalendarioPage() {
     .from(tasks)
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
-    .where(eq(projects.userId, user.id));
+    .where(activeProjectsOwnedBy(user.id));
 
   const calendarTasks: CalendarTask[] = rows.map((row) => ({
     ...row.task,

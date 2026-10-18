@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { projects, budgetCategories, materials, tasks, taskColumns } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { DashboardView, type DashboardCategory, type DashboardMaterial, type DashboardTask } from "./dashboard-view";
 import { StaleSelectionCleaner } from "@/components/stale-selection-cleaner";
 import { getCachedUserProjects } from "@/lib/cached-queries";
@@ -25,7 +26,7 @@ export default async function HomePage() {
     .from(tasks)
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(taskColumns, eq(tasks.statusColumnId, taskColumns.id))
-    .where(eq(projects.userId, user.id));
+    .where(activeProjectsOwnedBy(user.id));
 
   const dashboardTasks: DashboardTask[] = taskRows.map((row) => ({
     ...row.task,
@@ -46,7 +47,7 @@ export default async function HomePage() {
     })
     .from(materials)
     .innerJoin(projects, eq(materials.projectId, projects.id))
-    .where(eq(projects.userId, user.id));
+    .where(activeProjectsOwnedBy(user.id));
 
   const dashboardMaterials: DashboardMaterial[] = materialRows;
 
@@ -60,7 +61,7 @@ export default async function HomePage() {
     .from(budgetCategories)
     .leftJoin(materials, eq(budgetCategories.id, materials.budgetCategoryId))
     .innerJoin(projects, eq(budgetCategories.projectId, projects.id))
-    .where(eq(projects.userId, user.id))
+    .where(activeProjectsOwnedBy(user.id))
     .groupBy(
       budgetCategories.id,
       budgetCategories.projectId,

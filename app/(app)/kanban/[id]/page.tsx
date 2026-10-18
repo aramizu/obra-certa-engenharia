@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { projects, taskColumns, tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { KanbanBoard } from "./kanban-board";
+import { ArchivedObraBanner } from "@/components/archived-obra-banner";
+import { isProjectArchived } from "@/lib/project-archive";
 
 export default async function KanbanProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -24,13 +26,15 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
     redirect("/kanban?aviso=obra-inexistente");
   }
 
+  const archived = isProjectArchived(project);
+
   let columns = await db
     .select()
     .from(taskColumns)
     .where(eq(taskColumns.projectId, project.id))
     .orderBy(taskColumns.order);
 
-  if (columns.length === 0) {
+  if (columns.length === 0 && !archived) {
     const defaultColumns = [
       { name: "A Fazer", order: 0 },
       { name: "Em Andamento", order: 1 },
@@ -61,12 +65,15 @@ export default async function KanbanProjectPage({ params }: { params: Promise<{ 
   return (
     <>
       <PageTitle title={`Kanban - ${project.name}`} description="Gerencie suas tarefas" />
-      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6">
-        <KanbanBoard
-          projectId={project.id}
-          initialColumns={columns}
-          initialTasks={projectTasks}
-        />
+      <main className="flex-1 overflow-x-auto overflow-y-hidden p-4 lg:p-6 space-y-4">
+        {archived && <ArchivedObraBanner projectId={project.id} />}
+        <div {...(archived ? { inert: true } : {})} className="h-full">
+          <KanbanBoard
+            projectId={project.id}
+            initialColumns={columns}
+            initialTasks={projectTasks}
+          />
+        </div>
       </main>
     </>
   );

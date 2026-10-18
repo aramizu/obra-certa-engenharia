@@ -5,6 +5,7 @@ import { tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 import { isTaskColorId, parseTaskColorInput } from "@/lib/task-color";
 
@@ -22,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { projectId, id } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const body = await request.json();
     const updates: Record<string, unknown> = { updatedAt: new Date() };

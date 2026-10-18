@@ -43,6 +43,7 @@ export const DOMAIN_RESET_TABLES = [
 export const DOMAIN_KEEP_TABLES = ["users", "sessions", "rate_limits"] as const;
 
 export const MISSING_OBRA_ERROR = "Obra não encontrada. Ela pode ter sido excluída.";
+export { ARCHIVED_WRITE_ERROR } from "@/lib/project-archive";
 export const MISSING_SUPPLIER_ERROR = "Fornecedor não encontrado. Ele pode ter sido excluído.";
 export const MISSING_COLUMN_ERROR = "Coluna não encontrada. Ela pode ter sido excluída.";
 export const MISSING_TASK_ERROR = "Tarefa não encontrada. Ela pode ter sido excluída.";

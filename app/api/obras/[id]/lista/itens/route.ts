@@ -3,6 +3,7 @@ import { z } from "zod";
 import { validateSession } from "@/lib/auth/session";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { addCustomSuggestedItem } from "@/lib/project-lista";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const project = await getOwnedProject(id, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const data = itemSchema.parse(await request.json());
     const item = await addCustomSuggestedItem(id, data);
