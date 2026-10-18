@@ -1,26 +1,27 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./cn";
+import { PILL_CHIP_CLASS, type ChipFillToken } from "./chip";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border-2 px-2.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-widest",
+  `${PILL_CHIP_CLASS} inline-flex items-center px-2.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-widest`,
   {
     variants: {
       tone: {
-        graphite: "border-graphite bg-white text-foreground",
-        safety: "border-graphite bg-primary text-primary-foreground",
-        signal: "border-graphite bg-signal text-signal-ink",
-        blueprint: "border-graphite bg-blueprint text-blueprint-ink",
-        done: "border-done bg-done-wash text-done",
-        delay: "border-delay bg-delay text-delay-ink",
-        high: "border-delay bg-delay-wash text-delay",
-        medium: "border-graphite bg-signal-wash text-signal-ink",
-        low: "border-blueprint bg-blueprint-wash text-blueprint",
-        normal: "border-graphite bg-concrete text-foreground",
-        milestone: "border-graphite bg-primary text-primary-foreground",
-        overdue: "border-delay bg-delay text-delay-ink",
-        quoted: "border-graphite bg-signal-wash text-signal-ink",
-        purchased: "border-done bg-done-wash text-done",
+        graphite: "",
+        safety: "",
+        signal: "",
+        blueprint: "",
+        done: "",
+        delay: "",
+        high: "",
+        medium: "",
+        low: "",
+        normal: "",
+        milestone: "font-semibold",
+        overdue: "",
+        quoted: "",
+        purchased: "",
       },
     },
     defaultVariants: {
@@ -29,12 +30,36 @@ const badgeVariants = cva(
   }
 );
 
+export const BADGE_TONE_FILL: Record<NonNullable<VariantProps<typeof badgeVariants>["tone"]>, ChipFillToken> = {
+  graphite: "white",
+  safety: "primary",
+  signal: "signal",
+  blueprint: "blueprint",
+  done: "done-wash",
+  delay: "delay",
+  high: "delay-wash",
+  medium: "signal-wash",
+  low: "blueprint-wash",
+  normal: "concrete",
+  milestone: "primary",
+  overdue: "delay",
+  quoted: "signal-wash",
+  purchased: "done-wash",
+};
+
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, tone, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ tone }), className)} {...props} />;
+export function Badge({ className, tone = "graphite", ...props }: BadgeProps) {
+  const resolved = tone ?? "graphite";
+  return (
+    <span
+      className={cn(badgeVariants({ tone: resolved }), className)}
+      data-fill={BADGE_TONE_FILL[resolved]}
+      {...props}
+    />
+  );
 }
 
 export { badgeVariants };

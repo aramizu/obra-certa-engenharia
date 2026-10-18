@@ -5,6 +5,7 @@ import { taskDependencies, tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ projectId: string; id: string }> }) {
@@ -15,6 +16,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const { projectId, id } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [dependency] = await db.select().from(taskDependencies).where(eq(taskDependencies.id, id)).limit(1);
     if (!dependency) return NextResponse.json({ error: MISSING_TASK_ERROR }, { status: 404 });

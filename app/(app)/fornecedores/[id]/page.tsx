@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/page-header";
 import { db } from "@/lib/db";
 import { suppliers, materials, projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { activeProjectsOwnedBy } from "@/lib/project-archive";
 import { SupplierActions } from "./supplier-actions";
 import { MaterialsList } from "./materials-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
       name: projects.name,
     })
     .from(projects)
-    .where(eq(projects.userId, user.id));
+    .where(activeProjectsOwnedBy(user.id));
 
   const totalQuoted = supplierMaterials
     .filter(m => m.status === "quoted")

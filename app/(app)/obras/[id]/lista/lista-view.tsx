@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge, EmptyState } from "@/components/ds";
+import { Badge, EmptyState, PILL_CHIP_CLASS } from "@/components/ds";
 import type { KnowledgeCatalog } from "@/lib/kb-catalog";
 import { modulesForWorkType } from "@/lib/kb-engine";
 import { formatQty } from "@/lib/kb-engine";
@@ -134,9 +134,8 @@ export function ListaView({
                     if (blocked) return;
                     setStep(value);
                   }}
-                  className={`rounded-full border-2 px-3 py-1 text-xs font-display uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50 ${
-                    step === value ? "border-graphite bg-primary text-primary-foreground" : "border-graphite bg-white"
-                  }`}
+                  className={`${PILL_CHIP_CLASS} px-3 py-1 text-xs font-display uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50`}
+                  data-fill={step === value ? "primary" : "white"}
                 >
                   {index + 1}. {value === "rooms" ? "Cômodos" : value === "modules" ? "Módulos" : "Lista"}
                 </button>

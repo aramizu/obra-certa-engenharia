@@ -4,8 +4,10 @@ import { db } from "@/lib/db";
 import { materials, suppliers, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
-import { MISSING_MATERIAL_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { MISSING_MATERIAL_ERROR, MISSING_OBRA_ERROR, MISSING_SUPPLIER_ERROR } from "@/lib/domain-data";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { getOwnedProject } from "@/lib/owned-project";
 
 const materialSchema = z.object({
   projectId: z.string().min(1, "Obra é obrigatória"),
@@ -32,15 +34,15 @@ async function verifySupplierOwnership(supplierId: string, userId: string) {
   return !!supplier;
 }
 
-async function verifyMaterialAccess(materialId: string, supplierId: string, userId: string) {
-  const [material] = await db
-    .select({ projectUserId: projects.userId })
+async function loadMaterialProject(materialId: string, supplierId: string, userId: string) {
+  const [row] = await db
+    .select({ projectUserId: projects.userId, archivedAt: projects.archivedAt })
     .from(materials)
     .innerJoin(projects, eq(materials.projectId, projects.id))
     .where(and(eq(materials.id, materialId), eq(materials.supplierId, supplierId)))
     .limit(1);
-
-  return material && material.projectUserId === userId;
+  if (!row || row.projectUserId !== userId) return null;
+  return row;
 }
 
 export async function PATCH(
@@ -60,13 +62,18 @@ export async function PATCH(
       return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
-    const hasAccess = await verifyMaterialAccess(materialId, supplierId, user.id);
-    if (!hasAccess) {
+    const current = await loadMaterialProject(materialId, supplierId, user.id);
+    if (!current) {
       return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(current)) return archivedWriteResponse();
 
     const body = await request.json();
     const data = materialSchema.parse(body);
+
+    const project = await getOwnedProject(data.projectId, user.id);
+    if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [material] = await db
       .update(materials)
@@ -126,10 +133,11 @@ export async function DELETE(
       return NextResponse.json({ error: MISSING_SUPPLIER_ERROR }, { status: 404 });
     }
 
-    const hasAccess = await verifyMaterialAccess(materialId, supplierId, user.id);
-    if (!hasAccess) {
+    const current = await loadMaterialProject(materialId, supplierId, user.id);
+    if (!current) {
       return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(current)) return archivedWriteResponse();
 
     const [material] = await db
       .delete(materials)

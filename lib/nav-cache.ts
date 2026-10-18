@@ -12,7 +12,9 @@ export const DOMAIN_REVALIDATE_PATHS = [
   "/kanban",
   "/gantt",
   "/calendario",
+  "/post-its",
   "/fornecedores",
+  "/perfil",
   "/admin/base",
 ] as const;
 

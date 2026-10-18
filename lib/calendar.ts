@@ -1,3 +1,4 @@
+import { PILL_CHIP_CLASS, TASK_CHIP_CLASS, type ChipFillToken } from "@/components/ds/chip";
 import { addDays, eachDay, formatISODate, startOfDay } from "./date";
 import type { Task } from "./db/schema";
 
@@ -72,14 +73,24 @@ export function taskBadgeTone(
   return "normal";
 }
 
+export const BADGE_FILL: Record<BadgeTone, ChipFillToken> = {
+  high: "delay-wash",
+  medium: "signal-wash",
+  low: "blueprint-wash",
+  normal: "white",
+  milestone: "primary",
+  overdue: "delay",
+  done: "done-wash",
+};
+
 export const BADGE_CLASS: Record<BadgeTone, string> = {
-  high: "rounded-full bg-delay-wash text-delay border-2 border-delay",
-  medium: "rounded-full bg-signal-wash text-signal-ink border-2 border-graphite",
-  low: "rounded-full bg-blueprint-wash text-blueprint border-2 border-blueprint",
-  normal: "rounded-full bg-white text-foreground border-2 border-graphite",
-  milestone: "rounded-full bg-primary text-primary-foreground border-2 border-graphite font-semibold",
-  overdue: "rounded-full bg-delay text-delay-ink border-2 border-graphite",
-  done: "rounded-full bg-done-wash text-done border-2 border-done line-through",
+  high: PILL_CHIP_CLASS,
+  medium: PILL_CHIP_CLASS,
+  low: PILL_CHIP_CLASS,
+  normal: PILL_CHIP_CLASS,
+  milestone: `${PILL_CHIP_CLASS} font-semibold`,
+  overdue: PILL_CHIP_CLASS,
+  done: `${PILL_CHIP_CLASS} line-through`,
 };
 
 export const DOT_CLASS: Record<BadgeTone, string> = {
@@ -92,16 +103,24 @@ export const DOT_CLASS: Record<BadgeTone, string> = {
   done: "bg-done",
 };
 
-/** Same palette as calendar badges, as opaque Gantt bars. */
+/** Same palette as calendar badges, as opaque Gantt bars (raio de tarefa, não pílula). */
 export const GANTT_BAR_CLASS: Record<BadgeTone, string> = {
-  high: "rounded-md bg-delay-wash text-delay border-2 border-delay",
-  medium: "rounded-md bg-signal-wash text-signal-ink border-2 border-graphite",
-  low: "rounded-md bg-blueprint-wash text-blueprint border-2 border-blueprint",
-  normal: "rounded-md bg-white text-foreground border-2 border-graphite",
-  milestone: "rounded-md bg-primary text-primary-foreground border-2 border-graphite font-semibold",
-  overdue: "rounded-md bg-delay text-delay-ink border-2 border-graphite",
-  done: "rounded-md bg-done-wash text-done border-2 border-done",
+  high: TASK_CHIP_CLASS,
+  medium: TASK_CHIP_CLASS,
+  low: TASK_CHIP_CLASS,
+  normal: TASK_CHIP_CLASS,
+  milestone: `${TASK_CHIP_CLASS} font-semibold`,
+  overdue: TASK_CHIP_CLASS,
+  done: TASK_CHIP_CLASS,
 };
+
+export function badgeChipProps(tone: BadgeTone) {
+  return { className: BADGE_CLASS[tone], "data-fill": BADGE_FILL[tone] };
+}
+
+export function ganttBarChipProps(tone: BadgeTone) {
+  return { className: GANTT_BAR_CLASS[tone], "data-fill": BADGE_FILL[tone] };
+}
 
 export const GANTT_MILESTONE_CLASS: Record<BadgeTone, string> = {
   high: "bg-delay border-graphite",

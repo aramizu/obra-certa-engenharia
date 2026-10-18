@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { suppliers } from "@/lib/db/schema";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { getOwnedProject, getOwnedSupplier } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { linkSuggestedItem } from "@/lib/project-lista";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
@@ -31,6 +32,7 @@ export async function POST(
     const { id, itemId } = await params;
     const project = await getOwnedProject(id, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const data = schema.parse(await request.json());
     if (Number(data.unitPrice) <= 0) {

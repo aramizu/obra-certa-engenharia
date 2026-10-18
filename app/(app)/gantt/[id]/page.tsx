@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { projects, taskColumns, taskDependencies, tasks } from "@/lib/db/schema";
 import { eq, and, inArray, asc } from "drizzle-orm";
 import { GanttChart, type GanttTask } from "./gantt-chart";
+import { ArchivedObraBanner } from "@/components/archived-obra-banner";
+import { isProjectArchived } from "@/lib/project-archive";
 
 export default async function GanttProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -19,6 +21,7 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
     .limit(1);
 
   if (!project) redirect("/gantt?aviso=obra-inexistente");
+  const archived = isProjectArchived(project);
 
   const rows = await db
     .select({
@@ -46,14 +49,17 @@ export default async function GanttProjectPage({ params }: { params: Promise<{ i
         title={`Gantt - ${project.name}`}
         description="Linha do tempo, dependências e marcos da obra"
       />
-      <main className="flex-1 overflow-hidden p-4 lg:p-6">
-        <GanttChart
-          projectId={project.id}
-          projectStart={project.startDate}
-          projectEnd={project.targetEndDate}
-          initialTasks={projectTasks}
-          initialDependencies={dependencies}
-        />
+      <main className="flex-1 overflow-hidden p-4 lg:p-6 space-y-4">
+        {archived && <ArchivedObraBanner projectId={project.id} />}
+        <div {...(archived ? { inert: true } : {})} className="h-full min-h-0">
+          <GanttChart
+            projectId={project.id}
+            projectStart={project.startDate}
+            projectEnd={project.targetEndDate}
+            initialTasks={projectTasks}
+            initialDependencies={dependencies}
+          />
+        </div>
       </main>
     </>
   );

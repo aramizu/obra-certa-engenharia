@@ -12,6 +12,8 @@ import { ProgressBar } from "@/components/ds";
 import { CreateCategoryButton } from "./create-category-button";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ArchivedObraBanner } from "@/components/archived-obra-banner";
+import { isProjectArchived } from "@/lib/project-archive";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -61,12 +63,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const totalBudgeted = categories.reduce((sum, cat) => sum + parseFloat(cat.budgetedAmount), 0);
   const totalSpent = categories.reduce((sum, cat) => sum + parseFloat(cat.spent), 0);
   const spentPercentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+  const archived = isProjectArchived(project);
 
   return (
     <>
       <PageTitle title={project.name} description={project.address || undefined} />
       <main className="flex-1 overflow-y-auto overflow-x-hidden p-8">
           <div className="max-w-7xl mx-auto space-y-6">
+            {archived && <ArchivedObraBanner projectId={project.id} />}
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 {project.startDate && project.targetEndDate && (
@@ -101,7 +105,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-3" {...(archived ? { inert: true } : {})}>
               <Card>
                 <CardHeader className="pb-3">
                   <CardDescription className="font-data">Orçamento Total</CardDescription>
@@ -147,7 +151,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </Card>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4" {...(archived ? { inert: true } : {})}>
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">Categorias do Orçamento</h2>
@@ -155,7 +159,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     Organize o orçamento por etapas da obra
                   </p>
                 </div>
-                <CreateCategoryButton projectId={project.id} />
+                {!archived && <CreateCategoryButton projectId={project.id} />}
               </div>
 
               <BudgetCategoriesList projectId={project.id} categories={categories} />

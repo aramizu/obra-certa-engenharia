@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Diamond, Package, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { EmptyState, Select, StatCard } from "@/components/ds";
+import { EmptyState, Select, StatCard, TASK_CHIP_CLASS } from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { TaskDialog } from "@/components/task-dialog";
 import type { Task } from "@/lib/db/schema";
 import { formatBRL } from "@/lib/format";
 import { addDays, formatISODate, today } from "@/lib/date";
-import { BADGE_CLASS, isAssignedToUser, isDoneColumn, isOverdueTask, taskBadgeTone } from "@/lib/calendar";
+import { BADGE_FILL, isAssignedToUser, isDoneColumn, isOverdueTask, taskBadgeTone } from "@/lib/calendar";
+import { taskColorStyle } from "@/lib/task-color";
 import { BudgetChart, type BudgetChartRow } from "./budget-chart";
 import { afterMutation } from "@/lib/after-mutation";
 
@@ -227,7 +228,8 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                       <button
                         type="button"
                         onClick={() => openTask(task)}
-                        className={`w-full text-left border px-3 py-2 ${BADGE_CLASS[tone]}`}
+                        className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2`}
+                        data-fill={BADGE_FILL[tone]}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-sm truncate">{task.title}</span>
@@ -267,7 +269,8 @@ export function DashboardView({ userName, projects, tasks, materials, categories
                     <button
                       type="button"
                       onClick={() => openTask(task)}
-                      className="w-full text-left rounded-lg border-2 border-graphite bg-white px-3 py-2 hover:border-primary"
+                      className={`${TASK_CHIP_CLASS} w-full text-left px-3 py-2 hover:brightness-95`}
+                      data-fill={taskColorStyle(task.color).fill}
                     >
                       <div className="flex items-center gap-2">
                         {task.isMilestone && <Diamond className="h-3.5 w-3.5 text-accent" />}
@@ -307,7 +310,7 @@ export function DashboardView({ userName, projects, tasks, materials, categories
           ) : (
             <ul className="space-y-2">
               {toBuy.slice(0, 10).map((item) => (
-                <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg border-2 border-graphite bg-white px-3 py-2">
+                <li key={item.id} className={`${TASK_CHIP_CLASS} flex items-center justify-between gap-3 px-3 py-2`} data-fill="white">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}{item.brand ? ` · ${item.brand}` : ""}</p>
                     <p className="text-xs text-muted-foreground truncate">{item.projectName}</p>

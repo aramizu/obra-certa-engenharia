@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectDialog } from "../project-dialog";
 import type { Project } from "@/lib/db/schema";
 import { formatProjectDeleteWarning } from "@/lib/domain-data";
 import { afterMutation } from "@/lib/after-mutation";
+import { isProjectArchived } from "@/lib/project-archive";
 
 interface ProjectActionsProps {
   project: Project;
@@ -21,6 +22,27 @@ export function ProjectActions({ project, taskCount, materialCount }: ProjectAct
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const archived = isProjectArchived(project);
+
+  const setArchived = async (nextArchived: boolean) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/obras/${project.id}/arquivo`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: nextArchived }),
+      });
+      if (!response.ok) {
+        throw new Error(nextArchived ? "Erro ao arquivar obra" : "Erro ao desarquivar obra");
+      }
+      await afterMutation(() => router.refresh(), { projectId: project.id });
+    } catch (error) {
+      console.error("Error updating archive:", error);
+      alert(nextArchived ? "Erro ao arquivar obra" : "Erro ao desarquivar obra");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async () => {
     setLoading(true);
@@ -61,15 +83,28 @@ export function ProjectActions({ project, taskCount, materialCount }: ProjectAct
               onClick={() => setShowMenu(false)}
             />
             <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-lg bg-white border-2 border-graphite ds-shadow z-20">
+              {!archived && (
+                <button
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted transition-colors"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowEditDialog(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </button>
+              )}
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted transition-colors"
+                disabled={loading}
                 onClick={() => {
                   setShowMenu(false);
-                  setShowEditDialog(true);
+                  void setArchived(!archived);
                 }}
               >
-                <Pencil className="h-4 w-4" />
-                Editar
+                {archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                {archived ? "Desarquivar" : "Arquivar"}
               </button>
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"

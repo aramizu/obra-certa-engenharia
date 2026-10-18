@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, uuid, index, numeric, date, customType } from "drizzle-orm/pg-core";
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -14,6 +20,8 @@ export const users = pgTable("users", {
   passwordResetExpiry: timestamp("password_reset_expiry"),
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until"),
+  avatar: bytea("avatar"),
+  avatarMime: text("avatar_mime"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
@@ -59,6 +67,7 @@ export const projects = pgTable("projects", {
   targetEndDate: date("target_end_date"),
   totalBudget: numeric("total_budget", { precision: 15, scale: 2 }).notNull().default("0"),
   workType: text("work_type").notNull().default("reforma"),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({
@@ -139,6 +148,7 @@ export const tasks = pgTable("tasks", {
   endDate: date("end_date"),
   assignee: text("assignee"),
   isMilestone: boolean("is_milestone").notNull().default(false),
+  color: text("color"),
   materialId: uuid("material_id").references(() => materials.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -146,6 +156,21 @@ export const tasks = pgTable("tasks", {
   projectIdIdx: index("tasks_project_id_idx").on(table.projectId),
   statusColumnIdIdx: index("tasks_status_column_id_idx").on(table.statusColumnId),
   dueDateIdx: index("tasks_due_date_idx").on(table.dueDate),
+}));
+
+export const notes = pgTable("notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  title: text("title"),
+  content: text("content").notNull().default(""),
+  color: text("color").notNull().default("yellow"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index("notes_user_id_idx").on(table.userId),
+  projectIdIdx: index("notes_project_id_idx").on(table.projectId),
 }));
 
 export const taskDependencies = pgTable("task_dependencies", {
@@ -176,6 +201,8 @@ export type TaskColumn = typeof taskColumns.$inferSelect;
 export type NewTaskColumn = typeof taskColumns.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
+export type Note = typeof notes.$inferSelect;
+export type NewNote = typeof notes.$inferInsert;
 export type TaskDependency = typeof taskDependencies.$inferSelect;
 export type NewTaskDependency = typeof taskDependencies.$inferInsert;
 

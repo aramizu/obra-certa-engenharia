@@ -5,6 +5,7 @@ import { projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const categorySchema = z.object({
@@ -12,14 +13,13 @@ const categorySchema = z.object({
   budgetedAmount: z.string().optional(),
 });
 
-async function verifyProjectOwnership(projectId: string, userId: string) {
+async function loadWritableProject(projectId: string, userId: string) {
   const [project] = await db
     .select()
     .from(projects)
     .where(and(eq(projects.id, projectId), eq(projects.userId, userId)))
     .limit(1);
-
-  return !!project;
+  return project ?? null;
 }
 
 export async function PATCH(
@@ -34,10 +34,11 @@ export async function PATCH(
 
     const { id: projectId, categoryId } = await params;
 
-    const isOwner = await verifyProjectOwnership(projectId, user.id);
-    if (!isOwner) {
+    const project = await loadWritableProject(projectId, user.id);
+    if (!project) {
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const body = await request.json();
     const data = categorySchema.parse(body);
@@ -90,10 +91,11 @@ export async function DELETE(
 
     const { id: projectId, categoryId } = await params;
 
-    const isOwner = await verifyProjectOwnership(projectId, user.id);
-    if (!isOwner) {
+    const project = await loadWritableProject(projectId, user.id);
+    if (!project) {
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const [category] = await db
       .delete(budgetCategories)

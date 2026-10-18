@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { getOwnedProject } from "@/lib/owned-project";
 import { loadProjectLista } from "@/lib/project-lista";
 import { ListaView } from "./lista-view";
+import { ArchivedObraBanner } from "@/components/archived-obra-banner";
+import { isProjectArchived } from "@/lib/project-archive";
 
 export default async function ProjectListaPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await validateSession();
@@ -15,6 +17,7 @@ export default async function ProjectListaPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const project = await getOwnedProject(id, user.id);
   if (!project) redirect("/obras?aviso=obra-inexistente");
+  const archived = isProjectArchived(project);
 
   const lista = await loadProjectLista(id);
   const userSuppliers = await db.select().from(suppliers).where(eq(suppliers.userId, user.id));
@@ -23,7 +26,9 @@ export default async function ProjectListaPage({ params }: { params: Promise<{ i
     <>
       <PageTitle title="Lista de materiais" description={project.name} />
       <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto space-y-4">
+          {archived && <ArchivedObraBanner projectId={project.id} />}
+          <div {...(archived ? { inert: true } : {})}>
           <ListaView
             project={project}
             catalog={lista.catalog}
@@ -44,6 +49,7 @@ export default async function ProjectListaPage({ params }: { params: Promise<{ i
             initialItems={lista.items}
             suppliers={userSuppliers}
           />
+          </div>
         </div>
       </main>
     </>

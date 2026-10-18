@@ -4,16 +4,19 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, Diamond, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs } from "@/components/ds";
 import { GanttTaskDialog } from "./gantt-task-dialog";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { afterMutation } from "@/lib/after-mutation";
-import { formatISODate, today } from "@/lib/date";
+import { today } from "@/lib/date";
 import { dependencyConflict, isMilestoneTask, shiftSchedule, taskSchedule } from "@/lib/gantt";
-import { GANTT_BAR_CLASS, formatGanttDateRange, ganttLabelFitsInside, isWeekend, taskBadgeTone } from "@/lib/calendar";
+import { formatGanttDateRange, ganttLabelFitsInside, isWeekend } from "@/lib/calendar";
+import { taskColorStyle } from "@/lib/task-color";
 import {
   formatGanttHeaderBottom,
   formatGanttHeaderTop,
   ganttBarColumnSpan,
+  ganttClockHourToColumn,
   ganttColumns,
   ganttMinColumnPx,
   shiftGanttCursor,
@@ -82,7 +85,6 @@ export function GanttChart({
   }, []);
 
   const todayDate = useMemo(() => today(), []);
-  const todayIso = formatISODate(todayDate);
   const columns = useMemo(() => ganttColumns(zoom, cursor), [cursor, zoom]);
   const minColWidth = ganttMinColumnPx(zoom);
   const colCount = columns.length;
@@ -124,7 +126,9 @@ export function GanttChart({
 
   const todayIndex = useMemo(() => {
     if (zoom === "day") {
-      return sameDay(cursor, todayDate) ? new Date().getHours() : -1;
+      if (!sameDay(cursor, todayDate)) return -1;
+      const hour = ganttClockHourToColumn(new Date().getHours());
+      return columns.findIndex((column) => column.hour === hour);
     }
     return columns.findIndex((column) => sameDay(column.date, todayDate));
   }, [columns, cursor, todayDate, zoom]);
@@ -209,18 +213,15 @@ export function GanttChart({
     <div className="flex h-full flex-col gap-3 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 overflow-hidden rounded-lg bg-white border-2 border-graphite p-0">
-            {(["day", "week", "month"] as GanttZoom[]).map((option) => (
-              <Button
-                key={option}
-                size="sm"
-                variant={zoom === option ? "default" : "ghost"}
-                onClick={() => setZoom(option)}
-              >
-                {option === "day" ? "Dia" : option === "week" ? "Semana" : "Mês"}
-              </Button>
-            ))}
-          </div>
+          <Tabs
+            value={zoom}
+            onChange={(value) => setZoom(value as GanttZoom)}
+            items={[
+              { value: "day", label: "Dia" },
+              { value: "week", label: "Semana" },
+              { value: "month", label: "Mês" },
+            ]}
+          />
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
@@ -353,7 +354,7 @@ export function GanttChart({
                 {orderedTasks.map((task) => {
                   const schedule = taskSchedule(task);
                   const conflict = conflictIds.has(task.id);
-                  const tone = taskBadgeTone(task, task.columnName, todayIso);
+                  const color = taskColorStyle(task.color);
                   const span = schedule
                     ? ganttBarColumnSpan(zoom, columns, schedule.start, schedule.end)
                     : null;
@@ -406,8 +407,9 @@ export function GanttChart({
                               role="button"
                               tabIndex={0}
                               className={`absolute top-1/2 -translate-y-1/2 z-[3] h-7 overflow-hidden text-xs flex items-center font-display uppercase tracking-wide ${
-                                GANTT_BAR_CLASS[tone]
+                                color.bar
                               } ${conflict ? "ring-2 ring-delay" : ""} ${allowDrag ? "cursor-grab" : "cursor-pointer"}`}
+                              data-fill={color.fill}
                               style={{
                                 left: `${(span.startIndex / colCount) * 100}%`,
                                 width: `${(spanCount / colCount) * 100}%`,

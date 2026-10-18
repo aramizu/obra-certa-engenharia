@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -29,6 +30,16 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const data = projectSchema.parse(body);
+
+    const [owned] = await db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.id, id), eq(projects.userId, user.id)))
+      .limit(1);
+    if (!owned) {
+      return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    }
+    if (isProjectArchived(owned)) return archivedWriteResponse();
 
     const [project] = await db
       .update(projects)

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { sessions, users } from "@/lib/db/schema";
-import { eq, and, gt, lt } from "drizzle-orm";
+import { eq, and, gt, lt, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
 const SESSION_COOKIE_NAME = "session_token";
@@ -14,6 +14,7 @@ export interface SessionUser {
   email: string;
   emailVerified: boolean;
   isAdmin: boolean;
+  avatarVersion: string | null;
 }
 
 /**
@@ -83,8 +84,15 @@ export const validateSession = cache(async (): Promise<SessionUser | null> => {
 
   const result = await db
     .select({
-      user: users,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        emailVerified: users.emailVerified,
+        isAdmin: users.isAdmin,
+      },
       session: sessions,
+      avatarHash: sql<string | null>`md5(${users.avatar})`,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
@@ -100,7 +108,7 @@ export const validateSession = cache(async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  const { user, session } = result[0];
+  const { user, session, avatarHash } = result[0];
 
   // Rotação de sessão: renovar se estiver na metade final do período
   const halfDuration = SESSION_DURATION_MS / 2;
@@ -134,6 +142,7 @@ export const validateSession = cache(async (): Promise<SessionUser | null> => {
     email: user.email,
     emailVerified: user.emailVerified,
     isAdmin: Boolean(user.isAdmin) || adminEmails.includes(user.email.toLowerCase()),
+    avatarVersion: avatarHash ?? null,
   };
 });
 

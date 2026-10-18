@@ -6,6 +6,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { wouldCreateCycle } from "@/lib/gantt";
 import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
@@ -16,6 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { projectId } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const { taskId, dependsOnTaskId } = await request.json();
     if (!taskId || !dependsOnTaskId) {

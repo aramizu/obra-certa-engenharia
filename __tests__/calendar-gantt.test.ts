@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BADGE_CLASS,
+  BADGE_FILL,
   GANTT_BAR_CLASS,
   GANTT_MILESTONE_CLASS,
   WEEKDAY_LABELS,
@@ -37,16 +38,15 @@ describe("Gantt calendar helpers", () => {
       expect(GANTT_BAR_CLASS[tone]).toBeTruthy();
       expect(GANTT_MILESTONE_CLASS[tone]).toBeTruthy();
     }
-    expect(GANTT_BAR_CLASS.high).toContain("bg-delay-wash");
-    expect(GANTT_BAR_CLASS.medium).toContain("bg-signal-wash");
-    expect(GANTT_BAR_CLASS.low).toContain("bg-blueprint-wash");
-    expect(GANTT_BAR_CLASS.milestone).toContain("bg-primary");
-    expect(GANTT_BAR_CLASS.overdue).toContain("bg-delay");
-    expect(GANTT_BAR_CLASS.overdue).toContain("text-delay-ink");
-    expect(GANTT_BAR_CLASS.done).toContain("bg-done-wash");
-    expect(GANTT_BAR_CLASS.high).toEqual(expect.stringContaining("border-delay"));
-    expect(GANTT_BAR_CLASS.high).toContain("rounded-md");
-    expect(BADGE_CLASS.high).toContain("rounded-full");
+    expect(GANTT_BAR_CLASS.high).toContain("ds-chip-surface");
+    expect(GANTT_BAR_CLASS.high).toContain("ds-chip");
+    expect(GANTT_BAR_CLASS.high).not.toContain("ds-chip-pill");
+    expect(GANTT_BAR_CLASS.milestone).toContain("ds-chip");
+    expect(GANTT_BAR_CLASS.overdue).toContain("ds-chip-surface");
+    expect(GANTT_BAR_CLASS.done).toContain("ds-chip");
+    expect(BADGE_CLASS.high).toContain("ds-chip-pill");
+    expect(BADGE_FILL.high).toBe("delay-wash");
+    expect(BADGE_FILL.milestone).toBe("primary");
   });
 
   it("deriva tom de atraso e concluída a partir da coluna", () => {

@@ -24,8 +24,10 @@ import {
   TableHeader,
   TableRow,
   Tabs,
+  TaskChip,
   Textarea,
 } from "@/components/ds";
+import { TASK_COLORS } from "@/lib/task-color";
 
 const swatches = [
   { name: "Grafite", className: "bg-graphite", hex: "hsl(20 12% 14%)" },
@@ -44,7 +46,7 @@ export function DesignSystemCatalog() {
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-16">
       <Alert tone="info" title="Prancha OC-DS">
-        Identidade da Obra Certa: concreto, laranja de segurança, azul de planta. Superfícies brancas sólidas, cantos arredondados (cards 16px, controles 12px, selos em pílula).
+        Identidade da Obra Certa: concreto, laranja de segurança, azul de planta. Superfícies brancas sólidas, cantos arredondados (cards/tarefas 16px, controles 12px). Selos compactos em pílula. Chip colorido: borda e texto na mesma matiz, contrastando pela luminância do fundo.
       </Alert>
 
       <section className="space-y-3">
@@ -67,9 +69,9 @@ export function DesignSystemCatalog() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { name: "Controles", value: "10–12px", className: "rounded-md" },
-            { name: "Cards · modais", value: "16px", className: "rounded-lg" },
+            { name: "Cards · tarefas", value: "16px · ds-chip", className: "rounded-lg" },
             { name: "Painéis", value: "20–24px", className: "rounded-2xl" },
-            { name: "Selos · barras", value: "pílula", className: "rounded-full" },
+            { name: "Selos compactos", value: "pílula · ds-chip-pill", className: "rounded-full" },
           ].map((token) => (
             <div key={token.name} className={`border-2 border-graphite bg-white ds-shadow p-4 ${token.className}`}>
               <div className={`h-10 bg-primary ${token.className}`} />
@@ -127,6 +129,46 @@ export function DesignSystemCatalog() {
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="ds-notes">Observação</Label>
             <Textarea id="ds-notes" defaultValue="Conferir cota de nível na prancha A-03." />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-title">Chips · contraste</h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          Qualquer chip, badge, tag ou balão com fundo colorido usa <code className="font-mono text-xs">.ds-chip-surface</code>.
+          Se o fill é claro (L &gt; 0.5), borda e texto escurecem na mesma matiz; se o fill é escuro, clareiam.
+          Cores de tarefa (e qualquer CSS em <code className="font-mono text-xs">--ds-chip-fill</code>) passam pelo mesmo cálculo.
+          Balões de tarefa usam o raio de <strong>Minhas tarefas</strong> (não pílula).
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
+            <p className="text-label">Fundo claro → borda escura</p>
+            <div className="flex flex-wrap gap-2">
+              <TaskChip fill="primary-wash" className="px-3 py-1 text-xs font-display uppercase">Segurança</TaskChip>
+              <TaskChip fill="signal-wash" className="px-3 py-1 text-xs font-display uppercase">Sinal</TaskChip>
+              <TaskChip fill="done-wash" className="px-3 py-1 text-xs font-display uppercase">Concluído</TaskChip>
+              <TaskChip fill="hsl(48 92% 70%)" className="px-3 py-1 text-xs font-display uppercase">Post-it</TaskChip>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-label">Fundo escuro → borda clara</p>
+            <div className="flex flex-wrap gap-2">
+              <TaskChip fill="primary" className="px-3 py-1 text-xs font-display uppercase">Segurança</TaskChip>
+              <TaskChip fill="blueprint" className="px-3 py-1 text-xs font-display uppercase">Planta</TaskChip>
+              <TaskChip fill="delay" className="px-3 py-1 text-xs font-display uppercase">Atraso</TaskChip>
+              <TaskChip fill="graphite" className="px-3 py-1 text-xs font-display uppercase">Grafite</TaskChip>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <p className="text-label">Paleta de tarefa (mesmo raio do painel)</p>
+          <div className="flex flex-wrap gap-2">
+            {TASK_COLORS.map((color) => (
+              <TaskChip key={color.id} fill={color.fill} className="px-3 py-1 text-xs font-display uppercase tracking-wide">
+                {color.label}
+              </TaskChip>
+            ))}
           </div>
         </div>
       </section>

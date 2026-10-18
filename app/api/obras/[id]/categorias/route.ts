@@ -5,6 +5,7 @@ import { projects, budgetCategories } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { MISSING_OBRA_ERROR } from "@/lib/domain-data";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 const categorySchema = z.object({
@@ -33,6 +34,7 @@ export async function POST(
     if (!project) {
       return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
     }
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const body = await request.json();
     const data = categorySchema.parse(body);

@@ -5,6 +5,7 @@ import { materials, projects } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { formatISODate, today } from "@/lib/date";
 import { MISSING_MATERIAL_ERROR } from "@/lib/domain-data";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -19,13 +20,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const [owned] = await db
-      .select({ id: materials.id })
+      .select({ id: materials.id, archivedAt: projects.archivedAt })
       .from(materials)
       .innerJoin(projects, eq(materials.projectId, projects.id))
       .where(and(eq(materials.id, id), eq(projects.userId, user.id)))
       .limit(1);
 
     if (!owned) return NextResponse.json({ error: MISSING_MATERIAL_ERROR }, { status: 404 });
+    if (isProjectArchived(owned)) return archivedWriteResponse();
 
     const [material] = await db
       .update(materials)

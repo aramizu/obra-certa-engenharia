@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import type { Task, TaskDependency } from "@/lib/db/schema";
 import { dependencyConflict, isMilestoneTask } from "@/lib/gantt";
 import { afterMutation } from "@/lib/after-mutation";
+import { TaskColorPicker } from "@/components/task-color-picker";
+import { DEFAULT_TASK_COLOR, resolveTaskColorId, type TaskColorId } from "@/lib/task-color";
 
 interface GanttTaskDialogProps {
   open: boolean;
@@ -33,6 +35,7 @@ export function GanttTaskDialog({
   const [loading, setLoading] = useState(false);
   const [isMilestone, setIsMilestone] = useState(false);
   const [predecessorIds, setPredecessorIds] = useState<string[]>([]);
+  const [color, setColor] = useState<TaskColorId>(DEFAULT_TASK_COLOR);
 
   const currentDeps = useMemo(
     () => (task ? dependencies.filter((dep) => dep.taskId === task.id) : []),
@@ -43,6 +46,7 @@ export function GanttTaskDialog({
     if (!open) return;
     setIsMilestone(task ? isMilestoneTask(task) : createMilestone);
     setPredecessorIds(task ? currentDeps.map((dep) => dep.dependsOnTaskId) : []);
+    setColor(resolveTaskColorId(task?.color));
   }, [open, task, createMilestone, currentDeps]);
 
   const otherTasks = tasks.filter((item) => item.id !== task?.id);
@@ -56,6 +60,7 @@ export function GanttTaskDialog({
       description: (formData.get("description") as string) || null,
       assignee: (formData.get("assignee") as string) || null,
       isMilestone,
+      color,
       startDate: (formData.get("startDate") as string) || null,
       dueDate: isMilestone
         ? (formData.get("startDate") as string) || (formData.get("dueDate") as string) || null
@@ -141,6 +146,11 @@ export function GanttTaskDialog({
                 defaultValue={task?.description || ""}
                 className="w-full min-h-[72px] rounded-md px-3 py-2 text-sm border-2 border-graphite bg-white"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <TaskColorPicker value={color} onChange={setColor} disabled={loading} />
             </div>
 
             <label className="flex items-center gap-2 text-sm">

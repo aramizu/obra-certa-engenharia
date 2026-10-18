@@ -3,6 +3,7 @@ import {
   formatGanttHeaderBottom,
   formatGanttHeaderTop,
   ganttBarColumnSpan,
+  ganttClockHourToColumn,
   ganttColumns,
   shiftGanttCursor,
 } from "@/lib/gantt-header";
@@ -30,30 +31,32 @@ describe("rótulos do cabeçalho do Gantt", () => {
     );
   });
 
-  it("visão semana: 7 dias com números de 2 dígitos na linha de baixo", () => {
+  it("visão semana: 7 dias no formato DD-Dia, igual ao mês", () => {
     const columns = ganttColumns("week", new Date(2026, 9, 17));
     expect(columns).toHaveLength(7);
     expect(columns.map((column) => formatGanttHeaderBottom("week", column.date))).toEqual([
-      "11",
-      "12",
-      "13",
-      "14",
-      "15",
-      "16",
-      "17",
+      "11-Dom",
+      "12-Seg",
+      "13-Ter",
+      "14-Qua",
+      "15-Qui",
+      "16-Sex",
+      "17-Sáb",
     ]);
     expect(formatGanttHeaderTop("week", columns[0].date, columns.at(-1)!.date)).toBe(
       "Outubro (11-17) 2026"
     );
   });
 
-  it("visão dia: linha de cima = dd/mm/yyyy; linha de baixo = 00..23", () => {
+  it("visão dia: linha de cima = dd/mm/yyyy; linha de baixo = 1h..24h", () => {
     const day = new Date(2026, 9, 17);
     const columns = ganttColumns("day", day);
     expect(columns).toHaveLength(24);
+    expect(columns[0].hour).toBe(1);
+    expect(columns.at(-1)!.hour).toBe(24);
     expect(formatGanttHeaderTop("day", day)).toBe("17/10/2026");
     expect(columns.map((column) => formatGanttHeaderBottom("day", column.date, column.hour))).toEqual(
-      Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"))
+      Array.from({ length: 24 }, (_, index) => `${index + 1}h`)
     );
   });
 
@@ -89,6 +92,13 @@ describe("colunas e barras alinhadas ao cabeçalho", () => {
       endIndex: 23,
     });
     expect(ganttBarColumnSpan("day", columns, new Date(2026, 9, 18), new Date(2026, 9, 20))).toBeNull();
+  });
+
+  it("mapeia meia-noite do relógio para a coluna 24h", () => {
+    expect(ganttClockHourToColumn(0)).toBe(24);
+    expect(ganttClockHourToColumn(1)).toBe(1);
+    expect(ganttClockHourToColumn(14)).toBe(14);
+    expect(ganttClockHourToColumn(23)).toBe(23);
   });
 
   it("navega cursor por mês, semana e dia", () => {

@@ -5,7 +5,9 @@ import { tasks } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { MISSING_OBRA_ERROR, MISSING_TASK_ERROR } from "@/lib/domain-data";
 import { getOwnedProject } from "@/lib/owned-project";
+import { archivedWriteResponse, isProjectArchived } from "@/lib/project-archive";
 import { revalidateDomainPages } from "@/lib/revalidate-app";
+import { isTaskColorId, parseTaskColorInput } from "@/lib/task-color";
 
 function emptyToNull(value: unknown) {
   if (typeof value !== "string") return null;
@@ -21,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { projectId, id } = await params;
     const project = await getOwnedProject(projectId, user.id);
     if (!project) return NextResponse.json({ error: MISSING_OBRA_ERROR }, { status: 404 });
+    if (isProjectArchived(project)) return archivedWriteResponse();
 
     const body = await request.json();
     const updates: Record<string, unknown> = { updatedAt: new Date() };
@@ -32,6 +35,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if ("description" in body) updates.description = emptyToNull(body.description);
     if ("assignee" in body) updates.assignee = emptyToNull(body.assignee);
     if ("isMilestone" in body) updates.isMilestone = Boolean(body.isMilestone);
+    if ("color" in body) {
+      if (body.color != null && body.color !== "" && !isTaskColorId(body.color)) {
+        return NextResponse.json({ error: "Cor inválida" }, { status: 400 });
+      }
+      const parsedColor = parseTaskColorInput(body.color, "patch");
+      if (parsedColor !== undefined) updates.color = parsedColor;
+    }
 
     const milestone = "isMilestone" in body ? Boolean(body.isMilestone) : undefined;
     let start = "startDate" in body ? emptyToNull(body.startDate) : undefined;
