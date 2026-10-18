@@ -13,15 +13,15 @@ export type NoteColorId = (typeof NOTE_COLOR_IDS)[number];
 
 export const DEFAULT_NOTE_COLOR: NoteColorId = "yellow";
 
-export const NOTE_COLORS: { id: NoteColorId; label: string; paper: string }[] = [
-  { id: "yellow", label: "Amarelo", paper: "bg-[hsl(48_92%_70%)]" },
-  { id: "peach", label: "Pêssego", paper: "bg-[hsl(22_88%_78%)]" },
-  { id: "pink", label: "Rosa", paper: "bg-[hsl(340_62%_82%)]" },
-  { id: "mint", label: "Menta", paper: "bg-[hsl(152_36%_78%)]" },
-  { id: "sky", label: "Céu", paper: "bg-[hsl(210_52%_80%)]" },
-  { id: "lilac", label: "Lilás", paper: "bg-[hsl(270_38%_82%)]" },
-  { id: "butter", label: "Manteiga", paper: "bg-[hsl(46_100%_76%)]" },
-  { id: "sage", label: "Sálvia", paper: "bg-[hsl(110_22%_78%)]" },
+export const NOTE_COLORS: { id: NoteColorId; label: string; fill: string }[] = [
+  { id: "yellow", label: "Amarelo", fill: "hsl(48 92% 70%)" },
+  { id: "peach", label: "Pêssego", fill: "hsl(22 88% 78%)" },
+  { id: "pink", label: "Rosa", fill: "hsl(340 62% 82%)" },
+  { id: "mint", label: "Menta", fill: "hsl(152 36% 78%)" },
+  { id: "sky", label: "Céu", fill: "hsl(210 52% 80%)" },
+  { id: "lilac", label: "Lilás", fill: "hsl(270 38% 82%)" },
+  { id: "butter", label: "Manteiga", fill: "hsl(46 100% 76%)" },
+  { id: "sage", label: "Sálvia", fill: "hsl(110 22% 78%)" },
 ];
 
 export function isNoteColorId(value: unknown): value is NoteColorId {
@@ -32,9 +32,9 @@ export function resolveNoteColorId(color: string | null | undefined): NoteColorI
   return isNoteColorId(color) ? color : DEFAULT_NOTE_COLOR;
 }
 
-export function notePaperClass(color: string | null | undefined) {
+export function noteFill(color: string | null | undefined) {
   const id = resolveNoteColorId(color);
-  return NOTE_COLORS.find((item) => item.id === id)!.paper;
+  return NOTE_COLORS.find((item) => item.id === id)!.fill;
 }
 
 /** Rotação leve e estável a partir do id (−2.4° a 2.4°). */

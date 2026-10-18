@@ -4,6 +4,7 @@ import {
   NOTE_COLOR_IDS,
   applyNoteMove,
   dropIndexFromPoint,
+  noteFill,
   noteRotationDeg,
   resolveNoteColorId,
 } from "@/lib/notes";
@@ -14,6 +15,8 @@ describe("post-its", () => {
     expect(DEFAULT_NOTE_COLOR).toBe("yellow");
     expect(resolveNoteColorId(null)).toBe("yellow");
     expect(resolveNoteColorId("mint")).toBe("mint");
+    expect(noteFill("yellow")).toMatch(/^hsl\(/);
+    expect(noteFill(null)).toBe(noteFill("yellow"));
   });
 
   it("rotação é estável por id e pequena", () => {

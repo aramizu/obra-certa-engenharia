@@ -1,19 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ds";
-import { EmptyState } from "@/components/ds";
+import { CHIP_SURFACE_CLASS, EmptyState, PILL_CHIP_CLASS, Select, TASK_CHIP_RADIUS_CLASS } from "@/components/ds";
 import { afterMutation } from "@/lib/after-mutation";
 import {
   DEFAULT_NOTE_COLOR,
   NOTE_COLORS,
   applyNoteMove,
   dropIndexFromPoint,
-  notePaperClass,
+  noteFill,
   noteRotationDeg,
   resolveNoteColorId,
   type NoteColorId,
@@ -307,10 +306,8 @@ export function PostItsBoard({
 function PostItFace({ note, children }: { note: BoardNote; children?: ReactNode }) {
   return (
     <div
-      className={cn(
-        "relative rounded-lg border-2 border-graphite ds-shadow p-4 pt-6 min-h-[12rem] text-foreground",
-        notePaperClass(note.color)
-      )}
+      className={cn(CHIP_SURFACE_CLASS, TASK_CHIP_RADIUS_CLASS, "relative ds-shadow p-4 pt-6 min-h-[12rem]")}
+      style={{ "--ds-chip-fill": noteFill(note.color) } as CSSProperties}
     >
       <span aria-hidden className="ds-sticky-tape absolute left-1/2 top-1.5 h-3.5 w-[42%] -translate-x-1/2 -rotate-2" />
       {children}
@@ -385,10 +382,11 @@ function PostItCard({
                 aria-label={item.label}
                 title={item.label}
                 className={cn(
-                  "h-5 w-5 rounded-full border-2 border-graphite",
-                  item.paper,
+                  PILL_CHIP_CLASS,
+                  "h-5 w-5 p-0",
                   item.id === color ? "ring-2 ring-graphite ring-offset-1" : ""
                 )}
+                style={{ "--ds-chip-fill": item.fill } as CSSProperties}
                 onClick={() => {
                   if (item.id !== color) void onSave(note.id, { color: item.id });
                 }}
